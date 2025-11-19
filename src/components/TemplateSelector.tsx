@@ -12,27 +12,34 @@ export const TemplateSelector = ({
   onSelect,
 }: TemplateSelectorProps) => {
   return (
-    <div className="mb-6">
-      <h3 className="text-lg font-semibold mb-3 text-gray-700">テンプレート選択</h3>
-      <div className="grid grid-cols-3 gap-4">
+    <div>
+      <div className="grid grid-cols-2 gap-3">
         {templates.map((template) => (
           <button
             key={template.id}
             onClick={() => onSelect(template)}
-            className={`p-4 rounded-lg border-2 transition-all ${
+            className={`group relative overflow-hidden rounded-xl transition-all duration-200 ${
               selectedTemplate.id === template.id
-                ? 'border-blue-500 bg-blue-50 shadow-md'
-                : 'border-gray-300 bg-white hover:border-blue-300'
+                ? 'ring-2 ring-blue-500 ring-offset-2'
+                : 'hover:scale-[1.02] hover:shadow-md'
             }`}
           >
             <div
-              className="w-full h-16 rounded mb-2"
+              className="aspect-video w-full rounded-lg"
               style={{ backgroundColor: template.backgroundColor }}
             />
-            <p className="text-sm font-medium text-gray-700">{template.name}</p>
+            {selectedTemplate.id === template.id && (
+              <div className="absolute top-2 right-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+            )}
+            <p className="text-xs font-medium text-gray-600 mt-2 text-center">{template.name}</p>
           </button>
         ))}
       </div>
     </div>
   );
 };
+

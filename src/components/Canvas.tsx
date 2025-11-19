@@ -7,6 +7,8 @@ interface CanvasProps {
   template: Template;
   textElements: TextElement[];
   scale?: number;
+  canvasColor: string;
+  fileName?: string;
 }
 
 export interface CanvasRef {
@@ -14,7 +16,7 @@ export interface CanvasRef {
 }
 
 export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
-  { template, textElements, scale = 0.5 },
+  { template, textElements, scale = 0.5, canvasColor, fileName = 'artwork-01.png' },
   ref
 ) {
   const stageRef = useRef<Konva.Stage>(null);
@@ -27,8 +29,11 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   }));
 
   return (
-    <div className="flex justify-center items-center bg-gray-100 p-8 rounded-lg shadow-inner">
-      <div className="border-2 border-gray-300 shadow-xl">
+    <div className="relative">
+      <div className="absolute -top-8 left-0 text-sm font-medium text-gray-700">
+        {fileName}
+      </div>
+      <div className="bg-white shadow-xl border border-gray-200">
         <Stage
           ref={stageRef}
           width={template.width * scale}
@@ -42,22 +47,22 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
               y={0}
               width={template.width}
               height={template.height}
-              fill={template.backgroundColor}
+              fill={canvasColor}
             />
-            {textElements.map((element) => (
-              <Text
-                key={element.id}
-                text={element.text}
-                x={element.x}
-                y={element.y}
-                fontSize={element.fontSize}
-                fontFamily={element.fontFamily}
-                fill={element.fill}
-                draggable
-              />
-            ))}
-          </Layer>
-        </Stage>
+              {textElements.map((element) => (
+                <Text
+                  key={element.id}
+                  text={element.text}
+                  x={element.x}
+                  y={element.y}
+                  fontSize={element.fontSize}
+                  fontFamily={element.fontFamily}
+                  fill={element.fill}
+                  draggable
+                />
+              ))}
+            </Layer>
+          </Stage>
       </div>
     </div>
   );

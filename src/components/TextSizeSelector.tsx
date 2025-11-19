@@ -1,8 +1,8 @@
 const FONT_SIZES = [
-  { label: '小', value: 40 },
-  { label: '中', value: 80 },
-  { label: '大', value: 120 },
-  { label: '特大', value: 160 },
+  { label: 'S', value: 40 },
+  { label: 'M', value: 80 },
+  { label: 'L', value: 120 },
+  { label: 'XL', value: 160 },
 ];
 
 interface TextSizeSelectorProps {
@@ -12,17 +12,19 @@ interface TextSizeSelectorProps {
 
 export const TextSizeSelector = ({ selectedSize, onSelect }: TextSizeSelectorProps) => {
   return (
-    <div className="mb-6">
-      <h3 className="text-lg font-semibold mb-3 text-gray-700">テキストサイズ</h3>
+    <div>
+      <label className="block text-sm font-semibold text-gray-900 mb-3">
+        テキストサイズ
+      </label>
       <div className="grid grid-cols-4 gap-2">
         {FONT_SIZES.map((size) => (
           <button
             key={size.value}
             onClick={() => onSelect(size.value)}
-            className={`py-2 px-3 rounded-lg border-2 transition-all ${
+            className={`relative py-2.5 rounded-lg text-sm font-medium transition-all ${
               selectedSize === size.value
-                ? 'border-blue-500 bg-blue-50 font-bold'
-                : 'border-gray-300 bg-white hover:border-blue-300'
+                ? 'bg-blue-500 text-white shadow-md shadow-blue-200'
+                : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
             }`}
           >
             {size.label}
