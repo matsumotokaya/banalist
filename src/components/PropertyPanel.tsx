@@ -9,6 +9,8 @@ interface PropertyPanelProps {
   onOpacityChange?: (opacity: number) => void;
   onBringToFront?: () => void;
   onSendToBack?: () => void;
+  isMobile?: boolean;
+  onClose?: () => void;
 }
 
 const PRESET_COLORS = [
@@ -46,8 +48,11 @@ const getWeightLabel = (weight: number): string => {
   return 'Black';
 };
 
-export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, onSizeChange, onWeightChange, onOpacityChange, onBringToFront, onSendToBack }: PropertyPanelProps) => {
+export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, onSizeChange, onWeightChange, onOpacityChange, onBringToFront, onSendToBack, isMobile = false, onClose }: PropertyPanelProps) => {
   if (!selectedElement) {
+    if (isMobile) {
+      return null;
+    }
     return (
       <aside className="w-60 bg-white border-l border-gray-200 overflow-y-auto">
         <div className="p-4">
@@ -68,186 +73,215 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
   const isTextElement = selectedElement.type === 'text';
   const textElement = isTextElement ? (selectedElement as TextElement) : null;
 
+  const panelContent = (
+    <>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-base font-semibold text-gray-900">プロパティ</h2>
+        {isMobile && onClose && (
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
+            <span className="material-symbols-outlined text-gray-600 text-xl">close</span>
+          </button>
+        )}
+      </div>
+
+      {/* Object type indicator */}
+      <div className="mb-4 p-2 bg-gray-50 rounded-lg">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-indigo-600 text-[18px]">
+            {selectedElement.type === 'text' ? 'text_fields' : selectedElement.type === 'image' ? 'image' : 'category'}
+          </span>
+          <span className="text-xs font-medium text-gray-700">
+            {selectedElement.type === 'text' ? 'テキスト' : selectedElement.type === 'image' ? '画像' : '図形'}
+          </span>
+        </div>
+      </div>
+
+      {/* Font selector - only for text */}
+      {isTextElement && textElement && onFontChange && (
+        <div className="mb-3">
+          <label className="block text-xs font-medium text-gray-700 mb-2">
+            フォント
+          </label>
+          <div className="relative">
+            <select
+              value={textElement.fontFamily}
+              onChange={(e) => onFontChange(e.target.value)}
+              className="w-full appearance-none px-3 py-2 pr-8 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer hover:bg-gray-100"
+            >
+              {AVAILABLE_FONTS.map((font) => (
+                <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
+                  {font.name}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Font size slider - only for text */}
+      {isTextElement && textElement && onSizeChange && (
+        <div className="mb-3">
+          <label className="block text-xs font-medium text-gray-700 mb-2">
+            テキストサイズ
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min="12"
+              max="200"
+              step="1"
+              value={textElement.fontSize}
+              onChange={(e) => onSizeChange(Number(e.target.value))}
+              className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+            />
+            <span className="text-xs font-medium text-gray-700 w-12 text-right">
+              {textElement.fontSize}px
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Font weight slider - only for text */}
+      {isTextElement && textElement && onWeightChange && (
+        <div className="mb-3">
+          <label className="block text-xs font-medium text-gray-700 mb-2">
+            フォントウェイト
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min="100"
+              max="900"
+              step="100"
+              value={textElement.fontWeight}
+              onChange={(e) => onWeightChange(Number(e.target.value))}
+              className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+            />
+            <span className="text-xs font-medium text-gray-700 w-20 text-right">
+              {getWeightLabel(textElement.fontWeight)}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Current color display */}
+      <div className="mb-3">
+        <label className="block text-xs font-medium text-gray-700 mb-2">
+          カラー
+        </label>
+        <div className="flex items-center gap-2">
+          <div
+            className="w-8 h-8 rounded border-2 border-gray-300 shadow-sm flex-shrink-0"
+            style={{ backgroundColor: currentColor }}
+          />
+          <div className="flex-1 min-w-0">
+            <input
+              type="text"
+              value={currentColor}
+              onChange={(e) => onColorChange(e.target.value)}
+              className="w-full px-2 py-1 border border-gray-300 rounded text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Color presets */}
+      <div className="mb-4">
+        <label className="block text-xs font-medium text-gray-700 mb-2">
+          カラーパレット
+        </label>
+        <div className="grid grid-cols-6 gap-1.5">
+          {PRESET_COLORS.map((color) => (
+            <button
+              key={color}
+              onClick={() => onColorChange(color)}
+              className={`w-7 h-7 rounded border-2 transition-all hover:scale-110 ${
+                currentColor.toLowerCase() === color.toLowerCase()
+                  ? 'border-indigo-600 shadow-md'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+              style={{ backgroundColor: color }}
+              title={color}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Opacity slider */}
+      {onOpacityChange && (
+        <div className="mb-4">
+          <label className="block text-xs font-medium text-gray-700 mb-2">
+            透明度
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={(selectedElement.opacity ?? 1) * 100}
+              onChange={(e) => onOpacityChange(Number(e.target.value) / 100)}
+              className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+            />
+            <span className="text-xs font-medium text-gray-700 w-12 text-right">
+              {Math.round((selectedElement.opacity ?? 1) * 100)}%
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Layer controls */}
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-2">
+          レイヤー
+        </label>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={onBringToFront}
+            className="px-3 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors flex items-center justify-center gap-1"
+            title="最前面へ"
+          >
+            <span className="material-symbols-outlined text-[16px]">flip_to_front</span>
+            <span>最前面</span>
+          </button>
+          <button
+            onClick={onSendToBack}
+            className="px-3 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors flex items-center justify-center gap-1"
+            title="最背面へ"
+          >
+            <span className="material-symbols-outlined text-[16px]">flip_to_back</span>
+            <span>最背面</span>
+          </button>
+        </div>
+      </div>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <>
+        {/* Backdrop */}
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={onClose} />
+
+        {/* Modal */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl z-50 max-h-[80vh] overflow-y-auto">
+          <div className="p-4">
+            {panelContent}
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <aside className="w-60 bg-white border-l border-gray-200 overflow-y-auto">
       <div className="p-4">
-        <h2 className="text-base font-semibold text-gray-900 mb-3">プロパティ</h2>
-
-        {/* Object type indicator */}
-        <div className="mb-4 p-2 bg-gray-50 rounded-lg">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-indigo-600 text-[18px]">
-              {selectedElement.type === 'text' ? 'text_fields' : selectedElement.type === 'image' ? 'image' : 'category'}
-            </span>
-            <span className="text-xs font-medium text-gray-700">
-              {selectedElement.type === 'text' ? 'テキスト' : selectedElement.type === 'image' ? '画像' : '図形'}
-            </span>
-          </div>
-        </div>
-
-        {/* Font selector - only for text */}
-        {isTextElement && textElement && onFontChange && (
-          <div className="mb-3">
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              フォント
-            </label>
-            <div className="relative">
-              <select
-                value={textElement.fontFamily}
-                onChange={(e) => onFontChange(e.target.value)}
-                className="w-full appearance-none px-3 py-2 pr-8 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer hover:bg-gray-100"
-              >
-                {AVAILABLE_FONTS.map((font) => (
-                  <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
-                    {font.name}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Font size slider - only for text */}
-        {isTextElement && textElement && onSizeChange && (
-          <div className="mb-3">
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              テキストサイズ
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="range"
-                min="12"
-                max="200"
-                step="1"
-                value={textElement.fontSize}
-                onChange={(e) => onSizeChange(Number(e.target.value))}
-                className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-              />
-              <span className="text-xs font-medium text-gray-700 w-12 text-right">
-                {textElement.fontSize}px
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Font weight slider - only for text */}
-        {isTextElement && textElement && onWeightChange && (
-          <div className="mb-3">
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              フォントウェイト
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="range"
-                min="100"
-                max="900"
-                step="100"
-                value={textElement.fontWeight}
-                onChange={(e) => onWeightChange(Number(e.target.value))}
-                className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-              />
-              <span className="text-xs font-medium text-gray-700 w-20 text-right">
-                {getWeightLabel(textElement.fontWeight)}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Current color display */}
-        <div className="mb-3">
-          <label className="block text-xs font-medium text-gray-700 mb-2">
-            カラー
-          </label>
-          <div className="flex items-center gap-2">
-            <div
-              className="w-8 h-8 rounded border-2 border-gray-300 shadow-sm flex-shrink-0"
-              style={{ backgroundColor: currentColor }}
-            />
-            <div className="flex-1 min-w-0">
-              <input
-                type="text"
-                value={currentColor}
-                onChange={(e) => onColorChange(e.target.value)}
-                className="w-full px-2 py-1 border border-gray-300 rounded text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Color presets */}
-        <div className="mb-4">
-          <label className="block text-xs font-medium text-gray-700 mb-2">
-            カラーパレット
-          </label>
-          <div className="grid grid-cols-6 gap-1.5">
-            {PRESET_COLORS.map((color) => (
-              <button
-                key={color}
-                onClick={() => onColorChange(color)}
-                className={`w-7 h-7 rounded border-2 transition-all hover:scale-110 ${
-                  currentColor.toLowerCase() === color.toLowerCase()
-                    ? 'border-indigo-600 shadow-md'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-                style={{ backgroundColor: color }}
-                title={color}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Opacity slider */}
-        {onOpacityChange && (
-          <div className="mb-4">
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              透明度
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="range"
-                min="0"
-                max="100"
-                step="1"
-                value={(selectedElement.opacity ?? 1) * 100}
-                onChange={(e) => onOpacityChange(Number(e.target.value) / 100)}
-                className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-              />
-              <span className="text-xs font-medium text-gray-700 w-12 text-right">
-                {Math.round((selectedElement.opacity ?? 1) * 100)}%
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Layer controls */}
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-2">
-            レイヤー
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={onBringToFront}
-              className="px-3 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors flex items-center justify-center gap-1"
-              title="最前面へ"
-            >
-              <span className="material-symbols-outlined text-[16px]">flip_to_front</span>
-              <span>最前面</span>
-            </button>
-            <button
-              onClick={onSendToBack}
-              className="px-3 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors flex items-center justify-center gap-1"
-              title="最背面へ"
-            >
-              <span className="material-symbols-outlined text-[16px]">flip_to_back</span>
-              <span>最背面</span>
-            </button>
-          </div>
-        </div>
+        {panelContent}
       </div>
     </aside>
   );

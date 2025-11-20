@@ -79,19 +79,27 @@ interface ShapeElement {
 ### Canvas Operations
 - Add/edit text elements
 - Add shapes (rectangle, triangle, star)
+- Add images
 - Drag and drop elements
 - Resize elements (shape: free resize, text: proportional)
 - Delete elements
 
+### Multi-Selection System ✨ NEW
+- **Shift + Click**: Add/remove elements to/from selection
+- **Lasso Selection**: Drag on background to select multiple elements (⚠️ In Progress)
+- **Multi-drag**: Move all selected elements together
+- **Multi-delete**: Delete all selected elements at once
+- **Layer operations**: Bring to front / Send to back for multiple elements
+
 ### Keyboard Shortcuts
 - **Cmd/Ctrl + Z**: Undo
 - **Cmd/Ctrl + Y**: Redo
-- **Cmd/Ctrl + C**: Copy
+- **Cmd/Ctrl + C**: Copy (single element)
 - **Cmd/Ctrl + V**: Paste
-- **Delete/Backspace**: Delete selected element
+- **Delete/Backspace**: Delete selected element(s)
 
 ### History Management
-- Unified history for all element types (text + shapes)
+- Unified history for all element types (text + shapes + images)
 - Max 50 history entries
 - Full undo/redo support
 
@@ -112,48 +120,38 @@ interface ShapeElement {
 4. Add creation handler in `App.tsx`
 
 ### Canvas Architecture
-- `App.tsx`: State management, keyboard shortcuts, history
+- `BannerEditor.tsx`: State management, keyboard shortcuts, history
 - `Canvas.tsx`: Konva rendering, element selection, transformers
-- `Sidebar.tsx`: Tool palette, property editors
+- `Sidebar.tsx`: Tool palette
+- `PropertyPanel.tsx`: Element property editors
 
-## Planned Features (TODO)
+### Selection System Architecture (2025-11-20)
 
-### High Priority - Selection System Refactoring
+**Completed Refactoring:**
+- State changed from `selectedElementId: string | null` to `selectedElementIds: string[]`
+- All handlers updated to support multi-selection
+- Konva Transformer configured for multiple nodes simultaneously
+- Smart click behavior: clicking already-selected element preserves multi-selection
 
-**Current Issue:** Selection is designed for single elements only (`selectedElementId: string | null`). This limits UX significantly.
-
-**Required Refactoring:**
-1. **Multi-selection support** (Shift + Click)
-   - Change state from `selectedElementId` to `selectedElementIds: string[]`
-   - Update all selection handlers across codebase
-   - Konva Transformer already supports multiple nodes - no library limitation
-   - **Risk:** Low - requires 1-2 hours of systematic refactoring
-   - **Benefit:** Enables PowerPoint/Figma-like UX
-
-2. **Lasso Selection** (Rectangular drag selection)
-   - Draw selection rectangle on canvas during drag
-   - Select all elements that intersect with selection box
-   - Use `Konva.Util.haveIntersection()` for collision detection
-   - **Implementation:** ~1 hour after multi-selection refactoring
-   - **Reference:** Common in PowerPoint, Figma, Canva
-
-3. **Group Operations**
-   - Move multiple selected elements together (already works with Konva Transformer)
-   - Resize multiple elements proportionally
-   - Delete multiple elements at once
-   - **Implementation:** Trivial after multi-selection refactoring
-
-**Technical Assessment:**
-- ✅ Konva.js fully supports all planned features
-- ✅ No performance concerns
-- ✅ No future technical debt
-- ⚠️ Requires state management refactoring (breaking change internally, but no API changes)
-
-**Decision:** Refactoring is **strongly recommended** before adding more features to avoid compound technical debt.
+**Implementation Details:**
+- `handleElementClick()`: Distinguishes between Shift+Click (toggle) and regular click
+- Multi-drag: Selected elements maintain selection during drag operations
+- Keyboard shortcuts: Copy/Paste work with single element, Delete works with multiple
+- PropertyPanel: Only shows properties when exactly 1 element is selected
 
 ---
 
+## Known Issues
+
+### Lasso Selection (In Progress)
+- Selection rectangle visual appears correctly
+- Coordinate system mismatch preventing element selection
+- **Status**: Debugging coordinate transformation between screen and canvas space
+
 ## Future Enhancements
+- **Lasso Selection**: Complete coordinate system fix
+- **Multi-element resize**: Proportional resize of multiple selected elements
+- **Copy/Paste multiple elements**: Extend clipboard to support multi-selection
 - Image upload support
 - More shape types
 - Layer management

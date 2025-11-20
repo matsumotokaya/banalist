@@ -1,5 +1,5 @@
 import { useRef, forwardRef, useImperativeHandle, useEffect, useState } from 'react';
-import { Stage, Layer, Rect, Text, Transformer, Line, Star, Image as KonvaImage } from 'react-konva';
+import { Stage, Layer, Rect, Text, Transformer, Line, Star, Circle, Path, Image as KonvaImage } from 'react-konva';
 import type { Template, CanvasElement, TextElement, ShapeElement, ImageElement } from '../types/template';
 import type Konva from 'konva';
 
@@ -11,7 +11,7 @@ const ImageComponent = ({
   onUpdate
 }: {
   imageElement: ImageElement;
-  onSelect: (id: string) => void;
+  onSelect: (id: string, event: Konva.KonvaEventObject<MouseEvent>) => void;
   nodeRef: (node: Konva.Image | null, id: string) => void;
   onUpdate?: (id: string, updates: Partial<ImageElement>) => void;
 }) => {
@@ -36,7 +36,7 @@ const ImageComponent = ({
       rotation={imageElement.rotation || 0}
       opacity={imageElement.opacity ?? 1}
       draggable
-      onMouseDown={() => onSelect(imageElement.id)}
+      onMouseDown={(e) => onSelect(imageElement.id, e)}
       onDragEnd={(e) => {
         if (onUpdate) {
           onUpdate(imageElement.id, {
@@ -75,8 +75,8 @@ interface CanvasProps {
   canvasColor: string;
   fileName?: string;
   onTextChange?: (id: string, newText: string) => void;
-  selectedElementId?: string | null;
-  onSelectElement?: (id: string | null) => void;
+  selectedElementIds?: string[];
+  onSelectElement?: (ids: string[]) => void;
   onElementUpdate?: (id: string, updates: Partial<CanvasElement>) => void;
 }
 
@@ -85,7 +85,7 @@ export interface CanvasRef {
 }
 
 export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
-  { template, elements, scale = 0.5, canvasColor, fileName = 'artwork-01.png', onTextChange, selectedElementId, onSelectElement, onElementUpdate },
+  { template, elements, scale = 0.5, canvasColor, fileName = 'artwork-01.png', onTextChange, selectedElementIds = [], onSelectElement, onElementUpdate },
   ref
 ) {
   const stageRef = useRef<Konva.Stage>(null);
@@ -93,6 +93,8 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   const nodesRef = useRef<Map<string, Konva.Node>>(new Map());
   const [isEditing, setIsEditing] = useState(false);
   const [selectedNodeType, setSelectedNodeType] = useState<'text' | 'shape' | 'image' | null>(null);
+  const [selectionRect, setSelectionRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+  const selectionStartRef = useRef<{ x: number; y: number } | null>(null);
 
   useImperativeHandle(ref, () => ({
     exportImage: () => {
@@ -109,10 +111,12 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
       const dataURL = stageRef.current.toDataURL({ pixelRatio: 1 / scale });
 
       // Restore transformer selection after export
-      if (selectedElementId && !isEditing) {
-        const selectedNode = nodesRef.current.get(selectedElementId);
-        if (selectedNode) {
-          transformerRef.current.nodes([selectedNode]);
+      if (selectedElementIds.length > 0 && !isEditing) {
+        const selectedNodes = selectedElementIds
+          .map(id => nodesRef.current.get(id))
+          .filter((node): node is Konva.Node => node !== undefined);
+        if (selectedNodes.length > 0) {
+          transformerRef.current.nodes(selectedNodes);
           if (layer) {
             layer.batchDraw();
           }
@@ -127,16 +131,22 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   useEffect(() => {
     if (!transformerRef.current) return;
 
-    if (selectedElementId && !isEditing) {
-      const selectedNode = nodesRef.current.get(selectedElementId);
+    if (selectedElementIds.length > 0 && !isEditing) {
+      const selectedNodes = selectedElementIds
+        .map(id => nodesRef.current.get(id))
+        .filter((node): node is Konva.Node => node !== undefined);
 
-      if (selectedNode) {
-        transformerRef.current.nodes([selectedNode]);
+      if (selectedNodes.length > 0) {
+        transformerRef.current.nodes(selectedNodes);
 
-        // Determine node type from elements
-        const element = elements.find((el) => el.id === selectedElementId);
-        if (element) {
-          setSelectedNodeType(element.type === 'text' ? 'text' : element.type === 'image' ? 'image' : 'shape');
+        // Determine node type (only if single selection)
+        if (selectedElementIds.length === 1) {
+          const element = elements.find((el) => el.id === selectedElementIds[0]);
+          if (element) {
+            setSelectedNodeType(element.type === 'text' ? 'text' : element.type === 'image' ? 'image' : 'shape');
+          }
+        } else {
+          setSelectedNodeType('shape'); // Multi-selection: use shape-like behavior
         }
       }
     } else {
@@ -144,7 +154,33 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
       setSelectedNodeType(null);
     }
     transformerRef.current.getLayer()?.batchDraw();
-  }, [selectedElementId, isEditing, elements]);
+  }, [selectedElementIds, isEditing, elements]);
+
+  // Handle element selection (single or multi with Shift)
+  const handleElementClick = (id: string, event: Konva.KonvaEventObject<MouseEvent>) => {
+    if (!onSelectElement) return;
+
+    const isShiftPressed = event.evt.shiftKey;
+    const isAlreadySelected = selectedElementIds.includes(id);
+
+    console.log('handleElementClick:', { id, isShiftPressed, isAlreadySelected, currentSelection: selectedElementIds });
+
+    if (isShiftPressed) {
+      // Shift+Click: toggle selection
+      if (isAlreadySelected) {
+        onSelectElement(selectedElementIds.filter(selectedId => selectedId !== id));
+      } else {
+        onSelectElement([...selectedElementIds, id]);
+      }
+    } else {
+      // Regular click: only change selection if clicking on unselected element
+      // This allows dragging multiple selected elements without deselecting
+      if (!isAlreadySelected || selectedElementIds.length === 1) {
+        onSelectElement([id]);
+      }
+      // If already selected and part of multi-selection, keep the current selection
+    }
+  };
 
   const handleTextDoubleClick = (element: TextElement, textNode: Konva.Text) => {
     if (!stageRef.current || !onTextChange) return;
@@ -245,11 +281,132 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
           scaleX={scale}
           scaleY={scale}
           onClick={(e) => {
-            // Deselect when clicking on empty area
-            const clickedOnEmpty = e.target === e.target.getStage();
-            if (clickedOnEmpty && onSelectElement) {
-              onSelectElement(null);
+            // Deselect when clicking on empty area (stage or background rect)
+            const isBackground = e.target === e.target.getStage() ||
+                                 (e.target.getClassName() === 'Rect' && e.target.attrs.fill === canvasColor);
+            if (isBackground && onSelectElement) {
+              onSelectElement([]);
             }
+          }}
+          onMouseDown={(e) => {
+            // Start lasso selection on background (not on elements)
+            // Elements have draggable=true, so their onMouseDown will stop propagation
+            // This only fires when clicking on Stage or background Rect
+            const target = e.target;
+            const isStage = target === e.target.getStage();
+            const isBackgroundRect = target.getClassName() === 'Rect' && target.listening() === false;
+
+            console.log('Stage onMouseDown:', {
+              targetClass: target.getClassName(),
+              isStage,
+              isBackgroundRect,
+              listening: target.listening ? target.listening() : 'N/A',
+              isEditing
+            });
+
+            if ((isStage || isBackgroundRect) && !isEditing) {
+              // Get mouse position in canvas coordinates (accounting for scale)
+              const stage = e.target.getStage();
+              if (!stage) return;
+
+              const pointerPosition = stage.getPointerPosition();
+              if (!pointerPosition) return;
+
+              // Convert screen coordinates to canvas coordinates
+              const x = pointerPosition.x / scale;
+              const y = pointerPosition.y / scale;
+
+              console.log('Starting lasso selection - pointer:', pointerPosition, 'canvas pos:', { x, y });
+              selectionStartRef.current = { x, y };
+              setSelectionRect({ x, y, width: 0, height: 0 });
+            }
+          }}
+          onMouseMove={(e) => {
+            if (!selectionStartRef.current) {
+              // Not in selection mode
+              return;
+            }
+
+            const stage = e.target.getStage();
+            if (!stage) return;
+
+            const pointerPosition = stage.getPointerPosition();
+            if (!pointerPosition) return;
+
+            // Convert screen coordinates to canvas coordinates
+            const x = pointerPosition.x / scale;
+            const y = pointerPosition.y / scale;
+
+            const startX = selectionStartRef.current.x;
+            const startY = selectionStartRef.current.y;
+
+            const rect = {
+              x: Math.min(startX, x),
+              y: Math.min(startY, y),
+              width: Math.abs(x - startX),
+              height: Math.abs(y - startY),
+            };
+
+            // Only log occasionally to avoid spam
+            if (Math.random() < 0.1) {
+              console.log('onMouseMove - start:', selectionStartRef.current, 'current:', { x, y }, 'rect:', rect);
+            }
+            setSelectionRect(rect);
+          }}
+          onMouseUp={() => {
+            if (!selectionRect || !onSelectElement) {
+              selectionStartRef.current = null;
+              setSelectionRect(null);
+              return;
+            }
+
+            // Skip if selection area is too small (just a click)
+            if (selectionRect.width < 5 && selectionRect.height < 5) {
+              selectionStartRef.current = null;
+              setSelectionRect(null);
+              return;
+            }
+
+            // Find all elements that intersect with selection rectangle
+            const selected: string[] = [];
+            console.log('Lasso selection:', selectionRect);
+
+            elements.forEach((element) => {
+              const node = nodesRef.current.get(element.id);
+              if (!node) return;
+
+              // Get bounding box in screen coordinates, then convert to canvas coordinates
+              const nodeBox = node.getClientRect({ skipTransform: false });
+              const canvasNodeBox = {
+                x: nodeBox.x / scale,
+                y: nodeBox.y / scale,
+                width: nodeBox.width / scale,
+                height: nodeBox.height / scale,
+              };
+              console.log('Element:', element.id, 'nodeBox (canvas):', canvasNodeBox);
+
+              // Check intersection
+              const intersects =
+                !(
+                  selectionRect.x > canvasNodeBox.x + canvasNodeBox.width ||
+                  selectionRect.x + selectionRect.width < canvasNodeBox.x ||
+                  selectionRect.y > canvasNodeBox.y + canvasNodeBox.height ||
+                  selectionRect.y + selectionRect.height < canvasNodeBox.y
+                );
+
+              console.log('Intersects:', intersects);
+              if (intersects) {
+                selected.push(element.id);
+              }
+            });
+
+            console.log('Selected elements:', selected);
+            if (selected.length > 0) {
+              onSelectElement(selected);
+            }
+
+            selectionStartRef.current = null;
+            setSelectionRect(null);
           }}
         >
           <Layer>
@@ -259,12 +416,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
               width={template.width}
               height={template.height}
               fill={canvasColor}
-              onClick={() => {
-                // Deselect when clicking on background
-                if (onSelectElement) {
-                  onSelectElement(null);
-                }
-              }}
+              listening={false}
             />
               {elements.map((element) => {
                 if (element.type === 'shape') {
@@ -288,11 +440,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         rotation={shape.rotation || 0}
                         opacity={shape.opacity ?? 1}
                         draggable
-                        onMouseDown={() => {
-                          if (onSelectElement) {
-                            onSelectElement(shape.id);
-                          }
-                        }}
+                        onMouseDown={(e) => handleElementClick(shape.id, e)}
                         onDragEnd={(e) => {
                           if (onElementUpdate) {
                             onElementUpdate(shape.id, {
@@ -344,11 +492,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         opacity={shape.opacity ?? 1}
                         closed
                         draggable
-                        onMouseDown={() => {
-                          if (onSelectElement) {
-                            onSelectElement(shape.id);
-                          }
-                        }}
+                        onMouseDown={(e) => handleElementClick(shape.id, e)}
                         onDragEnd={(e) => {
                           if (onElementUpdate) {
                             onElementUpdate(shape.id, {
@@ -397,11 +541,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         rotation={shape.rotation || 0}
                         opacity={shape.opacity ?? 1}
                         draggable
-                        onMouseDown={() => {
-                          if (onSelectElement) {
-                            onSelectElement(shape.id);
-                          }
-                        }}
+                        onMouseDown={(e) => handleElementClick(shape.id, e)}
                         onDragEnd={(e) => {
                           if (onElementUpdate) {
                             const centerX = e.target.x();
@@ -437,6 +577,116 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         }}
                       />
                     );
+                  } else if (shape.shapeType === 'circle') {
+                    return (
+                      <Circle
+                        key={shape.id}
+                        ref={(node) => {
+                          if (node) {
+                            nodesRef.current.set(shape.id, node);
+                          } else {
+                            nodesRef.current.delete(shape.id);
+                          }
+                        }}
+                        x={shape.x + shape.width / 2}
+                        y={shape.y + shape.height / 2}
+                        radiusX={shape.width / 2}
+                        radiusY={shape.height / 2}
+                        fill={shape.fill}
+                        rotation={shape.rotation || 0}
+                        opacity={shape.opacity ?? 1}
+                        draggable
+                        onMouseDown={(e) => handleElementClick(shape.id, e)}
+                        onDragEnd={(e) => {
+                          if (onElementUpdate) {
+                            const centerX = e.target.x();
+                            const centerY = e.target.y();
+                            onElementUpdate(shape.id, {
+                              x: centerX - shape.width / 2,
+                              y: centerY - shape.height / 2,
+                            });
+                          }
+                        }}
+                        onTransformEnd={(e) => {
+                          const node = e.target;
+                          const scaleX = node.scaleX();
+                          const scaleY = node.scaleY();
+
+                          node.scaleX(1);
+                          node.scaleY(1);
+
+                          const centerX = node.x();
+                          const centerY = node.y();
+                          const newWidth = Math.max(5, shape.width * scaleX);
+                          const newHeight = Math.max(5, shape.height * scaleY);
+
+                          if (onElementUpdate) {
+                            onElementUpdate(shape.id, {
+                              x: centerX - newWidth / 2,
+                              y: centerY - newHeight / 2,
+                              width: newWidth,
+                              height: newHeight,
+                              rotation: node.rotation(),
+                            });
+                          }
+                        }}
+                      />
+                    );
+                  } else if (shape.shapeType === 'heart') {
+                    const heartPath = `M ${shape.width / 2} ${shape.height * 0.3}
+                      C ${shape.width / 2} ${shape.height * 0.15}, ${shape.width * 0.35} 0, ${shape.width * 0.25} 0
+                      C ${shape.width * 0.1} 0, 0 ${shape.height * 0.15}, 0 ${shape.height * 0.3}
+                      C 0 ${shape.height * 0.55}, ${shape.width / 2} ${shape.height * 0.8}, ${shape.width / 2} ${shape.height}
+                      C ${shape.width / 2} ${shape.height * 0.8}, ${shape.width} ${shape.height * 0.55}, ${shape.width} ${shape.height * 0.3}
+                      C ${shape.width} ${shape.height * 0.15}, ${shape.width * 0.9} 0, ${shape.width * 0.75} 0
+                      C ${shape.width * 0.65} 0, ${shape.width / 2} ${shape.height * 0.15}, ${shape.width / 2} ${shape.height * 0.3} Z`;
+
+                    return (
+                      <Path
+                        key={shape.id}
+                        ref={(node) => {
+                          if (node) {
+                            nodesRef.current.set(shape.id, node);
+                          } else {
+                            nodesRef.current.delete(shape.id);
+                          }
+                        }}
+                        data={heartPath}
+                        x={shape.x}
+                        y={shape.y}
+                        fill={shape.fill}
+                        rotation={shape.rotation || 0}
+                        opacity={shape.opacity ?? 1}
+                        draggable
+                        onMouseDown={(e) => handleElementClick(shape.id, e)}
+                        onDragEnd={(e) => {
+                          if (onElementUpdate) {
+                            onElementUpdate(shape.id, {
+                              x: e.target.x(),
+                              y: e.target.y(),
+                            });
+                          }
+                        }}
+                        onTransformEnd={(e) => {
+                          const node = e.target;
+                          const scaleX = node.scaleX();
+                          const scaleY = node.scaleY();
+
+                          node.scaleX(1);
+                          node.scaleY(1);
+
+                          if (onElementUpdate) {
+                            onElementUpdate(shape.id, {
+                              x: node.x(),
+                              y: node.y(),
+                              width: Math.max(5, shape.width * scaleX),
+                              height: Math.max(5, shape.height * scaleY),
+                              rotation: node.rotation(),
+                            });
+                          }
+                        }}
+                      />
+                    );
                   }
                 } else if (element.type === 'text') {
                   const textElement = element as TextElement;
@@ -462,11 +712,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                       rotation={textElement.rotation || 0}
                       opacity={textElement.opacity ?? 1}
                       draggable
-                      onMouseDown={() => {
-                        if (onSelectElement) {
-                          onSelectElement(textElement.id);
-                        }
-                      }}
+                      onMouseDown={(e) => handleElementClick(textElement.id, e)}
                       onDblClick={(e) => {
                         const textNode = e.target as Konva.Text;
                         handleTextDoubleClick(textElement, textNode);
@@ -510,11 +756,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                           nodesRef.current.delete(id);
                         }
                       }}
-                      onSelect={(id) => {
-                        if (onSelectElement) {
-                          onSelectElement(id);
-                        }
-                      }}
+                      onSelect={handleElementClick}
                       onUpdate={onElementUpdate}
                     />
                   );
@@ -539,6 +781,19 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                 rotateEnabled={true}
                 keepRatio={selectedNodeType === 'text'}
               />
+              {selectionRect && (
+                <Rect
+                  x={selectionRect.x}
+                  y={selectionRect.y}
+                  width={selectionRect.width}
+                  height={selectionRect.height}
+                  fill="rgba(79, 70, 229, 0.1)"
+                  stroke="#4F46E5"
+                  strokeWidth={1}
+                  dash={[4, 4]}
+                  listening={false}
+                />
+              )}
             </Layer>
           </Stage>
       </div>

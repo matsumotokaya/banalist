@@ -31,7 +31,7 @@ export interface ShapeElement extends BaseElement {
   width: number;
   height: number;
   fill: string;
-  shapeType: 'rectangle' | 'triangle' | 'star';
+  shapeType: 'rectangle' | 'triangle' | 'star' | 'circle' | 'heart';
 }
 
 export interface ImageElement extends BaseElement {

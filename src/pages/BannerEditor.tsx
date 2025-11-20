@@ -21,7 +21,7 @@ export const BannerEditor = () => {
   const [selectedTextColor, setSelectedTextColor] = useState<string>('#000000');
   const [strokeOnly, setStrokeOnly] = useState<boolean>(false);
   const [zoom, setZoom] = useState<number>(50);
-  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]);
   const [history, setHistory] = useState<CanvasElement[][]>([]);
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
   const [copiedElement, setCopiedElement] = useState<CanvasElement | null>(null);
@@ -108,7 +108,7 @@ export const BannerEditor = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [historyIndex, history, selectedElementId, elements, copiedElement]);
+  }, [historyIndex, history, selectedElementIds, elements, copiedElement]);
 
   if (!banner || !selectedTemplate) {
     return (
@@ -148,8 +148,8 @@ export const BannerEditor = () => {
 
   // Copy
   const handleCopy = () => {
-    if (selectedElementId) {
-      const element = elements.find((el) => el.id === selectedElementId);
+    if (selectedElementIds.length === 1) {
+      const element = elements.find((el) => el.id === selectedElementIds[0]);
       if (element) {
         setCopiedElement(JSON.parse(JSON.stringify(element)));
       }
@@ -169,25 +169,25 @@ export const BannerEditor = () => {
       const newElements = [...elements, newElement];
       setElements(newElements);
       saveToHistory(newElements);
-      setSelectedElementId(newId);
+      setSelectedElementIds([newId]);
     }
   };
 
   // Delete
   const handleDelete = () => {
-    if (selectedElementId) {
-      const newElements = elements.filter((el) => el.id !== selectedElementId);
+    if (selectedElementIds.length > 0) {
+      const newElements = elements.filter((el) => !selectedElementIds.includes(el.id));
       setElements(newElements);
       saveToHistory(newElements);
-      setSelectedElementId(null);
+      setSelectedElementIds([]);
     }
   };
 
-  // Update font, size, weight, color and stroke when an element is selected
-  const handleSelectElement = (id: string | null) => {
-    setSelectedElementId(id);
-    if (id) {
-      const element = elements.find((el) => el.id === id);
+  // Update selection state and sync properties for single text element
+  const handleSelectElement = (ids: string[]) => {
+    setSelectedElementIds(ids);
+    if (ids.length === 1) {
+      const element = elements.find((el) => el.id === ids[0]);
       if (element && element.type === 'text') {
         setSelectedFont(element.fontFamily);
         setSelectedSize(element.fontSize);
@@ -215,7 +215,7 @@ export const BannerEditor = () => {
     const newElements = [...elements, newElement];
     setElements(newElements);
     saveToHistory(newElements);
-    setSelectedElementId(newId);
+    setSelectedElementIds([newId]);
   };
 
   const handleAddShape = (shapeType: 'rectangle' | 'triangle' | 'star') => {
@@ -233,7 +233,7 @@ export const BannerEditor = () => {
     const newElements = [...elements, newShape];
     setElements(newElements);
     saveToHistory(newElements);
-    setSelectedElementId(newId);
+    setSelectedElementIds([newId]);
   };
 
   const handleAddImage = (src: string, width: number, height: number) => {
@@ -250,7 +250,7 @@ export const BannerEditor = () => {
     const newElements = [...elements, newImage];
     setElements(newElements);
     saveToHistory(newElements);
-    setSelectedElementId(newId);
+    setSelectedElementIds([newId]);
   };
 
   const handleTextChange = (id: string, newText: string) => {
@@ -263,9 +263,9 @@ export const BannerEditor = () => {
 
   const handleFontChange = (font: string) => {
     setSelectedFont(font);
-    if (selectedElementId) {
+    if (selectedElementIds.length > 0) {
       const newElements = elements.map((el) =>
-        el.id === selectedElementId && el.type === 'text' ? { ...el, fontFamily: font } : el
+        selectedElementIds.includes(el.id) && el.type === 'text' ? { ...el, fontFamily: font } : el
       );
       setElements(newElements);
       saveToHistory(newElements);
@@ -274,9 +274,9 @@ export const BannerEditor = () => {
 
   const handleSizeChange = (size: number) => {
     setSelectedSize(size);
-    if (selectedElementId) {
+    if (selectedElementIds.length > 0) {
       const newElements = elements.map((el) =>
-        el.id === selectedElementId && el.type === 'text' ? { ...el, fontSize: size } : el
+        selectedElementIds.includes(el.id) && el.type === 'text' ? { ...el, fontSize: size } : el
       );
       setElements(newElements);
       saveToHistory(newElements);
@@ -285,9 +285,9 @@ export const BannerEditor = () => {
 
   const handleWeightChange = (weight: number) => {
     setSelectedWeight(weight);
-    if (selectedElementId) {
+    if (selectedElementIds.length > 0) {
       const newElements = elements.map((el) =>
-        el.id === selectedElementId && el.type === 'text' ? { ...el, fontWeight: weight } : el
+        selectedElementIds.includes(el.id) && el.type === 'text' ? { ...el, fontWeight: weight } : el
       );
       setElements(newElements);
       saveToHistory(newElements);
@@ -296,9 +296,9 @@ export const BannerEditor = () => {
 
 
   const handlePropertyColorChange = (color: string) => {
-    if (selectedElementId) {
+    if (selectedElementIds.length > 0) {
       const newElements = elements.map((el) => {
-        if (el.id === selectedElementId) {
+        if (selectedElementIds.includes(el.id)) {
           if (el.type === 'text' || el.type === 'shape') {
             return { ...el, fill: color };
           }
@@ -308,18 +308,20 @@ export const BannerEditor = () => {
       setElements(newElements);
       saveToHistory(newElements);
 
-      // Update text color state if text element is selected
-      const selectedElement = elements.find((el) => el.id === selectedElementId);
-      if (selectedElement && selectedElement.type === 'text') {
-        setSelectedTextColor(color);
+      // Update text color state if single text element is selected
+      if (selectedElementIds.length === 1) {
+        const selectedElement = elements.find((el) => el.id === selectedElementIds[0]);
+        if (selectedElement && selectedElement.type === 'text') {
+          setSelectedTextColor(color);
+        }
       }
     }
   };
 
   const handleOpacityChange = (opacity: number) => {
-    if (selectedElementId) {
+    if (selectedElementIds.length > 0) {
       const newElements = elements.map((el) =>
-        el.id === selectedElementId ? { ...el, opacity } : el
+        selectedElementIds.includes(el.id) ? { ...el, opacity } : el
       );
       setElements(newElements);
       saveToHistory(newElements);
@@ -327,27 +329,33 @@ export const BannerEditor = () => {
   };
 
   const handleBringToFront = () => {
-    if (!selectedElementId) return;
-    const index = elements.findIndex((el) => el.id === selectedElementId);
-    if (index === -1 || index === elements.length - 1) return;
+    if (selectedElementIds.length === 0) return;
 
     const newElements = [...elements];
-    const [element] = newElements.splice(index, 1);
-    newElements.push(element);
-    setElements(newElements);
-    saveToHistory(newElements);
+    const selectedElements = selectedElementIds
+      .map(id => newElements.find(el => el.id === id))
+      .filter((el): el is CanvasElement => el !== undefined);
+
+    const remainingElements = newElements.filter(el => !selectedElementIds.includes(el.id));
+    const reordered = [...remainingElements, ...selectedElements];
+
+    setElements(reordered);
+    saveToHistory(reordered);
   };
 
   const handleSendToBack = () => {
-    if (!selectedElementId) return;
-    const index = elements.findIndex((el) => el.id === selectedElementId);
-    if (index === -1 || index === 0) return;
+    if (selectedElementIds.length === 0) return;
 
     const newElements = [...elements];
-    const [element] = newElements.splice(index, 1);
-    newElements.unshift(element);
-    setElements(newElements);
-    saveToHistory(newElements);
+    const selectedElements = selectedElementIds
+      .map(id => newElements.find(el => el.id === id))
+      .filter((el): el is CanvasElement => el !== undefined);
+
+    const remainingElements = newElements.filter(el => !selectedElementIds.includes(el.id));
+    const reordered = [...selectedElements, ...remainingElements];
+
+    setElements(reordered);
+    saveToHistory(reordered);
   };
 
   const handleElementUpdate = (id: string, updates: Partial<CanvasElement>) => {
@@ -398,7 +406,8 @@ export const BannerEditor = () => {
         onBannerNameChange={handleBannerNameChange}
       />
 
-      <div className="flex-1 flex overflow-hidden">
+      {/* Desktop Layout */}
+      <div className="hidden md:flex flex-1 overflow-hidden">
         <Sidebar
           canvasColor={canvasColor}
           onSelectColor={setCanvasColor}
@@ -410,9 +419,8 @@ export const BannerEditor = () => {
         <main
           className="flex-1 overflow-auto bg-gray-100 p-8 flex items-center justify-center"
           onClick={(e) => {
-            // Deselect when clicking on the gray area (not on the canvas)
             if (e.target === e.currentTarget) {
-              handleSelectElement(null);
+              handleSelectElement([]);
             }
           }}
         >
@@ -424,14 +432,14 @@ export const BannerEditor = () => {
             canvasColor={canvasColor}
             fileName={`${banner.name}.png`}
             onTextChange={handleTextChange}
-            selectedElementId={selectedElementId}
+            selectedElementIds={selectedElementIds}
             onSelectElement={handleSelectElement}
             onElementUpdate={handleElementUpdate}
           />
         </main>
 
         <PropertyPanel
-          selectedElement={elements.find((el) => el.id === selectedElementId) || null}
+          selectedElement={selectedElementIds.length === 1 ? elements.find((el) => el.id === selectedElementIds[0]) || null : null}
           onColorChange={handlePropertyColorChange}
           onFontChange={handleFontChange}
           onSizeChange={handleSizeChange}
@@ -439,6 +447,55 @@ export const BannerEditor = () => {
           onOpacityChange={handleOpacityChange}
           onBringToFront={handleBringToFront}
           onSendToBack={handleSendToBack}
+        />
+      </div>
+
+      {/* Mobile Layout */}
+      <div className="flex md:hidden flex-1 flex-col overflow-hidden">
+        <main
+          className="flex-1 overflow-auto bg-gray-100 flex items-center justify-center"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              handleSelectElement([]);
+            }
+          }}
+        >
+          <Canvas
+            ref={canvasRef}
+            template={selectedTemplate}
+            elements={elements}
+            scale={zoom / 100}
+            canvasColor={canvasColor}
+            fileName={`${banner.name}.png`}
+            onTextChange={handleTextChange}
+            selectedElementIds={selectedElementIds}
+            onSelectElement={handleSelectElement}
+            onElementUpdate={handleElementUpdate}
+          />
+        </main>
+
+        {/* Mobile Sidebar - Bottom horizontal scrollable */}
+        <Sidebar
+          canvasColor={canvasColor}
+          onSelectColor={setCanvasColor}
+          onAddText={handleAddText}
+          onAddShape={handleAddShape}
+          onAddImage={handleAddImage}
+          isMobile={true}
+        />
+
+        {/* Mobile PropertyPanel - Modal */}
+        <PropertyPanel
+          selectedElement={selectedElementIds.length === 1 ? elements.find((el) => el.id === selectedElementIds[0]) || null : null}
+          onColorChange={handlePropertyColorChange}
+          onFontChange={handleFontChange}
+          onSizeChange={handleSizeChange}
+          onWeightChange={handleWeightChange}
+          onOpacityChange={handleOpacityChange}
+          onBringToFront={handleBringToFront}
+          onSendToBack={handleSendToBack}
+          isMobile={true}
+          onClose={() => handleSelectElement([])}
         />
       </div>
 
