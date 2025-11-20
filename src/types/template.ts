@@ -30,8 +30,16 @@ export interface ShapeElement extends BaseElement {
   type: 'shape';
   width: number;
   height: number;
-  fill: string;
   shapeType: 'rectangle' | 'triangle' | 'star' | 'circle' | 'heart';
+
+  // Fill properties
+  fill: string;
+  fillEnabled: boolean;
+
+  // Stroke properties
+  stroke: string;
+  strokeWidth: number;
+  strokeEnabled: boolean;
 }
 
 export interface ImageElement extends BaseElement {

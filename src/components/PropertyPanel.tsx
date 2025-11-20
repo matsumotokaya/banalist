@@ -1,4 +1,4 @@
-import type { CanvasElement, TextElement } from '../types/template';
+import type { CanvasElement, TextElement, ShapeElement } from '../types/template';
 
 interface PropertyPanelProps {
   selectedElement: CanvasElement | null;
@@ -11,6 +11,12 @@ interface PropertyPanelProps {
   onSendToBack?: () => void;
   isMobile?: boolean;
   onClose?: () => void;
+
+  // Shape-specific handlers
+  onFillEnabledChange?: (enabled: boolean) => void;
+  onStrokeChange?: (color: string) => void;
+  onStrokeWidthChange?: (width: number) => void;
+  onStrokeEnabledChange?: (enabled: boolean) => void;
 }
 
 const PRESET_COLORS = [
@@ -48,7 +54,7 @@ const getWeightLabel = (weight: number): string => {
   return 'Black';
 };
 
-export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, onSizeChange, onWeightChange, onOpacityChange, onBringToFront, onSendToBack, isMobile = false, onClose }: PropertyPanelProps) => {
+export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, onSizeChange, onWeightChange, onOpacityChange, onBringToFront, onSendToBack, isMobile = false, onClose, onFillEnabledChange, onStrokeChange, onStrokeWidthChange, onStrokeEnabledChange }: PropertyPanelProps) => {
   if (!selectedElement) {
     if (isMobile) {
       return null;
@@ -72,6 +78,9 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
 
   const isTextElement = selectedElement.type === 'text';
   const textElement = isTextElement ? (selectedElement as TextElement) : null;
+
+  const isShapeElement = selectedElement.type === 'shape';
+  const shapeElement = isShapeElement ? (selectedElement as ShapeElement) : null;
 
   const panelContent = (
     <>
@@ -169,48 +178,171 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
         </div>
       )}
 
-      {/* Current color display */}
-      <div className="mb-3">
-        <label className="block text-xs font-medium text-gray-700 mb-2">
-          カラー
-        </label>
-        <div className="flex items-center gap-2">
-          <div
-            className="w-8 h-8 rounded border-2 border-gray-300 shadow-sm flex-shrink-0"
-            style={{ backgroundColor: currentColor }}
-          />
-          <div className="flex-1 min-w-0">
-            <input
-              type="text"
-              value={currentColor}
-              onChange={(e) => onColorChange(e.target.value)}
-              className="w-full px-2 py-1 border border-gray-300 rounded text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+      {/* Shape-specific: Fill controls */}
+      {isShapeElement && shapeElement && (
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between mb-3">
+            <label className="text-xs font-semibold text-gray-700">塗り</label>
+            {onFillEnabledChange && (
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={shapeElement.fillEnabled}
+                  onChange={(e) => onFillEnabledChange(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+              </label>
+            )}
           </div>
+          {shapeElement.fillEnabled && (
+            <>
+              <div className="flex items-center gap-2 mb-2">
+                <div
+                  className="w-8 h-8 rounded border-2 border-gray-300 shadow-sm flex-shrink-0"
+                  style={{ backgroundColor: shapeElement.fill }}
+                />
+                <input
+                  type="text"
+                  value={shapeElement.fill}
+                  onChange={(e) => onColorChange(e.target.value)}
+                  className="w-full px-2 py-1 border border-gray-300 rounded text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div className="grid grid-cols-6 gap-1.5">
+                {PRESET_COLORS.slice(0, 12).map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => onColorChange(color)}
+                    className={`w-6 h-6 rounded border transition-all hover:scale-110 ${
+                      shapeElement.fill.toLowerCase() === color.toLowerCase()
+                        ? 'border-2 border-indigo-600'
+                        : 'border border-gray-200'
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
-      </div>
+      )}
 
-      {/* Color presets */}
-      <div className="mb-4">
-        <label className="block text-xs font-medium text-gray-700 mb-2">
-          カラーパレット
-        </label>
-        <div className="grid grid-cols-6 gap-1.5">
-          {PRESET_COLORS.map((color) => (
-            <button
-              key={color}
-              onClick={() => onColorChange(color)}
-              className={`w-7 h-7 rounded border-2 transition-all hover:scale-110 ${
-                currentColor.toLowerCase() === color.toLowerCase()
-                  ? 'border-indigo-600 shadow-md'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-              style={{ backgroundColor: color }}
-              title={color}
-            />
-          ))}
+      {/* Shape-specific: Stroke controls */}
+      {isShapeElement && shapeElement && (
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between mb-3">
+            <label className="text-xs font-semibold text-gray-700">線</label>
+            {onStrokeEnabledChange && (
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={shapeElement.strokeEnabled}
+                  onChange={(e) => onStrokeEnabledChange(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+              </label>
+            )}
+          </div>
+          {shapeElement.strokeEnabled && (
+            <>
+              <div className="flex items-center gap-2 mb-2">
+                <div
+                  className="w-8 h-8 rounded border-2 border-gray-300 shadow-sm flex-shrink-0"
+                  style={{ backgroundColor: shapeElement.stroke }}
+                />
+                <input
+                  type="text"
+                  value={shapeElement.stroke}
+                  onChange={(e) => onStrokeChange && onStrokeChange(e.target.value)}
+                  className="w-full px-2 py-1 border border-gray-300 rounded text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div className="grid grid-cols-6 gap-1.5 mb-3">
+                {PRESET_COLORS.slice(0, 12).map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => onStrokeChange && onStrokeChange(color)}
+                    className={`w-6 h-6 rounded border transition-all hover:scale-110 ${
+                      shapeElement.stroke.toLowerCase() === color.toLowerCase()
+                        ? 'border-2 border-indigo-600'
+                        : 'border border-gray-200'
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+              {onStrokeWidthChange && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-2">線の太さ</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="range"
+                      min="1"
+                      max="20"
+                      step="1"
+                      value={shapeElement.strokeWidth}
+                      onChange={(e) => onStrokeWidthChange(Number(e.target.value))}
+                      className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                    />
+                    <span className="text-xs font-medium text-gray-700 w-10 text-right">
+                      {shapeElement.strokeWidth}px
+                    </span>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
-      </div>
+      )}
+
+      {/* Current color display - for text only */}
+      {isTextElement && (
+        <>
+          <div className="mb-3">
+            <label className="block text-xs font-medium text-gray-700 mb-2">
+              カラー
+            </label>
+            <div className="flex items-center gap-2">
+              <div
+                className="w-8 h-8 rounded border-2 border-gray-300 shadow-sm flex-shrink-0"
+                style={{ backgroundColor: currentColor }}
+              />
+              <div className="flex-1 min-w-0">
+                <input
+                  type="text"
+                  value={currentColor}
+                  onChange={(e) => onColorChange(e.target.value)}
+                  className="w-full px-2 py-1 border border-gray-300 rounded text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Color presets */}
+          <div className="mb-4">
+            <label className="block text-xs font-medium text-gray-700 mb-2">
+              カラーパレット
+            </label>
+            <div className="grid grid-cols-6 gap-1.5">
+              {PRESET_COLORS.map((color) => (
+                <button
+                  key={color}
+                  onClick={() => onColorChange(color)}
+                  className={`w-7 h-7 rounded border-2 transition-all hover:scale-110 ${
+                    currentColor.toLowerCase() === color.toLowerCase()
+                      ? 'border-indigo-600 shadow-md'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  style={{ backgroundColor: color }}
+                  title={color}
+                />
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Opacity slider */}
       {onOpacityChange && (

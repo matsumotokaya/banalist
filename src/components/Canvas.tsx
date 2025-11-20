@@ -436,7 +436,9 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         y={shape.y}
                         width={shape.width}
                         height={shape.height}
-                        fill={shape.fill}
+                        fill={shape.fillEnabled ? shape.fill : undefined}
+                        stroke={shape.strokeEnabled ? shape.stroke : undefined}
+                        strokeWidth={shape.strokeEnabled ? shape.strokeWidth : 0}
                         rotation={shape.rotation || 0}
                         opacity={shape.opacity ?? 1}
                         draggable
@@ -487,7 +489,9 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         ]}
                         x={shape.x}
                         y={shape.y}
-                        fill={shape.fill}
+                        fill={shape.fillEnabled ? shape.fill : undefined}
+                        stroke={shape.strokeEnabled ? shape.stroke : undefined}
+                        strokeWidth={shape.strokeEnabled ? shape.strokeWidth : 0}
                         rotation={shape.rotation || 0}
                         opacity={shape.opacity ?? 1}
                         closed
@@ -537,7 +541,9 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         numPoints={5}
                         innerRadius={Math.min(shape.width, shape.height) / 4}
                         outerRadius={Math.min(shape.width, shape.height) / 2}
-                        fill={shape.fill}
+                        fill={shape.fillEnabled ? shape.fill : undefined}
+                        stroke={shape.strokeEnabled ? shape.stroke : undefined}
+                        strokeWidth={shape.strokeEnabled ? shape.strokeWidth : 0}
                         rotation={shape.rotation || 0}
                         opacity={shape.opacity ?? 1}
                         draggable
@@ -592,7 +598,9 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         y={shape.y + shape.height / 2}
                         radiusX={shape.width / 2}
                         radiusY={shape.height / 2}
-                        fill={shape.fill}
+                        fill={shape.fillEnabled ? shape.fill : undefined}
+                        stroke={shape.strokeEnabled ? shape.stroke : undefined}
+                        strokeWidth={shape.strokeEnabled ? shape.strokeWidth : 0}
                         rotation={shape.rotation || 0}
                         opacity={shape.opacity ?? 1}
                         draggable
@@ -654,7 +662,9 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         data={heartPath}
                         x={shape.x}
                         y={shape.y}
-                        fill={shape.fill}
+                        fill={shape.fillEnabled ? shape.fill : undefined}
+                        stroke={shape.strokeEnabled ? shape.stroke : undefined}
+                        strokeWidth={shape.strokeEnabled ? shape.strokeWidth : 0}
                         rotation={shape.rotation || 0}
                         opacity={shape.opacity ?? 1}
                         draggable

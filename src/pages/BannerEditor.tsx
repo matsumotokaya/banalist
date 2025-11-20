@@ -40,9 +40,24 @@ export const BannerEditor = () => {
       return;
     }
 
+    // Migrate existing shapes to new fill/stroke structure
+    const migratedElements = loadedBanner.elements.map((el) => {
+      if (el.type === 'shape') {
+        const shape = el as ShapeElement;
+        return {
+          ...shape,
+          fillEnabled: shape.fillEnabled !== undefined ? shape.fillEnabled : true,
+          stroke: shape.stroke || '#000000',
+          strokeWidth: shape.strokeWidth || 2,
+          strokeEnabled: shape.strokeEnabled !== undefined ? shape.strokeEnabled : false,
+        } as ShapeElement;
+      }
+      return el;
+    });
+
     setBanner(loadedBanner);
     setSelectedTemplate(loadedBanner.template);
-    setElements(loadedBanner.elements);
+    setElements(migratedElements);
     setCanvasColor(loadedBanner.canvasColor);
   }, [id, navigate]);
 
@@ -218,7 +233,7 @@ export const BannerEditor = () => {
     setSelectedElementIds([newId]);
   };
 
-  const handleAddShape = (shapeType: 'rectangle' | 'triangle' | 'star') => {
+  const handleAddShape = (shapeType: 'rectangle' | 'triangle' | 'star' | 'circle' | 'heart') => {
     const newId = `shape-${Date.now()}`;
     const newShape: ShapeElement = {
       id: newId,
@@ -228,6 +243,10 @@ export const BannerEditor = () => {
       width: 200,
       height: 150,
       fill: '#000000',
+      fillEnabled: true,
+      stroke: '#000000',
+      strokeWidth: 2,
+      strokeEnabled: false,
       shapeType,
     };
     const newElements = [...elements, newShape];
@@ -379,6 +398,59 @@ export const BannerEditor = () => {
     saveToHistory(newElements);
   };
 
+  // Shape fill/stroke handlers
+  const handleFillEnabledChange = (enabled: boolean) => {
+    if (selectedElementIds.length > 0) {
+      const newElements = elements.map((el) => {
+        if (selectedElementIds.includes(el.id) && el.type === 'shape') {
+          return { ...el, fillEnabled: enabled };
+        }
+        return el;
+      });
+      setElements(newElements);
+      saveToHistory(newElements);
+    }
+  };
+
+  const handleStrokeChange = (color: string) => {
+    if (selectedElementIds.length > 0) {
+      const newElements = elements.map((el) => {
+        if (selectedElementIds.includes(el.id) && el.type === 'shape') {
+          return { ...el, stroke: color };
+        }
+        return el;
+      });
+      setElements(newElements);
+      saveToHistory(newElements);
+    }
+  };
+
+  const handleStrokeWidthChange = (width: number) => {
+    if (selectedElementIds.length > 0) {
+      const newElements = elements.map((el) => {
+        if (selectedElementIds.includes(el.id) && el.type === 'shape') {
+          return { ...el, strokeWidth: width };
+        }
+        return el;
+      });
+      setElements(newElements);
+      saveToHistory(newElements);
+    }
+  };
+
+  const handleStrokeEnabledChange = (enabled: boolean) => {
+    if (selectedElementIds.length > 0) {
+      const newElements = elements.map((el) => {
+        if (selectedElementIds.includes(el.id) && el.type === 'shape') {
+          return { ...el, strokeEnabled: enabled };
+        }
+        return el;
+      });
+      setElements(newElements);
+      saveToHistory(newElements);
+    }
+  };
+
   const handleBannerNameChange = (newName: string) => {
     if (banner) {
       bannerStorage.update(banner.id, { name: newName });
@@ -447,6 +519,10 @@ export const BannerEditor = () => {
           onOpacityChange={handleOpacityChange}
           onBringToFront={handleBringToFront}
           onSendToBack={handleSendToBack}
+          onFillEnabledChange={handleFillEnabledChange}
+          onStrokeChange={handleStrokeChange}
+          onStrokeWidthChange={handleStrokeWidthChange}
+          onStrokeEnabledChange={handleStrokeEnabledChange}
         />
       </div>
 
@@ -494,6 +570,10 @@ export const BannerEditor = () => {
           onOpacityChange={handleOpacityChange}
           onBringToFront={handleBringToFront}
           onSendToBack={handleSendToBack}
+          onFillEnabledChange={handleFillEnabledChange}
+          onStrokeChange={handleStrokeChange}
+          onStrokeWidthChange={handleStrokeWidthChange}
+          onStrokeEnabledChange={handleStrokeEnabledChange}
           isMobile={true}
           onClose={() => handleSelectElement([])}
         />
