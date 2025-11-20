@@ -33,6 +33,7 @@ const ImageComponent = ({
       y={imageElement.y}
       width={imageElement.width}
       height={imageElement.height}
+      rotation={imageElement.rotation || 0}
       draggable
       onClick={() => onSelect(imageElement.id)}
       onDragEnd={(e) => {
@@ -58,6 +59,7 @@ const ImageComponent = ({
             y: node.y(),
             width: Math.max(5, node.width() * scaleX),
             height: Math.max(5, node.height() * scaleY),
+            rotation: node.rotation(),
           });
         }
       }}
@@ -282,6 +284,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         width={shape.width}
                         height={shape.height}
                         fill={shape.fill}
+                        rotation={shape.rotation || 0}
                         draggable
                         onClick={() => {
                           if (onSelectElement) {
@@ -310,6 +313,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                               y: node.y(),
                               width: Math.max(5, node.width() * scaleX),
                               height: Math.max(5, node.height() * scaleY),
+                              rotation: node.rotation(),
                             });
                           }
                         }}
@@ -334,6 +338,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         x={shape.x}
                         y={shape.y}
                         fill={shape.fill}
+                        rotation={shape.rotation || 0}
                         closed
                         draggable
                         onClick={() => {
@@ -363,6 +368,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                               y: node.y(),
                               width: Math.max(5, shape.width * scaleX),
                               height: Math.max(5, shape.height * scaleY),
+                              rotation: node.rotation(),
                             });
                           }
                         }}
@@ -385,6 +391,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         innerRadius={Math.min(shape.width, shape.height) / 4}
                         outerRadius={Math.min(shape.width, shape.height) / 2}
                         fill={shape.fill}
+                        rotation={shape.rotation || 0}
                         draggable
                         onClick={() => {
                           if (onSelectElement) {
@@ -420,6 +427,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                               y: centerY - newHeight / 2,
                               width: newWidth,
                               height: newHeight,
+                              rotation: node.rotation(),
                             });
                           }
                         }}
@@ -447,6 +455,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                       fill={textElement.strokeOnly ? 'transparent' : textElement.fill}
                       stroke={textElement.strokeOnly ? textElement.fill : undefined}
                       strokeWidth={textElement.strokeOnly ? Math.max(textElement.fontSize * 0.03, 2) : 0}
+                      rotation={textElement.rotation || 0}
                       draggable
                       onClick={() => {
                         if (onSelectElement) {
@@ -477,6 +486,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                             x: node.x(),
                             y: node.y(),
                             fontSize: Math.max(10, textElement.fontSize * scaleY),
+                            rotation: node.rotation(),
                           });
                         }
                       }}
@@ -521,7 +531,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                     ? ['top-left', 'top-center', 'top-right', 'middle-left', 'middle-right', 'bottom-left', 'bottom-center', 'bottom-right']
                     : ['top-left', 'top-right', 'bottom-left', 'bottom-right']
                 }
-                rotateEnabled={false}
+                rotateEnabled={true}
                 keepRatio={selectedNodeType === 'text'}
               />
             </Layer>

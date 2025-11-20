@@ -12,6 +12,7 @@ export interface BaseElement {
   type: 'text' | 'shape' | 'image';
   x: number;
   y: number;
+  rotation?: number;
 }
 
 export interface TextElement extends BaseElement {
