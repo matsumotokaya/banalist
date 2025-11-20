@@ -1,5 +1,3 @@
-import type { Template, TextElement } from '../types/template';
-import { TemplateSelector } from './TemplateSelector';
 import { ColorPicker } from './ColorPicker';
 import { FontSelector } from './FontSelector';
 import { TextSizeSelector } from './TextSizeSelector';
@@ -9,9 +7,6 @@ import { StrokeOnlyToggle } from './StrokeOnlyToggle';
 import { TextEditor } from './TextEditor';
 
 interface SidebarProps {
-  templates: Template[];
-  selectedTemplate: Template;
-  onSelectTemplate: (template: Template) => void;
   canvasColor: string;
   onSelectColor: (color: string) => void;
   selectedFont: string;
@@ -29,9 +24,6 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({
-  templates,
-  selectedTemplate,
-  onSelectTemplate,
   canvasColor,
   onSelectColor,
   selectedFont,

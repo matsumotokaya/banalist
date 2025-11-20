@@ -7,7 +7,7 @@ import { DEFAULT_TEMPLATES } from './templates/defaultTemplates';
 import type { Template, TextElement, RectangleElement } from './types/template';
 
 function App() {
-  const [selectedTemplate, setSelectedTemplate] = useState<Template>(DEFAULT_TEMPLATES[0]);
+  const [selectedTemplate] = useState<Template>(DEFAULT_TEMPLATES[0]);
   const [textElements, setTextElements] = useState<TextElement[]>([
     {
       id: 'default-text',
@@ -254,9 +254,6 @@ function App() {
 
       <div className="flex-1 flex overflow-hidden">
         <Sidebar
-          templates={DEFAULT_TEMPLATES}
-          selectedTemplate={selectedTemplate}
-          onSelectTemplate={setSelectedTemplate}
           canvasColor={canvasColor}
           onSelectColor={setCanvasColor}
           selectedFont={selectedFont}
