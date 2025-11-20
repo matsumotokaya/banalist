@@ -288,6 +288,31 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                             onSelectElement(shape.id);
                           }
                         }}
+                        onDragEnd={(e) => {
+                          if (onElementUpdate) {
+                            onElementUpdate(shape.id, {
+                              x: e.target.x(),
+                              y: e.target.y(),
+                            });
+                          }
+                        }}
+                        onTransformEnd={(e) => {
+                          const node = e.target;
+                          const scaleX = node.scaleX();
+                          const scaleY = node.scaleY();
+
+                          node.scaleX(1);
+                          node.scaleY(1);
+
+                          if (onElementUpdate) {
+                            onElementUpdate(shape.id, {
+                              x: node.x(),
+                              y: node.y(),
+                              width: Math.max(5, node.width() * scaleX),
+                              height: Math.max(5, node.height() * scaleY),
+                            });
+                          }
+                        }}
                       />
                     );
                   } else if (shape.shapeType === 'triangle') {
@@ -316,6 +341,31 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                             onSelectElement(shape.id);
                           }
                         }}
+                        onDragEnd={(e) => {
+                          if (onElementUpdate) {
+                            onElementUpdate(shape.id, {
+                              x: e.target.x(),
+                              y: e.target.y(),
+                            });
+                          }
+                        }}
+                        onTransformEnd={(e) => {
+                          const node = e.target;
+                          const scaleX = node.scaleX();
+                          const scaleY = node.scaleY();
+
+                          node.scaleX(1);
+                          node.scaleY(1);
+
+                          if (onElementUpdate) {
+                            onElementUpdate(shape.id, {
+                              x: node.x(),
+                              y: node.y(),
+                              width: Math.max(5, shape.width * scaleX),
+                              height: Math.max(5, shape.height * scaleY),
+                            });
+                          }
+                        }}
                       />
                     );
                   } else if (shape.shapeType === 'star') {
@@ -339,6 +389,38 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         onClick={() => {
                           if (onSelectElement) {
                             onSelectElement(shape.id);
+                          }
+                        }}
+                        onDragEnd={(e) => {
+                          if (onElementUpdate) {
+                            const centerX = e.target.x();
+                            const centerY = e.target.y();
+                            onElementUpdate(shape.id, {
+                              x: centerX - shape.width / 2,
+                              y: centerY - shape.height / 2,
+                            });
+                          }
+                        }}
+                        onTransformEnd={(e) => {
+                          const node = e.target;
+                          const scaleX = node.scaleX();
+                          const scaleY = node.scaleY();
+
+                          node.scaleX(1);
+                          node.scaleY(1);
+
+                          const centerX = node.x();
+                          const centerY = node.y();
+                          const newWidth = Math.max(5, shape.width * scaleX);
+                          const newHeight = Math.max(5, shape.height * scaleY);
+
+                          if (onElementUpdate) {
+                            onElementUpdate(shape.id, {
+                              x: centerX - newWidth / 2,
+                              y: centerY - newHeight / 2,
+                              width: newWidth,
+                              height: newHeight,
+                            });
                           }
                         }}
                       />
@@ -374,6 +456,29 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                       onDblClick={(e) => {
                         const textNode = e.target as Konva.Text;
                         handleTextDoubleClick(textElement, textNode);
+                      }}
+                      onDragEnd={(e) => {
+                        if (onElementUpdate) {
+                          onElementUpdate(textElement.id, {
+                            x: e.target.x(),
+                            y: e.target.y(),
+                          });
+                        }
+                      }}
+                      onTransformEnd={(e) => {
+                        const node = e.target as Konva.Text;
+                        const scaleY = node.scaleY();
+
+                        node.scaleX(1);
+                        node.scaleY(1);
+
+                        if (onElementUpdate) {
+                          onElementUpdate(textElement.id, {
+                            x: node.x(),
+                            y: node.y(),
+                            fontSize: Math.max(10, textElement.fontSize * scaleY),
+                          });
+                        }
                       }}
                     />
                   );
