@@ -1,9 +1,35 @@
+import { useState } from 'react';
+
 interface HeaderProps {
   onBackToManager?: () => void;
   bannerName?: string;
+  bannerId?: string;
+  onBannerNameChange?: (newName: string) => void;
 }
 
-export const Header = ({ onBackToManager, bannerName }: HeaderProps) => {
+export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChange }: HeaderProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingName, setEditingName] = useState('');
+
+  const handleStartEdit = () => {
+    if (bannerName) {
+      setEditingName(bannerName);
+      setIsEditing(true);
+    }
+  };
+
+  const handleSaveName = () => {
+    if (editingName.trim() && onBannerNameChange) {
+      onBannerNameChange(editingName.trim());
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditingName('');
+  };
+
   return (
     <header className="h-16 bg-gradient-to-r from-blue-500 to-purple-600 border-b border-blue-700 flex items-center justify-between px-6">
       <div className="flex items-center gap-4">
@@ -25,7 +51,35 @@ export const Header = ({ onBackToManager, bannerName }: HeaderProps) => {
         {bannerName && (
           <>
             <span className="text-white/50">|</span>
-            <span className="text-white font-medium">{bannerName}</span>
+            {isEditing ? (
+              <input
+                type="text"
+                value={editingName}
+                onChange={(e) => setEditingName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveName();
+                  if (e.key === 'Escape') handleCancelEdit();
+                }}
+                onBlur={handleSaveName}
+                className="px-2 py-1 bg-white/90 text-gray-900 rounded border-2 border-white focus:outline-none focus:ring-2 focus:ring-white/50 font-medium"
+                autoFocus
+              />
+            ) : (
+              <div className="flex items-center gap-2 group/title">
+                <span className="text-white font-medium">{bannerName}</span>
+                {bannerId && onBannerNameChange && (
+                  <button
+                    onClick={handleStartEdit}
+                    className="opacity-0 group-hover/title:opacity-100 p-1 hover:bg-white/20 rounded transition-all"
+                    title="名前を編集"
+                  >
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            )}
           </>
         )}
       </div>

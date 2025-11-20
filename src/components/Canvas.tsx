@@ -1,7 +1,69 @@
 import { useRef, forwardRef, useImperativeHandle, useEffect, useState } from 'react';
-import { Stage, Layer, Rect, Text, Transformer, Line, Star } from 'react-konva';
-import type { Template, CanvasElement, TextElement, ShapeElement } from '../types/template';
+import { Stage, Layer, Rect, Text, Transformer, Line, Star, Image as KonvaImage } from 'react-konva';
+import type { Template, CanvasElement, TextElement, ShapeElement, ImageElement } from '../types/template';
 import type Konva from 'konva';
+
+// Image component wrapper
+const ImageComponent = ({
+  imageElement,
+  onSelect,
+  nodeRef,
+  onUpdate
+}: {
+  imageElement: ImageElement;
+  onSelect: (id: string) => void;
+  nodeRef: (node: Konva.Image | null, id: string) => void;
+  onUpdate?: (id: string, updates: Partial<ImageElement>) => void;
+}) => {
+  const [image, setImage] = useState<HTMLImageElement | null>(null);
+
+  useEffect(() => {
+    const img = new window.Image();
+    img.src = imageElement.src;
+    img.onload = () => {
+      setImage(img);
+    };
+  }, [imageElement.src]);
+
+  return (
+    <KonvaImage
+      ref={(node) => nodeRef(node, imageElement.id)}
+      image={image || undefined}
+      x={imageElement.x}
+      y={imageElement.y}
+      width={imageElement.width}
+      height={imageElement.height}
+      draggable
+      onClick={() => onSelect(imageElement.id)}
+      onDragEnd={(e) => {
+        if (onUpdate) {
+          onUpdate(imageElement.id, {
+            x: e.target.x(),
+            y: e.target.y(),
+          });
+        }
+      }}
+      onTransformEnd={(e) => {
+        const node = e.target;
+        const scaleX = node.scaleX();
+        const scaleY = node.scaleY();
+
+        // Reset scale and apply to width/height
+        node.scaleX(1);
+        node.scaleY(1);
+
+        if (onUpdate) {
+          onUpdate(imageElement.id, {
+            x: node.x(),
+            y: node.y(),
+            width: Math.max(5, node.width() * scaleX),
+            height: Math.max(5, node.height() * scaleY),
+          });
+        }
+      }}
+    />
+  );
+};
 
 interface CanvasProps {
   template: Template;
@@ -12,6 +74,7 @@ interface CanvasProps {
   onTextChange?: (id: string, newText: string) => void;
   selectedElementId?: string | null;
   onSelectElement?: (id: string | null) => void;
+  onElementUpdate?: (id: string, updates: Partial<CanvasElement>) => void;
 }
 
 export interface CanvasRef {
@@ -19,19 +82,41 @@ export interface CanvasRef {
 }
 
 export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
-  { template, elements, scale = 0.5, canvasColor, fileName = 'artwork-01.png', onTextChange, selectedElementId, onSelectElement },
+  { template, elements, scale = 0.5, canvasColor, fileName = 'artwork-01.png', onTextChange, selectedElementId, onSelectElement, onElementUpdate },
   ref
 ) {
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
   const nodesRef = useRef<Map<string, Konva.Node>>(new Map());
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedNodeType, setSelectedNodeType] = useState<'text' | 'shape' | null>(null);
+  const [selectedNodeType, setSelectedNodeType] = useState<'text' | 'shape' | 'image' | null>(null);
 
   useImperativeHandle(ref, () => ({
     exportImage: () => {
-      if (!stageRef.current) return '';
-      return stageRef.current.toDataURL({ pixelRatio: 1 / scale });
+      if (!stageRef.current || !transformerRef.current) return '';
+
+      // Hide transformer before export
+      transformerRef.current.nodes([]);
+      const layer = transformerRef.current.getLayer();
+      if (layer) {
+        layer.batchDraw();
+      }
+
+      // Export image
+      const dataURL = stageRef.current.toDataURL({ pixelRatio: 1 / scale });
+
+      // Restore transformer selection after export
+      if (selectedElementId && !isEditing) {
+        const selectedNode = nodesRef.current.get(selectedElementId);
+        if (selectedNode) {
+          transformerRef.current.nodes([selectedNode]);
+          if (layer) {
+            layer.batchDraw();
+          }
+        }
+      }
+
+      return dataURL;
     },
   }));
 
@@ -48,7 +133,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
         // Determine node type from elements
         const element = elements.find((el) => el.id === selectedElementId);
         if (element) {
-          setSelectedNodeType(element.type === 'text' ? 'text' : 'shape');
+          setSelectedNodeType(element.type === 'text' ? 'text' : element.type === 'image' ? 'image' : 'shape');
         }
       }
     } else {
@@ -292,6 +377,27 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                       }}
                     />
                   );
+                } else if (element.type === 'image') {
+                  const imageElement = element as ImageElement;
+                  return (
+                    <ImageComponent
+                      key={imageElement.id}
+                      imageElement={imageElement}
+                      nodeRef={(node, id) => {
+                        if (node) {
+                          nodesRef.current.set(id, node);
+                        } else {
+                          nodesRef.current.delete(id);
+                        }
+                      }}
+                      onSelect={(id) => {
+                        if (onSelectElement) {
+                          onSelectElement(id);
+                        }
+                      }}
+                      onUpdate={onElementUpdate}
+                    />
+                  );
                 }
                 return null;
               })}
@@ -305,6 +411,8 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                 anchorSize={8}
                 enabledAnchors={
                   selectedNodeType === 'shape'
+                    ? ['top-left', 'top-center', 'top-right', 'middle-left', 'middle-right', 'bottom-left', 'bottom-center', 'bottom-right']
+                    : selectedNodeType === 'image'
                     ? ['top-left', 'top-center', 'top-right', 'middle-left', 'middle-right', 'bottom-left', 'bottom-center', 'bottom-right']
                     : ['top-left', 'top-right', 'bottom-left', 'bottom-right']
                 }

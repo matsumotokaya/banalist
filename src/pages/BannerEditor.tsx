@@ -2,10 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
+import { PropertyPanel } from '../components/PropertyPanel';
 import { BottomBar } from '../components/BottomBar';
 import { Canvas, type CanvasRef } from '../components/Canvas';
 import { bannerStorage } from '../utils/bannerStorage';
-import type { Template, CanvasElement, TextElement, ShapeElement, Banner } from '../types/template';
+import type { Template, CanvasElement, TextElement, ShapeElement, ImageElement, Banner } from '../types/template';
 
 export const BannerEditor = () => {
   const { id } = useParams<{ id: string }>();
@@ -235,6 +236,23 @@ export const BannerEditor = () => {
     setSelectedElementId(newId);
   };
 
+  const handleAddImage = (src: string, width: number, height: number) => {
+    const newId = `image-${Date.now()}`;
+    const newImage: ImageElement = {
+      id: newId,
+      type: 'image',
+      x: 100,
+      y: 100,
+      src,
+      width,
+      height,
+    };
+    const newElements = [...elements, newImage];
+    setElements(newElements);
+    saveToHistory(newElements);
+    setSelectedElementId(newId);
+  };
+
   const handleTextChange = (id: string, newText: string) => {
     const newElements = elements.map((el) =>
       el.id === id && el.type === 'text' ? { ...el, text: newText } : el
@@ -298,11 +316,71 @@ export const BannerEditor = () => {
     }
   };
 
+  const handlePropertyColorChange = (color: string) => {
+    if (selectedElementId) {
+      const newElements = elements.map((el) => {
+        if (el.id === selectedElementId) {
+          if (el.type === 'text' || el.type === 'shape') {
+            return { ...el, fill: color };
+          }
+        }
+        return el;
+      });
+      setElements(newElements);
+      saveToHistory(newElements);
+
+      // Update text color state if text element is selected
+      const selectedElement = elements.find((el) => el.id === selectedElementId);
+      if (selectedElement && selectedElement.type === 'text') {
+        setSelectedTextColor(color);
+      }
+    }
+  };
+
+  const handleBringToFront = () => {
+    if (!selectedElementId) return;
+    const index = elements.findIndex((el) => el.id === selectedElementId);
+    if (index === -1 || index === elements.length - 1) return;
+
+    const newElements = [...elements];
+    const [element] = newElements.splice(index, 1);
+    newElements.push(element);
+    setElements(newElements);
+    saveToHistory(newElements);
+  };
+
+  const handleSendToBack = () => {
+    if (!selectedElementId) return;
+    const index = elements.findIndex((el) => el.id === selectedElementId);
+    if (index === -1 || index === 0) return;
+
+    const newElements = [...elements];
+    const [element] = newElements.splice(index, 1);
+    newElements.unshift(element);
+    setElements(newElements);
+    saveToHistory(newElements);
+  };
+
+  const handleElementUpdate = (id: string, updates: Partial<CanvasElement>) => {
+    const newElements = elements.map((el) =>
+      el.id === id ? { ...el, ...updates } : el
+    );
+    setElements(newElements);
+    saveToHistory(newElements);
+  };
+
+  const handleBannerNameChange = (newName: string) => {
+    if (banner) {
+      bannerStorage.update(banner.id, { name: newName });
+      setBanner({ ...banner, name: newName });
+    }
+  };
+
   const handleExport = () => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || !banner) return;
     const dataURL = canvasRef.current.exportImage();
     const link = document.createElement('a');
-    link.download = 'banalist-banner.png';
+    link.download = `${banner.name}.png`;
     link.href = dataURL;
     document.body.appendChild(link);
     link.click();
@@ -311,38 +389,54 @@ export const BannerEditor = () => {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
-      <Header onBackToManager={() => navigate('/')} bannerName={banner.name} />
+      <Header
+        onBackToManager={() => navigate('/')}
+        bannerName={banner.name}
+        bannerId={banner.id}
+        onBannerNameChange={handleBannerNameChange}
+      />
 
       <div className="flex-1 flex overflow-hidden">
         <Sidebar
           canvasColor={canvasColor}
           onSelectColor={setCanvasColor}
-          selectedFont={selectedFont}
-          onSelectFont={handleFontChange}
-          selectedSize={selectedSize}
-          onSelectSize={handleSizeChange}
-          selectedWeight={selectedWeight}
-          onSelectWeight={handleWeightChange}
-          selectedTextColor={selectedTextColor}
-          onSelectTextColor={handleTextColorChange}
-          strokeOnly={strokeOnly}
-          onStrokeOnlyToggle={handleStrokeOnlyToggle}
           onAddText={handleAddText}
           onAddShape={handleAddShape}
+          onAddImage={handleAddImage}
         />
 
-        <main className="flex-1 overflow-auto bg-gray-100 p-8 flex items-center justify-center">
+        <main
+          className="flex-1 overflow-auto bg-gray-100 p-8 flex items-center justify-center"
+          onClick={(e) => {
+            // Deselect when clicking on the gray area (not on the canvas)
+            if (e.target === e.currentTarget) {
+              handleSelectElement(null);
+            }
+          }}
+        >
           <Canvas
             ref={canvasRef}
             template={selectedTemplate}
             elements={elements}
             scale={zoom / 100}
             canvasColor={canvasColor}
+            fileName={`${banner.name}.png`}
             onTextChange={handleTextChange}
             selectedElementId={selectedElementId}
             onSelectElement={handleSelectElement}
+            onElementUpdate={handleElementUpdate}
           />
         </main>
+
+        <PropertyPanel
+          selectedElement={elements.find((el) => el.id === selectedElementId) || null}
+          onColorChange={handlePropertyColorChange}
+          onFontChange={handleFontChange}
+          onSizeChange={handleSizeChange}
+          onWeightChange={handleWeightChange}
+          onBringToFront={handleBringToFront}
+          onSendToBack={handleSendToBack}
+        />
       </div>
 
       <BottomBar zoom={zoom} onZoomChange={setZoom} onExport={handleExport} />

@@ -7,6 +7,8 @@ import type { Banner } from '../types/template';
 
 export const BannerManager = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,6 +36,25 @@ export const BannerManager = () => {
     if (duplicated) {
       loadBanners();
     }
+  };
+
+  const handleStartEdit = (id: string, currentName: string) => {
+    setEditingId(id);
+    setEditingName(currentName);
+  };
+
+  const handleSaveName = (id: string) => {
+    if (editingName.trim()) {
+      bannerStorage.update(id, { name: editingName.trim() });
+      loadBanners();
+    }
+    setEditingId(null);
+    setEditingName('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditingName('');
   };
 
   const formatDate = (dateString: string) => {
@@ -101,31 +122,65 @@ export const BannerManager = () => {
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all" />
                 </div>
 
-                <div className="p-4">
-                  <h3
-                    className="font-medium text-gray-900 mb-1 truncate cursor-pointer hover:text-indigo-600"
-                    onClick={() => navigate(`/banner/${banner.id}`)}
-                  >
-                    {banner.name}
-                  </h3>
-                  <p className="text-xs text-gray-500 mb-3">
+                <div className="p-4 relative">
+                  {editingId === banner.id ? (
+                    <div className="mb-1">
+                      <input
+                        type="text"
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleSaveName(banner.id);
+                          if (e.key === 'Escape') handleCancelEdit();
+                        }}
+                        onBlur={() => handleSaveName(banner.id)}
+                        className="w-full px-2 py-1 text-sm font-medium border border-indigo-500 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        autoFocus
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1 mb-1 group/title">
+                      <h3
+                        className="font-medium text-gray-900 truncate cursor-pointer hover:text-indigo-600 flex-1"
+                        onClick={() => navigate(`/banner/${banner.id}`)}
+                      >
+                        {banner.name}
+                      </h3>
+                      <button
+                        onClick={() => handleStartEdit(banner.id, banner.name)}
+                        className="opacity-0 group-hover/title:opacity-100 p-1 hover:bg-gray-100 rounded transition-all"
+                        title="名前を編集"
+                      >
+                        <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500">
                     更新: {formatDate(banner.updatedAt)}
                   </p>
 
-                  <div className="flex gap-2">
+                  <div className="absolute bottom-3 right-3 flex gap-1">
                     <button
                       onClick={() => handleDuplicateBanner(banner.id)}
-                      className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                      className="w-8 h-8 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors flex items-center justify-center group/duplicate relative"
                       title="複製"
                     >
-                      複製
+                      <span className="material-symbols-outlined text-[20px]">content_copy</span>
+                      <span className="absolute bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover/duplicate:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                        複製
+                      </span>
                     </button>
                     <button
                       onClick={() => handleDeleteBanner(banner.id)}
-                      className="flex-1 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+                      className="w-8 h-8 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors flex items-center justify-center group/delete relative"
                       title="削除"
                     >
-                      削除
+                      <span className="material-symbols-outlined text-[20px]">delete</span>
+                      <span className="absolute bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover/delete:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                        削除
+                      </span>
                     </button>
                   </div>
                 </div>

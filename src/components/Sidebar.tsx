@@ -1,59 +1,30 @@
 import { ColorPicker } from './ColorPicker';
-import { FontSelector } from './FontSelector';
-import { TextSizeSelector } from './TextSizeSelector';
-import { FontWeightSelector } from './FontWeightSelector';
-import { TextColorPicker } from './TextColorPicker';
-import { StrokeOnlyToggle } from './StrokeOnlyToggle';
 import { TextEditor } from './TextEditor';
+import { ImageUploader } from './ImageUploader';
 
 interface SidebarProps {
   canvasColor: string;
   onSelectColor: (color: string) => void;
-  selectedFont: string;
-  onSelectFont: (font: string) => void;
-  selectedSize: number;
-  onSelectSize: (size: number) => void;
-  selectedWeight: number;
-  onSelectWeight: (weight: number) => void;
-  selectedTextColor: string;
-  onSelectTextColor: (color: string) => void;
-  strokeOnly: boolean;
-  onStrokeOnlyToggle: (enabled: boolean) => void;
   onAddText: (text: string) => void;
   onAddShape: (shapeType: 'rectangle' | 'triangle' | 'star') => void;
+  onAddImage: (src: string, width: number, height: number) => void;
 }
 
 export const Sidebar = ({
   canvasColor,
   onSelectColor,
-  selectedFont,
-  onSelectFont,
-  selectedSize,
-  onSelectSize,
-  selectedWeight,
-  onSelectWeight,
-  selectedTextColor,
-  onSelectTextColor,
-  strokeOnly,
-  onStrokeOnlyToggle,
   onAddText,
   onAddShape,
+  onAddImage,
 }: SidebarProps) => {
   return (
-    <aside className="w-80 bg-white border-r border-gray-200 overflow-y-auto">
+    <aside className="w-60 bg-white border-r border-gray-200 overflow-y-auto">
       <div className="p-4 space-y-6">
         <div className="pb-6 border-b border-gray-200">
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
             テキスト
           </h2>
-          <div className="space-y-4">
-            <FontSelector selectedFont={selectedFont} onSelect={onSelectFont} />
-            <TextColorPicker selectedColor={selectedTextColor} onSelect={onSelectTextColor} />
-            <TextSizeSelector selectedSize={selectedSize} onSelect={onSelectSize} />
-            <FontWeightSelector selectedWeight={selectedWeight} onSelect={onSelectWeight} />
-            <StrokeOnlyToggle enabled={strokeOnly} onToggle={onStrokeOnlyToggle} />
-            <TextEditor onAddText={onAddText} />
-          </div>
+          <TextEditor onAddText={onAddText} />
         </div>
 
         <div className="pb-6 border-b border-gray-200">
@@ -89,6 +60,13 @@ export const Sidebar = ({
               </svg>
             </button>
           </div>
+        </div>
+
+        <div className="pb-6 border-b border-gray-200">
+          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+            画像
+          </h2>
+          <ImageUploader onAddImage={onAddImage} />
         </div>
 
         <div className="pb-6">
