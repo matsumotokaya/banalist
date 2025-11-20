@@ -15,6 +15,8 @@ export interface TextElement {
   fontSize: number;
   fontFamily: string;
   fill: string;
+  fontWeight: number;
+  strokeOnly: boolean;
 }
 
 export interface ImageElement {
@@ -26,4 +28,13 @@ export interface ImageElement {
   height: number;
 }
 
-export type CanvasElement = TextElement | ImageElement;
+export interface RectangleElement {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fill: string;
+}
+
+export type CanvasElement = TextElement | ImageElement | RectangleElement;

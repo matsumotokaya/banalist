@@ -1,10 +1,12 @@
 const AVAILABLE_FONTS = [
-  'Arial',
-  'Georgia',
-  'Times New Roman',
-  'Courier New',
-  'Verdana',
-  'Trebuchet MS',
+  { name: 'Arial', value: 'Arial' },
+  { name: 'Noto Sans JP', value: '"Noto Sans JP", sans-serif' },
+  { name: 'Noto Serif JP', value: '"Noto Serif JP", serif' },
+  { name: '游ゴシック', value: '"Yu Gothic", "游ゴシック", YuGothic, sans-serif' },
+  { name: 'Georgia', value: 'Georgia' },
+  { name: 'Times New Roman', value: 'Times New Roman' },
+  { name: 'Courier New', value: 'Courier New' },
+  { name: 'Verdana', value: 'Verdana' },
 ];
 
 interface FontSelectorProps {
@@ -25,8 +27,8 @@ export const FontSelector = ({ selectedFont, onSelect }: FontSelectorProps) => {
           className="w-full appearance-none px-4 py-2.5 pr-10 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer hover:bg-gray-100"
         >
           {AVAILABLE_FONTS.map((font) => (
-            <option key={font} value={font} style={{ fontFamily: font }}>
-              {font}
+            <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
+              {font.name}
             </option>
           ))}
         </select>

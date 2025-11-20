@@ -3,10 +3,8 @@ export const Header = () => {
     <header className="h-16 bg-gradient-to-r from-blue-500 to-purple-600 border-b border-blue-700 flex items-center justify-between px-6">
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-            <span className="text-xl">🧾</span>
-          </div>
-          <h1 className="text-white text-xl font-bold">バナリスト</h1>
+          <span className="text-2xl">🍌</span>
+          <h1 className="text-white text-xl font-bold">BANALIST</h1>
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-const PRESET_COLORS = [
+const COLORS = [
   '#FFFFFF',
   '#000000',
   '#FF6B6B',
@@ -9,19 +9,19 @@ const PRESET_COLORS = [
   '#FF8B94',
 ];
 
-interface ColorPickerProps {
+interface TextColorPickerProps {
   selectedColor: string;
   onSelect: (color: string) => void;
 }
 
-export const ColorPicker = ({ selectedColor, onSelect }: ColorPickerProps) => {
+export const TextColorPicker = ({ selectedColor, onSelect }: TextColorPickerProps) => {
   return (
     <div>
       <label className="block text-sm font-semibold text-gray-900 mb-2">
-        背景色
+        テキストカラー
       </label>
       <div className="grid grid-cols-8 gap-1.5">
-        {PRESET_COLORS.map((color) => (
+        {COLORS.map((color) => (
           <button
             key={color}
             onClick={() => onSelect(color)}
