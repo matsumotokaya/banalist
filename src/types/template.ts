@@ -13,6 +13,7 @@ export interface BaseElement {
   x: number;
   y: number;
   rotation?: number;
+  opacity?: number;
 }
 
 export interface TextElement extends BaseElement {

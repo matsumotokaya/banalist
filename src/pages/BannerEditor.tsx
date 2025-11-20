@@ -316,6 +316,16 @@ export const BannerEditor = () => {
     }
   };
 
+  const handleOpacityChange = (opacity: number) => {
+    if (selectedElementId) {
+      const newElements = elements.map((el) =>
+        el.id === selectedElementId ? { ...el, opacity } : el
+      );
+      setElements(newElements);
+      saveToHistory(newElements);
+    }
+  };
+
   const handleBringToFront = () => {
     if (!selectedElementId) return;
     const index = elements.findIndex((el) => el.id === selectedElementId);
@@ -426,6 +436,7 @@ export const BannerEditor = () => {
           onFontChange={handleFontChange}
           onSizeChange={handleSizeChange}
           onWeightChange={handleWeightChange}
+          onOpacityChange={handleOpacityChange}
           onBringToFront={handleBringToFront}
           onSendToBack={handleSendToBack}
         />

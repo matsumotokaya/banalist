@@ -34,6 +34,7 @@ const ImageComponent = ({
       width={imageElement.width}
       height={imageElement.height}
       rotation={imageElement.rotation || 0}
+      opacity={imageElement.opacity ?? 1}
       draggable
       onMouseDown={() => onSelect(imageElement.id)}
       onDragEnd={(e) => {
@@ -285,6 +286,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         height={shape.height}
                         fill={shape.fill}
                         rotation={shape.rotation || 0}
+                        opacity={shape.opacity ?? 1}
                         draggable
                         onMouseDown={() => {
                           if (onSelectElement) {
@@ -339,6 +341,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         y={shape.y}
                         fill={shape.fill}
                         rotation={shape.rotation || 0}
+                        opacity={shape.opacity ?? 1}
                         closed
                         draggable
                         onMouseDown={() => {
@@ -392,6 +395,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         outerRadius={Math.min(shape.width, shape.height) / 2}
                         fill={shape.fill}
                         rotation={shape.rotation || 0}
+                        opacity={shape.opacity ?? 1}
                         draggable
                         onMouseDown={() => {
                           if (onSelectElement) {
@@ -456,6 +460,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                       stroke={textElement.strokeOnly ? textElement.fill : undefined}
                       strokeWidth={textElement.strokeOnly ? Math.max(textElement.fontSize * 0.03, 2) : 0}
                       rotation={textElement.rotation || 0}
+                      opacity={textElement.opacity ?? 1}
                       draggable
                       onMouseDown={() => {
                         if (onSelectElement) {

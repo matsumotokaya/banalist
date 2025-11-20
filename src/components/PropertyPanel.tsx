@@ -6,6 +6,7 @@ interface PropertyPanelProps {
   onFontChange?: (font: string) => void;
   onSizeChange?: (size: number) => void;
   onWeightChange?: (weight: number) => void;
+  onOpacityChange?: (opacity: number) => void;
   onBringToFront?: () => void;
   onSendToBack?: () => void;
 }
@@ -45,7 +46,7 @@ const getWeightLabel = (weight: number): string => {
   return 'Black';
 };
 
-export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, onSizeChange, onWeightChange, onBringToFront, onSendToBack }: PropertyPanelProps) => {
+export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, onSizeChange, onWeightChange, onOpacityChange, onBringToFront, onSendToBack }: PropertyPanelProps) => {
   if (!selectedElement) {
     return (
       <aside className="w-60 bg-white border-l border-gray-200 overflow-y-auto">
@@ -199,6 +200,29 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
             ))}
           </div>
         </div>
+
+        {/* Opacity slider */}
+        {onOpacityChange && (
+          <div className="mb-4">
+            <label className="block text-xs font-medium text-gray-700 mb-2">
+              透明度
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value={(selectedElement.opacity ?? 1) * 100}
+                onChange={(e) => onOpacityChange(Number(e.target.value) / 100)}
+                className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+              />
+              <span className="text-xs font-medium text-gray-700 w-12 text-right">
+                {Math.round((selectedElement.opacity ?? 1) * 100)}%
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Layer controls */}
         <div>
