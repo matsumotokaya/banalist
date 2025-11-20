@@ -35,7 +35,7 @@ const ImageComponent = ({
       height={imageElement.height}
       rotation={imageElement.rotation || 0}
       draggable
-      onClick={() => onSelect(imageElement.id)}
+      onMouseDown={() => onSelect(imageElement.id)}
       onDragEnd={(e) => {
         if (onUpdate) {
           onUpdate(imageElement.id, {
@@ -286,7 +286,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         fill={shape.fill}
                         rotation={shape.rotation || 0}
                         draggable
-                        onClick={() => {
+                        onMouseDown={() => {
                           if (onSelectElement) {
                             onSelectElement(shape.id);
                           }
@@ -341,7 +341,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         rotation={shape.rotation || 0}
                         closed
                         draggable
-                        onClick={() => {
+                        onMouseDown={() => {
                           if (onSelectElement) {
                             onSelectElement(shape.id);
                           }
@@ -393,7 +393,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         fill={shape.fill}
                         rotation={shape.rotation || 0}
                         draggable
-                        onClick={() => {
+                        onMouseDown={() => {
                           if (onSelectElement) {
                             onSelectElement(shape.id);
                           }
@@ -457,7 +457,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                       strokeWidth={textElement.strokeOnly ? Math.max(textElement.fontSize * 0.03, 2) : 0}
                       rotation={textElement.rotation || 0}
                       draggable
-                      onClick={() => {
+                      onMouseDown={() => {
                         if (onSelectElement) {
                           onSelectElement(textElement.id);
                         }
