@@ -294,27 +294,6 @@ export const BannerEditor = () => {
     }
   };
 
-  const handleTextColorChange = (color: string) => {
-    setSelectedTextColor(color);
-    if (selectedElementId) {
-      const newElements = elements.map((el) =>
-        el.id === selectedElementId && el.type === 'text' ? { ...el, fill: color } : el
-      );
-      setElements(newElements);
-      saveToHistory(newElements);
-    }
-  };
-
-  const handleStrokeOnlyToggle = (enabled: boolean) => {
-    setStrokeOnly(enabled);
-    if (selectedElementId) {
-      const newElements = elements.map((el) =>
-        el.id === selectedElementId && el.type === 'text' ? { ...el, strokeOnly: enabled } : el
-      );
-      setElements(newElements);
-      saveToHistory(newElements);
-    }
-  };
 
   const handlePropertyColorChange = (color: string) => {
     if (selectedElementId) {
@@ -362,9 +341,22 @@ export const BannerEditor = () => {
   };
 
   const handleElementUpdate = (id: string, updates: Partial<CanvasElement>) => {
-    const newElements = elements.map((el) =>
-      el.id === id ? { ...el, ...updates } : el
-    );
+    const newElements = elements.map((el) => {
+      if (el.id === id) {
+        // Type-safe merge based on element type
+        if (el.type === 'text' && updates.type === 'text') {
+          return { ...el, ...updates } as TextElement;
+        } else if (el.type === 'shape' && updates.type === 'shape') {
+          return { ...el, ...updates } as ShapeElement;
+        } else if (el.type === 'image' && updates.type === 'image') {
+          return { ...el, ...updates } as ImageElement;
+        } else {
+          // For updates without type change
+          return { ...el, ...updates } as CanvasElement;
+        }
+      }
+      return el;
+    });
     setElements(newElements);
     saveToHistory(newElements);
   };
