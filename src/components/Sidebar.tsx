@@ -1,4 +1,4 @@
-import { ColorPicker } from './ColorPicker';
+import { ColorSelector } from './ColorSelector';
 import { TextEditor } from './TextEditor';
 import { ImageUploader } from './ImageUploader';
 
@@ -68,9 +68,9 @@ export const Sidebar = ({
           </div>
 
           {/* Background section */}
-          <div className="flex flex-col items-center gap-2 min-w-[80px]">
+          <div className="flex flex-col items-center gap-2 min-w-[200px]">
             <h3 className="text-[10px] font-semibold text-gray-400 uppercase">背景</h3>
-            <ColorPicker selectedColor={canvasColor} onSelect={onSelectColor} />
+            <ColorSelector selectedColor={canvasColor} onColorChange={onSelectColor} showInput={true} />
           </div>
         </div>
       </aside>
@@ -152,7 +152,7 @@ export const Sidebar = ({
             背景
           </h2>
           <div className="space-y-4">
-            <ColorPicker selectedColor={canvasColor} onSelect={onSelectColor} />
+            <ColorSelector selectedColor={canvasColor} onColorChange={onSelectColor} showInput={true} />
           </div>
         </div>
       </div>

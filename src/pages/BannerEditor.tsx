@@ -40,7 +40,7 @@ export const BannerEditor = () => {
       return;
     }
 
-    // Migrate existing shapes to new fill/stroke structure
+    // Migrate existing shapes and text to new fill/stroke structure
     const migratedElements = loadedBanner.elements.map((el) => {
       if (el.type === 'shape') {
         const shape = el as ShapeElement;
@@ -51,6 +51,18 @@ export const BannerEditor = () => {
           strokeWidth: shape.strokeWidth || 2,
           strokeEnabled: shape.strokeEnabled !== undefined ? shape.strokeEnabled : false,
         } as ShapeElement;
+      }
+      if (el.type === 'text') {
+        const text = el as TextElement;
+        // Migrate old strokeOnly property to new structure
+        const strokeOnly = (text as any).strokeOnly;
+        return {
+          ...text,
+          fillEnabled: text.fillEnabled !== undefined ? text.fillEnabled : (strokeOnly === undefined ? true : !strokeOnly),
+          stroke: text.stroke || text.fill || '#000000',
+          strokeWidth: text.strokeWidth || Math.max(text.fontSize * 0.03, 2),
+          strokeEnabled: text.strokeEnabled !== undefined ? text.strokeEnabled : (strokeOnly || false),
+        } as TextElement;
       }
       return el;
     });
@@ -224,8 +236,11 @@ export const BannerEditor = () => {
       fontSize: selectedSize,
       fontFamily: selectedFont,
       fill: selectedTextColor,
+      fillEnabled: true,
+      stroke: '#000000',
+      strokeWidth: 2,
+      strokeEnabled: false,
       fontWeight: selectedWeight,
-      strokeOnly: strokeOnly,
     };
     const newElements = [...elements, newElement];
     setElements(newElements);
@@ -402,7 +417,7 @@ export const BannerEditor = () => {
   const handleFillEnabledChange = (enabled: boolean) => {
     if (selectedElementIds.length > 0) {
       const newElements = elements.map((el) => {
-        if (selectedElementIds.includes(el.id) && el.type === 'shape') {
+        if (selectedElementIds.includes(el.id) && (el.type === 'shape' || el.type === 'text')) {
           return { ...el, fillEnabled: enabled };
         }
         return el;
@@ -415,7 +430,7 @@ export const BannerEditor = () => {
   const handleStrokeChange = (color: string) => {
     if (selectedElementIds.length > 0) {
       const newElements = elements.map((el) => {
-        if (selectedElementIds.includes(el.id) && el.type === 'shape') {
+        if (selectedElementIds.includes(el.id) && (el.type === 'shape' || el.type === 'text')) {
           return { ...el, stroke: color };
         }
         return el;
@@ -428,7 +443,7 @@ export const BannerEditor = () => {
   const handleStrokeWidthChange = (width: number) => {
     if (selectedElementIds.length > 0) {
       const newElements = elements.map((el) => {
-        if (selectedElementIds.includes(el.id) && el.type === 'shape') {
+        if (selectedElementIds.includes(el.id) && (el.type === 'shape' || el.type === 'text')) {
           return { ...el, strokeWidth: width };
         }
         return el;
@@ -441,7 +456,7 @@ export const BannerEditor = () => {
   const handleStrokeEnabledChange = (enabled: boolean) => {
     if (selectedElementIds.length > 0) {
       const newElements = elements.map((el) => {
-        if (selectedElementIds.includes(el.id) && el.type === 'shape') {
+        if (selectedElementIds.includes(el.id) && (el.type === 'shape' || el.type === 'text')) {
           return { ...el, strokeEnabled: enabled };
         }
         return el;

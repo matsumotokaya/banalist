@@ -21,9 +21,17 @@ export interface TextElement extends BaseElement {
   text: string;
   fontSize: number;
   fontFamily: string;
+
+  // Fill properties
   fill: string;
+  fillEnabled: boolean;
+
+  // Stroke properties
+  stroke: string;
+  strokeWidth: number;
+  strokeEnabled: boolean;
+
   fontWeight: number;
-  strokeOnly: boolean;
 }
 
 export interface ShapeElement extends BaseElement {

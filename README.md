@@ -2,6 +2,33 @@
 
 Browser-based banner design tool with template and rule-based image generation.
 
+---
+
+## 🚧 TODO - 未解決の課題
+
+### Shift + Drag 制約機能（直線移動）の修正が必要
+
+**現在の問題:**
+- Shiftキーを押してドラッグすると、オブジェクトがワープする
+- 水平・垂直移動が正しく機能しない
+
+**期待される仕様（Illustrator/Figma方式）:**
+1. ドラッグ開始位置のX座標とY座標を保存
+2. Shiftキーを押した状態でドラッグすると：
+   - **水平移動**: Y軸をドラッグ開始位置に固定、X軸のみ移動可能
+   - **垂直移動**: X軸をドラッグ開始位置に固定、Y軸のみ移動可能
+3. 移動方向（水平/垂直）は、ドラッグ開始位置からの距離で動的に切り替え
+   - `dx > dy` → 水平移動（Y軸固定）
+   - `dy > dx` → 垂直移動（X軸固定）
+
+**技術的課題:**
+- Konvaの`dragBoundFunc`内で正確なドラッグ開始位置を保持する必要がある
+- 現在の実装では`onDragStart`で保存した位置がShift押下時にずれている可能性
+
+**Status**: 🔴 未解決（現在は誤動作するが、実害は少ないためそのまま）
+
+---
+
 ## Tech Stack
 
 - **Frontend**: React + Vite + TypeScript

@@ -3,19 +3,38 @@ import { Stage, Layer, Rect, Text, Transformer, Line, Star, Circle, Path, Image 
 import type { Template, CanvasElement, TextElement, ShapeElement, ImageElement } from '../types/template';
 import type Konva from 'konva';
 
+// Constrain drag to horizontal or vertical when Shift is pressed
+// Illustrator/Figma-style: dynamically switches based on current position
+const constrainedDragBound = (pos: { x: number; y: number }, startPos: { x: number; y: number }): { x: number; y: number } => {
+  const dx = Math.abs(pos.x - startPos.x);
+  const dy = Math.abs(pos.y - startPos.y);
+
+  // Lock to axis with greater distance from drag start position
+  // If moving more horizontally (dx > dy), lock Y axis (horizontal movement)
+  // If moving more vertically (dy > dx), lock X axis (vertical movement)
+  if (dx > dy) {
+    return { x: pos.x, y: startPos.y }; // Horizontal movement - lock Y axis to start position
+  } else {
+    return { x: startPos.x, y: pos.y }; // Vertical movement - lock X axis to start position
+  }
+};
+
 // Image component wrapper
 const ImageComponent = ({
   imageElement,
   onSelect,
   nodeRef,
-  onUpdate
+  onUpdate,
+  isShiftPressed
 }: {
   imageElement: ImageElement;
   onSelect: (id: string, event: Konva.KonvaEventObject<MouseEvent>) => void;
   nodeRef: (node: Konva.Image | null, id: string) => void;
   onUpdate?: (id: string, updates: Partial<ImageElement>) => void;
+  isShiftPressed: boolean;
 }) => {
   const [image, setImage] = useState<HTMLImageElement | null>(null);
+  const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     const img = new window.Image();
@@ -37,6 +56,15 @@ const ImageComponent = ({
       opacity={imageElement.opacity ?? 1}
       draggable
       onMouseDown={(e) => onSelect(imageElement.id, e)}
+      onDragStart={(e) => {
+        dragStartPosRef.current = { x: e.target.x(), y: e.target.y() };
+      }}
+      dragBoundFunc={(pos) => {
+        if (dragStartPosRef.current && isShiftPressed) {
+          return constrainedDragBound(pos, dragStartPosRef.current);
+        }
+        return pos;
+      }}
       onDragEnd={(e) => {
         if (onUpdate) {
           onUpdate(imageElement.id, {
@@ -95,6 +123,32 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   const [selectedNodeType, setSelectedNodeType] = useState<'text' | 'shape' | 'image' | null>(null);
   const [selectionRect, setSelectionRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const selectionStartRef = useRef<{ x: number; y: number } | null>(null);
+  const dragStartPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
+  const shiftPressPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
+  const [isShiftPressed, setIsShiftPressed] = useState(false);
+  const wasShiftPressed = useRef(false);
+
+  // Track Shift key state
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(true);
+      }
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
   useImperativeHandle(ref, () => ({
     exportImage: () => {
@@ -443,6 +497,16 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         opacity={shape.opacity ?? 1}
                         draggable
                         onMouseDown={(e) => handleElementClick(shape.id, e)}
+                        onDragStart={(e) => {
+                          dragStartPositions.current.set(shape.id, { x: e.target.x(), y: e.target.y() });
+                        }}
+                        dragBoundFunc={(pos) => {
+                          const startPos = dragStartPositions.current.get(shape.id);
+                          if (startPos && isShiftPressed) {
+                            return constrainedDragBound(pos, startPos);
+                          }
+                          return pos;
+                        }}
                         onDragEnd={(e) => {
                           if (onElementUpdate) {
                             onElementUpdate(shape.id, {
@@ -497,6 +561,16 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         closed
                         draggable
                         onMouseDown={(e) => handleElementClick(shape.id, e)}
+                        onDragStart={(e) => {
+                          dragStartPositions.current.set(shape.id, { x: e.target.x(), y: e.target.y() });
+                        }}
+                        dragBoundFunc={(pos) => {
+                          const startPos = dragStartPositions.current.get(shape.id);
+                          if (startPos && isShiftPressed) {
+                            return constrainedDragBound(pos, startPos);
+                          }
+                          return pos;
+                        }}
                         onDragEnd={(e) => {
                           if (onElementUpdate) {
                             onElementUpdate(shape.id, {
@@ -548,6 +622,16 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         opacity={shape.opacity ?? 1}
                         draggable
                         onMouseDown={(e) => handleElementClick(shape.id, e)}
+                        onDragStart={(e) => {
+                          dragStartPositions.current.set(shape.id, { x: e.target.x(), y: e.target.y() });
+                        }}
+                        dragBoundFunc={(pos) => {
+                          const startPos = dragStartPositions.current.get(shape.id);
+                          if (startPos && isShiftPressed) {
+                            return constrainedDragBound(pos, startPos);
+                          }
+                          return pos;
+                        }}
                         onDragEnd={(e) => {
                           if (onElementUpdate) {
                             const centerX = e.target.x();
@@ -605,6 +689,16 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         opacity={shape.opacity ?? 1}
                         draggable
                         onMouseDown={(e) => handleElementClick(shape.id, e)}
+                        onDragStart={(e) => {
+                          dragStartPositions.current.set(shape.id, { x: e.target.x(), y: e.target.y() });
+                        }}
+                        dragBoundFunc={(pos) => {
+                          const startPos = dragStartPositions.current.get(shape.id);
+                          if (startPos && isShiftPressed) {
+                            return constrainedDragBound(pos, startPos);
+                          }
+                          return pos;
+                        }}
                         onDragEnd={(e) => {
                           if (onElementUpdate) {
                             const centerX = e.target.x();
@@ -669,6 +763,16 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                         opacity={shape.opacity ?? 1}
                         draggable
                         onMouseDown={(e) => handleElementClick(shape.id, e)}
+                        onDragStart={(e) => {
+                          dragStartPositions.current.set(shape.id, { x: e.target.x(), y: e.target.y() });
+                        }}
+                        dragBoundFunc={(pos) => {
+                          const startPos = dragStartPositions.current.get(shape.id);
+                          if (startPos && isShiftPressed) {
+                            return constrainedDragBound(pos, startPos);
+                          }
+                          return pos;
+                        }}
                         onDragEnd={(e) => {
                           if (onElementUpdate) {
                             onElementUpdate(shape.id, {
@@ -716,9 +820,9 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                       fontSize={textElement.fontSize}
                       fontFamily={textElement.fontFamily}
                       fontStyle={textElement.fontWeight >= 700 ? 'bold' : textElement.fontWeight <= 300 ? 'lighter' : 'normal'}
-                      fill={textElement.strokeOnly ? 'transparent' : textElement.fill}
-                      stroke={textElement.strokeOnly ? textElement.fill : undefined}
-                      strokeWidth={textElement.strokeOnly ? Math.max(textElement.fontSize * 0.03, 2) : 0}
+                      fill={textElement.fillEnabled ? textElement.fill : 'transparent'}
+                      stroke={textElement.strokeEnabled ? textElement.stroke : undefined}
+                      strokeWidth={textElement.strokeEnabled ? textElement.strokeWidth : 0}
                       rotation={textElement.rotation || 0}
                       opacity={textElement.opacity ?? 1}
                       draggable
@@ -726,6 +830,16 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                       onDblClick={(e) => {
                         const textNode = e.target as Konva.Text;
                         handleTextDoubleClick(textElement, textNode);
+                      }}
+                      onDragStart={(e) => {
+                        dragStartPositions.current.set(textElement.id, { x: e.target.x(), y: e.target.y() });
+                      }}
+                      dragBoundFunc={(pos) => {
+                        const startPos = dragStartPositions.current.get(textElement.id);
+                        if (startPos && isShiftPressed) {
+                          return constrainedDragBound(pos, startPos);
+                        }
+                        return pos;
                       }}
                       onDragEnd={(e) => {
                         if (onElementUpdate) {
@@ -768,6 +882,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                       }}
                       onSelect={handleElementClick}
                       onUpdate={onElementUpdate}
+                      isShiftPressed={isShiftPressed}
                     />
                   );
                 }
