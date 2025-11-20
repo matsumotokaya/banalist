@@ -1,12 +1,11 @@
 import { useRef, forwardRef, useImperativeHandle, useEffect, useState } from 'react';
-import { Stage, Layer, Rect, Text, Transformer } from 'react-konva';
-import type { Template, TextElement, RectangleElement } from '../types/template';
+import { Stage, Layer, Rect, Text, Transformer, Line, Star } from 'react-konva';
+import type { Template, CanvasElement, TextElement, ShapeElement } from '../types/template';
 import type Konva from 'konva';
 
 interface CanvasProps {
   template: Template;
-  textElements: TextElement[];
-  rectangleElements: RectangleElement[];
+  elements: CanvasElement[];
   scale?: number;
   canvasColor: string;
   fileName?: string;
@@ -20,14 +19,14 @@ export interface CanvasRef {
 }
 
 export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
-  { template, textElements, rectangleElements, scale = 0.5, canvasColor, fileName = 'artwork-01.png', onTextChange, selectedElementId, onSelectElement },
+  { template, elements, scale = 0.5, canvasColor, fileName = 'artwork-01.png', onTextChange, selectedElementId, onSelectElement },
   ref
 ) {
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
-  const textNodesRef = useRef<Map<string, Konva.Text>>(new Map());
-  const rectangleNodesRef = useRef<Map<string, Konva.Rect>>(new Map());
+  const nodesRef = useRef<Map<string, Konva.Node>>(new Map());
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedNodeType, setSelectedNodeType] = useState<'text' | 'shape' | null>(null);
 
   useImperativeHandle(ref, () => ({
     exportImage: () => {
@@ -41,18 +40,23 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
     if (!transformerRef.current) return;
 
     if (selectedElementId && !isEditing) {
-      const selectedTextNode = textNodesRef.current.get(selectedElementId);
-      const selectedRectNode = rectangleNodesRef.current.get(selectedElementId);
-      const selectedNode = selectedTextNode || selectedRectNode;
+      const selectedNode = nodesRef.current.get(selectedElementId);
 
       if (selectedNode) {
         transformerRef.current.nodes([selectedNode]);
+
+        // Determine node type from elements
+        const element = elements.find((el) => el.id === selectedElementId);
+        if (element) {
+          setSelectedNodeType(element.type === 'text' ? 'text' : 'shape');
+        }
       }
     } else {
       transformerRef.current.nodes([]);
+      setSelectedNodeType(null);
     }
     transformerRef.current.getLayer()?.batchDraw();
-  }, [selectedElementId, isEditing]);
+  }, [selectedElementId, isEditing, elements]);
 
   const handleTextDoubleClick = (element: TextElement, textNode: Konva.Text) => {
     if (!stageRef.current || !onTextChange) return;
@@ -174,60 +178,123 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                 }
               }}
             />
-              {rectangleElements.map((rect) => (
-                <Rect
-                  key={rect.id}
-                  ref={(node) => {
-                    if (node) {
-                      rectangleNodesRef.current.set(rect.id, node);
-                    } else {
-                      rectangleNodesRef.current.delete(rect.id);
-                    }
-                  }}
-                  x={rect.x}
-                  y={rect.y}
-                  width={rect.width}
-                  height={rect.height}
-                  fill={rect.fill}
-                  draggable
-                  onClick={() => {
-                    if (onSelectElement) {
-                      onSelectElement(rect.id);
-                    }
-                  }}
-                />
-              ))}
-              {textElements.map((element) => (
-                <Text
-                  key={element.id}
-                  ref={(node) => {
-                    if (node) {
-                      textNodesRef.current.set(element.id, node);
-                    } else {
-                      textNodesRef.current.delete(element.id);
-                    }
-                  }}
-                  text={element.text}
-                  x={element.x}
-                  y={element.y}
-                  fontSize={element.fontSize}
-                  fontFamily={element.fontFamily}
-                  fontStyle={element.fontWeight >= 700 ? 'bold' : element.fontWeight <= 300 ? 'lighter' : 'normal'}
-                  fill={element.strokeOnly ? 'transparent' : element.fill}
-                  stroke={element.strokeOnly ? element.fill : undefined}
-                  strokeWidth={element.strokeOnly ? Math.max(element.fontSize * 0.03, 2) : 0}
-                  draggable
-                  onClick={() => {
-                    if (onSelectElement) {
-                      onSelectElement(element.id);
-                    }
-                  }}
-                  onDblClick={(e) => {
-                    const textNode = e.target as Konva.Text;
-                    handleTextDoubleClick(element, textNode);
-                  }}
-                />
-              ))}
+              {elements.map((element) => {
+                if (element.type === 'shape') {
+                  const shape = element as ShapeElement;
+                  if (shape.shapeType === 'rectangle') {
+                    return (
+                      <Rect
+                        key={shape.id}
+                        ref={(node) => {
+                          if (node) {
+                            nodesRef.current.set(shape.id, node);
+                          } else {
+                            nodesRef.current.delete(shape.id);
+                          }
+                        }}
+                        x={shape.x}
+                        y={shape.y}
+                        width={shape.width}
+                        height={shape.height}
+                        fill={shape.fill}
+                        draggable
+                        onClick={() => {
+                          if (onSelectElement) {
+                            onSelectElement(shape.id);
+                          }
+                        }}
+                      />
+                    );
+                  } else if (shape.shapeType === 'triangle') {
+                    return (
+                      <Line
+                        key={shape.id}
+                        ref={(node) => {
+                          if (node) {
+                            nodesRef.current.set(shape.id, node);
+                          } else {
+                            nodesRef.current.delete(shape.id);
+                          }
+                        }}
+                        points={[
+                          shape.width / 2, 0,
+                          shape.width, shape.height,
+                          0, shape.height
+                        ]}
+                        x={shape.x}
+                        y={shape.y}
+                        fill={shape.fill}
+                        closed
+                        draggable
+                        onClick={() => {
+                          if (onSelectElement) {
+                            onSelectElement(shape.id);
+                          }
+                        }}
+                      />
+                    );
+                  } else if (shape.shapeType === 'star') {
+                    return (
+                      <Star
+                        key={shape.id}
+                        ref={(node) => {
+                          if (node) {
+                            nodesRef.current.set(shape.id, node);
+                          } else {
+                            nodesRef.current.delete(shape.id);
+                          }
+                        }}
+                        x={shape.x + shape.width / 2}
+                        y={shape.y + shape.height / 2}
+                        numPoints={5}
+                        innerRadius={Math.min(shape.width, shape.height) / 4}
+                        outerRadius={Math.min(shape.width, shape.height) / 2}
+                        fill={shape.fill}
+                        draggable
+                        onClick={() => {
+                          if (onSelectElement) {
+                            onSelectElement(shape.id);
+                          }
+                        }}
+                      />
+                    );
+                  }
+                } else if (element.type === 'text') {
+                  const textElement = element as TextElement;
+                  return (
+                    <Text
+                      key={textElement.id}
+                      ref={(node) => {
+                        if (node) {
+                          nodesRef.current.set(textElement.id, node);
+                        } else {
+                          nodesRef.current.delete(textElement.id);
+                        }
+                      }}
+                      text={textElement.text}
+                      x={textElement.x}
+                      y={textElement.y}
+                      fontSize={textElement.fontSize}
+                      fontFamily={textElement.fontFamily}
+                      fontStyle={textElement.fontWeight >= 700 ? 'bold' : textElement.fontWeight <= 300 ? 'lighter' : 'normal'}
+                      fill={textElement.strokeOnly ? 'transparent' : textElement.fill}
+                      stroke={textElement.strokeOnly ? textElement.fill : undefined}
+                      strokeWidth={textElement.strokeOnly ? Math.max(textElement.fontSize * 0.03, 2) : 0}
+                      draggable
+                      onClick={() => {
+                        if (onSelectElement) {
+                          onSelectElement(textElement.id);
+                        }
+                      }}
+                      onDblClick={(e) => {
+                        const textNode = e.target as Konva.Text;
+                        handleTextDoubleClick(textElement, textNode);
+                      }}
+                    />
+                  );
+                }
+                return null;
+              })}
               <Transformer
                 ref={transformerRef}
                 borderStroke="#4F46E5"
@@ -236,8 +303,13 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                 anchorStroke="#4F46E5"
                 anchorFill="#FFFFFF"
                 anchorSize={8}
-                enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
+                enabledAnchors={
+                  selectedNodeType === 'shape'
+                    ? ['top-left', 'top-center', 'top-right', 'middle-left', 'middle-right', 'bottom-left', 'bottom-center', 'bottom-right']
+                    : ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+                }
                 rotateEnabled={false}
+                keepRatio={selectedNodeType === 'text'}
               />
             </Layer>
           </Stage>

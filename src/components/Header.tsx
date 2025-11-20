@@ -1,11 +1,33 @@
-export const Header = () => {
+interface HeaderProps {
+  onBackToManager?: () => void;
+  bannerName?: string;
+}
+
+export const Header = ({ onBackToManager, bannerName }: HeaderProps) => {
   return (
     <header className="h-16 bg-gradient-to-r from-blue-500 to-purple-600 border-b border-blue-700 flex items-center justify-between px-6">
       <div className="flex items-center gap-4">
+        {onBackToManager && (
+          <button
+            onClick={onBackToManager}
+            className="w-9 h-9 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition-colors"
+            title="バナーマネージャーに戻る"
+          >
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
         <div className="flex items-center gap-2">
           <span className="text-2xl">🍌</span>
           <h1 className="text-white text-xl font-bold">BANALIST</h1>
         </div>
+        {bannerName && (
+          <>
+            <span className="text-white/50">|</span>
+            <span className="text-white font-medium">{bannerName}</span>
+          </>
+        )}
       </div>
 
       <div className="flex items-center gap-4">
