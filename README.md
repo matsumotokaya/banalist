@@ -27,6 +27,51 @@ Browser-based banner design tool with template and rule-based image generation.
 
 **Status**: 🔴 未解決（現在は誤動作するが、実害は少ないためそのまま）
 
+### ピンチイン/ピンチアウトでのキャンバスズーム制御
+
+**目的:**
+トラックパッド/タッチデバイスでピンチ操作により、キャンバスの表示倍率（左下の25%〜200%）を変更したい
+
+**現在の問題:**
+- ブラウザ全体がズームされてしまう（ネイティブのピンチズーム動作）
+- キャンバスの表示倍率だけを変更できない
+
+**試行した対策:**
+- `touch-action: none` の追加
+- `viewport` に `user-scalable=no` を設定
+- `wheel` / `touch` / `gesture` イベントの `preventDefault()`
+- Safari用 `gesturestart/gesturechange/gestureend` イベント処理
+
+**技術的課題:**
+- ブラウザ（特にMac Safari/Chrome）のネイティブピンチズーム動作を完全に無効化するのは技術的に困難
+- セキュリティ・アクセシビリティの観点から、ブラウザが意図的に無効化を制限している可能性
+
+**Status**: 🔴 未解決（実装試行したが、現時点では実現不可能の可能性あり）
+
+### テキスト・図形のエフェクト機能
+
+**目的:**
+Illustratorのような高度な視覚効果を実現する
+
+**実装したいエフェクト:**
+- **外側線**: 線が塗りに重ならない（複数レイヤーを内部的に生成）
+- **グロー効果**: 発光するような光彩
+- **ドロップシャドウ**: 影をつける
+- **アウトライン効果**: 線を外側に配置
+- **グラデーション**: 塗りにグラデーションを適用
+
+**技術的アプローチ:**
+1. 単一の要素を内部的に複数のKonvaノードで構成
+2. エフェクトをプリセットとして提供（ユーザーは選択するだけ）
+3. 編集は単一オブジェクトとして、レンダリング時に複数レイヤーに展開
+
+**課題:**
+- Konva.jsの制約（strokeは常に中央配置）
+- 複数ノードの同期管理
+- パフォーマンス
+
+**Status**: 📋 TODO（将来実装予定）
+
 ---
 
 ## Tech Stack
@@ -34,6 +79,7 @@ Browser-based banner design tool with template and rule-based image generation.
 - **Frontend**: React + Vite + TypeScript
 - **Styling**: TailwindCSS
 - **Canvas**: Konva.js (react-konva)
+- **Backend**: Supabase (Auth, Database, Storage)
 
 ## Getting Started
 
@@ -130,6 +176,57 @@ interface ShapeElement {
 - Max 50 history entries
 - Full undo/redo support
 
+### Authentication ✅ (2025-11-21)
+- **Google OAuth**: Login/Logout via Supabase
+- **UI**: Canva-style avatar dropdown menu
+- **Status**: ✅ Fully implemented with database integration
+
+### User Roles & Permissions ✅ NEW (2025-11-23)
+- **Role Types**: `admin` | `user`
+- **Subscription Tiers**: `free` | `premium`
+- **Storage**: `profiles` table with `role` and `subscription_tier` columns
+- **Admin Privileges**:
+  - Upload to default image library
+  - Manage default templates (future)
+- **Free Users**: Basic banner creation & personal image library
+- **Premium Users**: Advanced features (planned)
+
+### Image Library System ✅ NEW (2025-11-23)
+WordPress-style image library with dual storage:
+
+#### Default Image Library
+- **Bucket**: `default-images` (Public)
+- **Table**: `default_images`
+- **Access**: All users can view, only admins can upload
+- **Purpose**: High-quality curated images provided by the service
+
+#### User Image Library (My Library)
+- **Bucket**: `user-images` (Public with RLS)
+- **Table**: `user_images`
+- **Access**: Users can only view/upload their own images
+- **Storage Path**: `user-images/{user_id}/{filename}`
+- **Features**:
+  - Once uploaded, images can be reused across multiple banners
+  - Automatic metadata storage (width, height, file size)
+  - Organized by user ID for multi-tenant support
+
+#### UI Features
+- **Modal Interface**: WordPress-style image picker
+- **Tabs**: "Default" and "My Library"
+- **Upload**: Drag & drop or file picker
+- **Grid Display**: Thumbnail previews with hover effects
+- **One-Click Insert**: Click to add image to canvas at original size
+
+### Data Persistence ✅ NEW (2025-11-23)
+- **Storage**: Migrated from localStorage to Supabase PostgreSQL
+- **Tables**:
+  - `banners`: User banner data with JSONB elements
+  - `profiles`: User metadata (role, subscription tier)
+  - `default_images`: Default library metadata
+  - `user_images`: User library metadata
+- **Auto-save**: Elements (500ms debounce), canvas color, thumbnails (3s interval)
+- **RLS Policies**: Row-level security ensures users only access their own data
+
 ### Export
 - PNG export functionality
 
@@ -175,17 +272,67 @@ interface ShapeElement {
 - Coordinate system mismatch preventing element selection
 - **Status**: Debugging coordinate transformation between screen and canvas space
 
+## Database Schema
+
+### Tables
+
+#### `profiles`
+```sql
+- id: uuid (FK to auth.users)
+- email: text
+- role: text (admin | user)
+- subscription_tier: text (free | premium)
+- subscription_expires_at: timestamp
+- created_at: timestamp
+- updated_at: timestamp
+```
+
+#### `banners`
+```sql
+- id: uuid (PK)
+- user_id: uuid (FK to profiles)
+- name: text
+- template: jsonb
+- elements: jsonb
+- canvas_color: text
+- thumbnail_data_url: text
+- created_at: timestamp
+- updated_at: timestamp
+```
+
+#### `default_images`
+```sql
+- id: uuid (PK)
+- name: text
+- storage_path: text (unique)
+- width: integer
+- height: integer
+- file_size: integer
+- tags: text[]
+- created_at: timestamp
+```
+
+#### `user_images`
+```sql
+- id: uuid (PK)
+- user_id: uuid (FK to profiles)
+- name: text
+- storage_path: text (unique)
+- width: integer
+- height: integer
+- file_size: integer
+- created_at: timestamp
+```
+
 ## Future Enhancements
 - **Lasso Selection**: Complete coordinate system fix
 - **Multi-element resize**: Proportional resize of multiple selected elements
 - **Copy/Paste multiple elements**: Extend clipboard to support multi-selection
-- Image upload support
-- More shape types
-- Layer management
-- Template system
-- LLM-powered text generation
-- Color palette presets
-- Backend API (FastAPI)
-- Authentication (Supabase)
-- Alignment tools (align left/center/right, distribute evenly)
-- Snap-to-grid / Smart guides
+- **Premium Features**: Define feature set for paid tier
+- **Template System**: Pre-designed banner templates
+- **LLM Integration**: AI-powered text generation
+- **Color Palette Presets**: Curated color schemes
+- **Alignment Tools**: Align left/center/right, distribute evenly
+- **Snap-to-grid / Smart Guides**: Design assistance
+- **Image Search**: Tag-based filtering in image library
+- **Stripe Integration**: Payment processing for premium subscriptions

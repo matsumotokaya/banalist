@@ -15,26 +15,29 @@ export const BannerManager = () => {
     loadBanners();
   }, []);
 
-  const loadBanners = () => {
-    setBanners(bannerStorage.getAll());
+  const loadBanners = async () => {
+    const allBanners = await bannerStorage.getAll();
+    setBanners(allBanners);
   };
 
-  const handleCreateBanner = () => {
-    const newBanner = bannerStorage.create('Untitled Banner', DEFAULT_TEMPLATES[0]);
-    navigate(`/banner/${newBanner.id}`);
-  };
-
-  const handleDeleteBanner = (id: string) => {
-    if (window.confirm('このバナーを削除しますか？')) {
-      bannerStorage.delete(id);
-      loadBanners();
+  const handleCreateBanner = async () => {
+    const newBanner = await bannerStorage.create('Untitled Banner', DEFAULT_TEMPLATES[0]);
+    if (newBanner) {
+      navigate(`/banner/${newBanner.id}`);
     }
   };
 
-  const handleDuplicateBanner = (id: string) => {
-    const duplicated = bannerStorage.duplicate(id);
+  const handleDeleteBanner = async (id: string) => {
+    if (window.confirm('このバナーを削除しますか？')) {
+      await bannerStorage.delete(id);
+      await loadBanners();
+    }
+  };
+
+  const handleDuplicateBanner = async (id: string) => {
+    const duplicated = await bannerStorage.duplicate(id);
     if (duplicated) {
-      loadBanners();
+      await loadBanners();
     }
   };
 
@@ -43,10 +46,10 @@ export const BannerManager = () => {
     setEditingName(currentName);
   };
 
-  const handleSaveName = (id: string) => {
+  const handleSaveName = async (id: string) => {
     if (editingName.trim()) {
-      bannerStorage.update(id, { name: editingName.trim() });
-      loadBanners();
+      await bannerStorage.update(id, { name: editingName.trim() });
+      await loadBanners();
     }
     setEditingId(null);
     setEditingName('');

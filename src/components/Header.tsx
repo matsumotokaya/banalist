@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AuthButton } from './AuthButton';
 
 interface HeaderProps {
   onBackToManager?: () => void;
@@ -85,14 +86,7 @@ export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChan
       </div>
 
       <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
-        <button className="hidden sm:block px-3 md:px-4 py-1.5 md:py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg text-xs md:text-sm font-medium transition-colors">
-          共有
-        </button>
-        <div className="w-8 h-8 md:w-9 md:h-9 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center cursor-pointer transition-colors">
-          <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-          </svg>
-        </div>
+        <AuthButton />
       </div>
     </header>
   );

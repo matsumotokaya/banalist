@@ -124,9 +124,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   const [selectionRect, setSelectionRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const selectionStartRef = useRef<{ x: number; y: number } | null>(null);
   const dragStartPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
-  const shiftPressPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
   const [isShiftPressed, setIsShiftPressed] = useState(false);
-  const wasShiftPressed = useRef(false);
 
   // Track Shift key state
   useEffect(() => {

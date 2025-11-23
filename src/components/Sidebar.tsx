@@ -1,10 +1,14 @@
 import { ColorSelector } from './ColorSelector';
 import { TextEditor } from './TextEditor';
 import { ImageUploader } from './ImageUploader';
+import { CanvasSizeSelector } from './CanvasSizeSelector';
 
 interface SidebarProps {
   canvasColor: string;
+  canvasWidth: number;
+  canvasHeight: number;
   onSelectColor: (color: string) => void;
+  onCanvasSizeChange: (width: number, height: number) => void;
   onAddText: (text: string) => void;
   onAddShape: (shapeType: 'rectangle' | 'triangle' | 'star' | 'circle' | 'heart') => void;
   onAddImage: (src: string, width: number, height: number) => void;
@@ -13,7 +17,10 @@ interface SidebarProps {
 
 export const Sidebar = ({
   canvasColor,
+  canvasWidth,
+  canvasHeight,
   onSelectColor,
+  onCanvasSizeChange,
   onAddText,
   onAddShape,
   onAddImage,
@@ -80,6 +87,17 @@ export const Sidebar = ({
   return (
     <aside className="w-60 bg-white border-r border-gray-200 overflow-y-auto">
       <div className="p-4 space-y-6">
+        <div className="pb-6 border-b border-gray-200">
+          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+            キャンバスサイズ
+          </h2>
+          <CanvasSizeSelector
+            width={canvasWidth}
+            height={canvasHeight}
+            onSizeChange={onCanvasSizeChange}
+          />
+        </div>
+
         <div className="pb-6 border-b border-gray-200">
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
             テキスト

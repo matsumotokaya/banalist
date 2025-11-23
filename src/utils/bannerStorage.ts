@@ -1,102 +1,196 @@
+import { supabase } from './supabase';
 import type { Banner, CanvasElement, Template } from '../types/template';
 
-const STORAGE_KEY = 'banalist_banners';
+interface DbBanner {
+  id: string;
+  user_id: string;
+  name: string;
+  template: Template;
+  elements: CanvasElement[];
+  canvas_color: string;
+  thumbnail_data_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Convert DB format to Banner format
+const dbToBanner = (db: DbBanner): Banner => ({
+  id: db.id,
+  name: db.name,
+  template: db.template,
+  elements: db.elements,
+  canvasColor: db.canvas_color,
+  thumbnailDataURL: db.thumbnail_data_url || undefined,
+  createdAt: db.created_at,
+  updatedAt: db.updated_at,
+});
 
 export const bannerStorage = {
   // Get all banners
-  getAll(): Banner[] {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+  async getAll(): Promise<Banner[]> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from('banners')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching banners:', error);
+      return [];
+    }
+
+    return (data || []).map(dbToBanner);
   },
 
   // Get banner by ID
-  getById(id: string): Banner | null {
-    const banners = this.getAll();
-    return banners.find((b) => b.id === id) || null;
+  async getById(id: string): Promise<Banner | null> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    const { data, error } = await supabase
+      .from('banners')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching banner:', error);
+      return null;
+    }
+
+    return data ? dbToBanner(data) : null;
   },
 
   // Create new banner
-  create(name: string, template: Template): Banner {
-    const banners = this.getAll();
-    const newBanner: Banner = {
-      id: `banner-${Date.now()}`,
-      name,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      template,
-      elements: [
-        {
-          id: 'default-text',
-          type: 'text',
-          text: 'BANALISTでバナーをつくろう。',
-          x: template.width / 2 - 550,
-          y: template.height / 2 - 40,
-          fontSize: 80,
-          fontFamily: 'Arial',
-          fill: '#000000',
-          fontWeight: 400,
-          strokeOnly: false,
-        },
-      ],
-      canvasColor: '#FFFFFF',
-    };
-    banners.push(newBanner);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(banners));
-    return newBanner;
+  async create(name: string, template: Template): Promise<Banner | null> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert('ログインが必要です');
+      return null;
+    }
+
+    const defaultElements: CanvasElement[] = [
+      {
+        id: 'default-text',
+        type: 'text',
+        text: 'BANALISTでバナーをつくろう。',
+        x: template.width / 2 - 550,
+        y: template.height / 2 - 40,
+        fontSize: 80,
+        fontFamily: 'Arial',
+        fill: '#000000',
+        fillEnabled: true,
+        stroke: '#000000',
+        strokeWidth: 2,
+        strokeEnabled: false,
+        fontWeight: 400,
+      },
+    ];
+
+    const { data, error } = await supabase
+      .from('banners')
+      .insert({
+        user_id: user.id,
+        name,
+        template,
+        elements: defaultElements,
+        canvas_color: '#FFFFFF',
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating banner:', error);
+      alert('バナーの作成に失敗しました');
+      return null;
+    }
+
+    return data ? dbToBanner(data) : null;
   },
 
   // Update banner
-  update(id: string, updates: Partial<Omit<Banner, 'id' | 'createdAt'>>): void {
-    const banners = this.getAll();
-    const index = banners.findIndex((b) => b.id === id);
-    if (index !== -1) {
-      banners[index] = {
-        ...banners[index],
-        ...updates,
-        updatedAt: new Date().toISOString(),
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(banners));
+  async update(id: string, updates: Partial<Omit<Banner, 'id' | 'createdAt'>>): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const dbUpdates: any = {};
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.template !== undefined) dbUpdates.template = updates.template;
+    if (updates.elements !== undefined) dbUpdates.elements = updates.elements;
+    if (updates.canvasColor !== undefined) dbUpdates.canvas_color = updates.canvasColor;
+    if (updates.thumbnailDataURL !== undefined) dbUpdates.thumbnail_data_url = updates.thumbnailDataURL;
+
+    const { error } = await supabase
+      .from('banners')
+      .update(dbUpdates)
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error updating banner:', error);
     }
   },
 
   // Delete banner
-  delete(id: string): void {
-    const banners = this.getAll();
-    const filtered = banners.filter((b) => b.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+  async delete(id: string): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('banners')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error deleting banner:', error);
+    }
   },
 
   // Duplicate banner
-  duplicate(id: string): Banner | null {
-    const original = this.getById(id);
+  async duplicate(id: string): Promise<Banner | null> {
+    const original = await this.getById(id);
     if (!original) return null;
 
-    const banners = this.getAll();
-    const duplicated: Banner = {
-      ...original,
-      id: `banner-${Date.now()}`,
-      name: `${original.name} (Copy)`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      elements: JSON.parse(JSON.stringify(original.elements)),
-    };
-    banners.push(duplicated);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(banners));
-    return duplicated;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    const { data, error } = await supabase
+      .from('banners')
+      .insert({
+        user_id: user.id,
+        name: `${original.name} (Copy)`,
+        template: original.template,
+        elements: JSON.parse(JSON.stringify(original.elements)),
+        canvas_color: original.canvasColor,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error duplicating banner:', error);
+      return null;
+    }
+
+    return data ? dbToBanner(data) : null;
   },
 
   // Save elements (for auto-save in editor)
-  saveElements(id: string, elements: CanvasElement[]): void {
-    this.update(id, { elements });
+  async saveElements(id: string, elements: CanvasElement[]): Promise<void> {
+    await this.update(id, { elements });
   },
 
   // Save canvas color
-  saveCanvasColor(id: string, canvasColor: string): void {
-    this.update(id, { canvasColor });
+  async saveCanvasColor(id: string, canvasColor: string): Promise<void> {
+    await this.update(id, { canvasColor });
   },
 
   // Save thumbnail
-  saveThumbnail(id: string, thumbnailDataURL: string): void {
-    this.update(id, { thumbnailDataURL });
+  async saveThumbnail(id: string, thumbnailDataURL: string): Promise<void> {
+    await this.update(id, { thumbnailDataURL });
   },
 };

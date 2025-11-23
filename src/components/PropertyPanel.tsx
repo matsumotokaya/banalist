@@ -61,10 +61,6 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
     );
   }
 
-  const currentColor = selectedElement.type === 'text' || selectedElement.type === 'shape'
-    ? selectedElement.fill
-    : '#000000';
-
   const isTextElement = selectedElement.type === 'text';
   const textElement = isTextElement ? (selectedElement as TextElement) : null;
 

@@ -1,4 +1,5 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+import { ImageLibraryModal } from './ImageLibraryModal';
 
 interface ImageUploaderProps {
   onAddImage: (src: string, width: number, height: number) => void;
@@ -6,6 +7,7 @@ interface ImageUploaderProps {
 
 export const ImageUploader = ({ onAddImage }: ImageUploaderProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showLibrary, setShowLibrary] = useState(false);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -21,26 +23,11 @@ export const ImageUploader = ({ onAddImage }: ImageUploaderProps) => {
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
-        // Get original dimensions
+        // Use original image dimensions (1:1 scale)
         const originalWidth = img.width;
         const originalHeight = img.height;
 
-        // Calculate scaled dimensions (max 400px for initial placement)
-        const maxSize = 400;
-        let width = originalWidth;
-        let height = originalHeight;
-
-        if (width > maxSize || height > maxSize) {
-          if (width > height) {
-            height = (height / width) * maxSize;
-            width = maxSize;
-          } else {
-            width = (width / height) * maxSize;
-            height = maxSize;
-          }
-        }
-
-        onAddImage(event.target?.result as string, width, height);
+        onAddImage(event.target?.result as string, originalWidth, originalHeight);
       };
       img.src = event.target?.result as string;
     };
@@ -53,7 +40,7 @@ export const ImageUploader = ({ onAddImage }: ImageUploaderProps) => {
   };
 
   return (
-    <div>
+    <div className="space-y-2">
       <input
         ref={fileInputRef}
         type="file"
@@ -71,9 +58,26 @@ export const ImageUploader = ({ onAddImage }: ImageUploaderProps) => {
           <span>画像をアップロード</span>
         </div>
       </label>
+
+      <button
+        onClick={() => setShowLibrary(true)}
+        className="block w-full px-4 py-3 bg-white border-2 border-indigo-500 text-indigo-600 hover:bg-indigo-50 text-sm font-medium rounded-lg transition-all text-center"
+      >
+        <div className="flex items-center justify-center gap-2">
+          <span className="material-symbols-outlined text-[20px]">photo_library</span>
+          <span>ライブラリから選ぶ</span>
+        </div>
+      </button>
+
       <p className="text-xs text-gray-500 mt-2">
         JPG, PNG, GIF対応
       </p>
+
+      <ImageLibraryModal
+        isOpen={showLibrary}
+        onClose={() => setShowLibrary(false)}
+        onSelectImage={onAddImage}
+      />
     </div>
   );
 };

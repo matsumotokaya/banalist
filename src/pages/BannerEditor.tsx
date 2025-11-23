@@ -19,65 +19,71 @@ export const BannerEditor = () => {
   const [selectedSize, setSelectedSize] = useState<number>(80);
   const [selectedWeight, setSelectedWeight] = useState<number>(400);
   const [selectedTextColor, setSelectedTextColor] = useState<string>('#000000');
-  const [strokeOnly, setStrokeOnly] = useState<boolean>(false);
   const [zoom, setZoom] = useState<number>(50);
   const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]);
   const [history, setHistory] = useState<CanvasElement[][]>([]);
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
   const [copiedElement, setCopiedElement] = useState<CanvasElement | null>(null);
   const canvasRef = useRef<CanvasRef>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
+  const lastTouchDistance = useRef<number | null>(null);
+  const lastGestureScale = useRef<number>(1);
 
-  // Load banner from localStorage
+  // Load banner from Supabase
   useEffect(() => {
-    if (!id) {
-      navigate('/');
-      return;
-    }
-
-    const loadedBanner = bannerStorage.getById(id);
-    if (!loadedBanner) {
-      navigate('/');
-      return;
-    }
-
-    // Migrate existing shapes and text to new fill/stroke structure
-    const migratedElements = loadedBanner.elements.map((el) => {
-      if (el.type === 'shape') {
-        const shape = el as ShapeElement;
-        return {
-          ...shape,
-          fillEnabled: shape.fillEnabled !== undefined ? shape.fillEnabled : true,
-          stroke: shape.stroke || '#000000',
-          strokeWidth: shape.strokeWidth || 2,
-          strokeEnabled: shape.strokeEnabled !== undefined ? shape.strokeEnabled : false,
-        } as ShapeElement;
+    const loadBanner = async () => {
+      if (!id) {
+        navigate('/');
+        return;
       }
-      if (el.type === 'text') {
-        const text = el as TextElement;
-        // Migrate old strokeOnly property to new structure
-        const strokeOnly = (text as any).strokeOnly;
-        return {
-          ...text,
-          fillEnabled: text.fillEnabled !== undefined ? text.fillEnabled : (strokeOnly === undefined ? true : !strokeOnly),
-          stroke: text.stroke || text.fill || '#000000',
-          strokeWidth: text.strokeWidth || Math.max(text.fontSize * 0.03, 2),
-          strokeEnabled: text.strokeEnabled !== undefined ? text.strokeEnabled : (strokeOnly || false),
-        } as TextElement;
-      }
-      return el;
-    });
 
-    setBanner(loadedBanner);
-    setSelectedTemplate(loadedBanner.template);
-    setElements(migratedElements);
-    setCanvasColor(loadedBanner.canvasColor);
+      const loadedBanner = await bannerStorage.getById(id);
+      if (!loadedBanner) {
+        navigate('/');
+        return;
+      }
+
+      // Migrate existing shapes and text to new fill/stroke structure
+      const migratedElements = loadedBanner.elements.map((el) => {
+        if (el.type === 'shape') {
+          const shape = el as ShapeElement;
+          return {
+            ...shape,
+            fillEnabled: shape.fillEnabled !== undefined ? shape.fillEnabled : true,
+            stroke: shape.stroke || '#000000',
+            strokeWidth: shape.strokeWidth || 2,
+            strokeEnabled: shape.strokeEnabled !== undefined ? shape.strokeEnabled : false,
+          } as ShapeElement;
+        }
+        if (el.type === 'text') {
+          const text = el as TextElement;
+          // Migrate old strokeOnly property to new structure
+          const strokeOnly = (text as any).strokeOnly;
+          return {
+            ...text,
+            fillEnabled: text.fillEnabled !== undefined ? text.fillEnabled : (strokeOnly === undefined ? true : !strokeOnly),
+            stroke: text.stroke || text.fill || '#000000',
+            strokeWidth: text.strokeWidth || Math.max(text.fontSize * 0.03, 2),
+            strokeEnabled: text.strokeEnabled !== undefined ? text.strokeEnabled : (strokeOnly || false),
+          } as TextElement;
+        }
+        return el;
+      });
+
+      setBanner(loadedBanner);
+      setSelectedTemplate(loadedBanner.template);
+      setElements(migratedElements);
+      setCanvasColor(loadedBanner.canvasColor);
+    };
+
+    loadBanner();
   }, [id, navigate]);
 
   // Auto-save elements when changed
   useEffect(() => {
     if (banner && elements.length > 0) {
-      const timeoutId = setTimeout(() => {
-        bannerStorage.saveElements(banner.id, elements);
+      const timeoutId = setTimeout(async () => {
+        await bannerStorage.saveElements(banner.id, elements);
       }, 500);
       return () => clearTimeout(timeoutId);
     }
@@ -85,18 +91,21 @@ export const BannerEditor = () => {
 
   // Auto-save canvas color when changed
   useEffect(() => {
-    if (banner) {
-      bannerStorage.saveCanvasColor(banner.id, canvasColor);
-    }
+    const saveCanvasColor = async () => {
+      if (banner) {
+        await bannerStorage.saveCanvasColor(banner.id, canvasColor);
+      }
+    };
+    saveCanvasColor();
   }, [canvasColor, banner]);
 
   // Save thumbnail periodically
   useEffect(() => {
     if (banner && canvasRef.current) {
-      const intervalId = setInterval(() => {
+      const intervalId = setInterval(async () => {
         const thumbnailDataURL = canvasRef.current?.exportImage();
         if (thumbnailDataURL) {
-          bannerStorage.saveThumbnail(banner.id, thumbnailDataURL);
+          await bannerStorage.saveThumbnail(banner.id, thumbnailDataURL);
         }
       }, 3000);
       return () => clearInterval(intervalId);
@@ -136,6 +145,100 @@ export const BannerEditor = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [historyIndex, history, selectedElementIds, elements, copiedElement]);
+
+  // Pinch zoom and wheel zoom support
+  useEffect(() => {
+    const mainElement = mainRef.current;
+    if (!mainElement) return;
+
+    // Handle pinch zoom (mobile/trackpad)
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const distance = Math.hypot(
+          touch2.clientX - touch1.clientX,
+          touch2.clientY - touch1.clientY
+        );
+        lastTouchDistance.current = distance;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && lastTouchDistance.current !== null) {
+        e.preventDefault();
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const distance = Math.hypot(
+          touch2.clientX - touch1.clientX,
+          touch2.clientY - touch1.clientY
+        );
+
+        const delta = distance - lastTouchDistance.current;
+        const zoomDelta = delta * 0.1;
+        const newZoom = Math.max(25, Math.min(200, zoom + zoomDelta));
+        setZoom(Math.round(newZoom));
+
+        lastTouchDistance.current = distance;
+      }
+    };
+
+    const handleTouchEnd = () => {
+      lastTouchDistance.current = null;
+    };
+
+    // Handle wheel zoom (Ctrl/Cmd + scroll on Mac/PC)
+    // On Mac trackpad, pinch gestures trigger wheel events with ctrlKey=true
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        // Larger coefficient for more responsive zoom (was 0.1, now 0.5)
+        const delta = -e.deltaY * 0.5;
+        const newZoom = Math.max(25, Math.min(200, zoom + delta));
+        setZoom(Math.round(newZoom));
+      }
+    };
+
+    // Safari-specific gesture events for trackpad pinch
+    const handleGestureStart = (e: any) => {
+      e.preventDefault();
+      lastGestureScale.current = 1;
+    };
+
+    const handleGestureChange = (e: any) => {
+      e.preventDefault();
+      const scale = e.scale;
+      const delta = (scale - lastGestureScale.current) * 100;
+      const newZoom = Math.max(25, Math.min(200, zoom + delta));
+      setZoom(Math.round(newZoom));
+      lastGestureScale.current = scale;
+    };
+
+    const handleGestureEnd = (e: any) => {
+      e.preventDefault();
+      lastGestureScale.current = 1;
+    };
+
+    mainElement.addEventListener('touchstart', handleTouchStart);
+    mainElement.addEventListener('touchmove', handleTouchMove, { passive: false });
+    mainElement.addEventListener('touchend', handleTouchEnd);
+    mainElement.addEventListener('wheel', handleWheel, { passive: false });
+
+    // Safari gesture events
+    mainElement.addEventListener('gesturestart', handleGestureStart, { passive: false } as any);
+    mainElement.addEventListener('gesturechange', handleGestureChange, { passive: false } as any);
+    mainElement.addEventListener('gestureend', handleGestureEnd, { passive: false } as any);
+
+    return () => {
+      mainElement.removeEventListener('touchstart', handleTouchStart);
+      mainElement.removeEventListener('touchmove', handleTouchMove);
+      mainElement.removeEventListener('touchend', handleTouchEnd);
+      mainElement.removeEventListener('wheel', handleWheel);
+      mainElement.removeEventListener('gesturestart', handleGestureStart as any);
+      mainElement.removeEventListener('gesturechange', handleGestureChange as any);
+      mainElement.removeEventListener('gestureend', handleGestureEnd as any);
+    };
+  }, [zoom]);
 
   if (!banner || !selectedTemplate) {
     return (
@@ -220,7 +323,6 @@ export const BannerEditor = () => {
         setSelectedSize(element.fontSize);
         setSelectedWeight(element.fontWeight);
         setSelectedTextColor(element.fill);
-        setStrokeOnly(element.strokeOnly);
       }
     }
   };
@@ -275,8 +377,8 @@ export const BannerEditor = () => {
     const newImage: ImageElement = {
       id: newId,
       type: 'image',
-      x: 100,
-      y: 100,
+      x: 0,
+      y: 0,
       src,
       width,
       height,
@@ -466,10 +568,23 @@ export const BannerEditor = () => {
     }
   };
 
-  const handleBannerNameChange = (newName: string) => {
+  const handleBannerNameChange = async (newName: string) => {
     if (banner) {
-      bannerStorage.update(banner.id, { name: newName });
+      await bannerStorage.update(banner.id, { name: newName });
       setBanner({ ...banner, name: newName });
+    }
+  };
+
+  const handleCanvasSizeChange = async (width: number, height: number) => {
+    if (banner && selectedTemplate) {
+      const updatedTemplate: Template = {
+        ...selectedTemplate,
+        width,
+        height,
+      };
+      await bannerStorage.update(banner.id, { template: updatedTemplate });
+      setSelectedTemplate(updatedTemplate);
+      setBanner({ ...banner, template: updatedTemplate });
     }
   };
 
@@ -497,14 +612,19 @@ export const BannerEditor = () => {
       <div className="hidden md:flex flex-1 overflow-hidden">
         <Sidebar
           canvasColor={canvasColor}
+          canvasWidth={selectedTemplate.width}
+          canvasHeight={selectedTemplate.height}
           onSelectColor={setCanvasColor}
+          onCanvasSizeChange={handleCanvasSizeChange}
           onAddText={handleAddText}
           onAddShape={handleAddShape}
           onAddImage={handleAddImage}
         />
 
         <main
+          ref={mainRef}
           className="flex-1 overflow-auto bg-gray-100 p-8 flex items-center justify-center"
+          style={{ touchAction: 'none' }}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               handleSelectElement([]);
@@ -544,7 +664,9 @@ export const BannerEditor = () => {
       {/* Mobile Layout */}
       <div className="flex md:hidden flex-1 flex-col overflow-hidden">
         <main
+          ref={mainRef}
           className="flex-1 overflow-auto bg-gray-100 flex items-center justify-center"
+          style={{ touchAction: 'none' }}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               handleSelectElement([]);
@@ -568,7 +690,10 @@ export const BannerEditor = () => {
         {/* Mobile Sidebar - Bottom horizontal scrollable */}
         <Sidebar
           canvasColor={canvasColor}
+          canvasWidth={selectedTemplate.width}
+          canvasHeight={selectedTemplate.height}
           onSelectColor={setCanvasColor}
+          onCanvasSizeChange={handleCanvasSizeChange}
           onAddText={handleAddText}
           onAddShape={handleAddShape}
           onAddImage={handleAddImage}
