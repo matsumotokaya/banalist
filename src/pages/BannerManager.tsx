@@ -15,6 +15,18 @@ export const BannerManager = () => {
     loadBanners();
   }, []);
 
+  // Reload banners when page becomes visible (to refresh thumbnails)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        loadBanners();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
   const loadBanners = async () => {
     const allBanners = await bannerStorage.getAll();
     setBanners(allBanners);
@@ -99,14 +111,14 @@ export const BannerManager = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {banners.map((banner) => (
               <div
                 key={banner.id}
                 className="group bg-white rounded-lg border border-gray-200 hover:border-indigo-400 hover:shadow-lg transition-all overflow-hidden"
               >
                 <div
-                  className="aspect-video bg-gray-100 cursor-pointer relative overflow-hidden"
+                  className="aspect-[9/16] bg-gray-100 cursor-pointer relative overflow-hidden"
                   onClick={() => navigate(`/banner/${banner.id}`)}
                 >
                   {banner.thumbnailDataURL ? (
@@ -122,12 +134,10 @@ export const BannerManager = () => {
                       </svg>
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all" />
-                </div>
 
-                <div className="p-4 relative">
-                  {editingId === banner.id ? (
-                    <div className="mb-1">
+                  {/* Semi-transparent overlay with banner info */}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-3 pt-8">
+                    {editingId === banner.id ? (
                       <input
                         type="text"
                         value={editingName}
@@ -137,50 +147,58 @@ export const BannerManager = () => {
                           if (e.key === 'Escape') handleCancelEdit();
                         }}
                         onBlur={() => handleSaveName(banner.id)}
-                        className="w-full px-2 py-1 text-sm font-medium border border-indigo-500 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full px-2 py-1 text-sm font-medium bg-white/90 border border-indigo-500 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         autoFocus
                       />
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1 mb-1 group/title">
-                      <h3
-                        className="font-medium text-gray-900 truncate cursor-pointer hover:text-indigo-600 flex-1"
-                        onClick={() => navigate(`/banner/${banner.id}`)}
-                      >
-                        {banner.name}
-                      </h3>
-                      <button
-                        onClick={() => handleStartEdit(banner.id, banner.name)}
-                        className="opacity-0 group-hover/title:opacity-100 p-1 hover:bg-gray-100 rounded transition-all"
-                        title="名前を編集"
-                      >
-                        <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
-                      </button>
-                    </div>
-                  )}
-                  <p className="text-xs text-gray-500">
-                    更新: {formatDate(banner.updatedAt)}
-                  </p>
+                    ) : (
+                      <div className="flex items-center gap-1 mb-1">
+                        <h3 className="font-medium text-white text-sm truncate flex-1">
+                          {banner.name}
+                        </h3>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStartEdit(banner.id, banner.name);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/20 rounded transition-all"
+                          title="名前を編集"
+                        >
+                          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                    <p className="text-xs text-white/80">
+                      {formatDate(banner.updatedAt)}
+                    </p>
+                  </div>
 
-                  <div className="absolute bottom-3 right-3 flex gap-1">
+                  {/* Action buttons overlay (top right) */}
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
-                      onClick={() => handleDuplicateBanner(banner.id)}
-                      className="w-8 h-8 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors flex items-center justify-center group/duplicate relative"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDuplicateBanner(banner.id);
+                      }}
+                      className="w-7 h-7 bg-white/90 hover:bg-white text-gray-700 rounded-md transition-colors flex items-center justify-center group/duplicate relative shadow-sm"
                       title="複製"
                     >
-                      <span className="material-symbols-outlined text-[20px]">content_copy</span>
+                      <span className="material-symbols-outlined text-[16px]">content_copy</span>
                       <span className="absolute bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover/duplicate:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
                         複製
                       </span>
                     </button>
                     <button
-                      onClick={() => handleDeleteBanner(banner.id)}
-                      className="w-8 h-8 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors flex items-center justify-center group/delete relative"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteBanner(banner.id);
+                      }}
+                      className="w-7 h-7 bg-white/90 hover:bg-white text-red-600 rounded-md transition-colors flex items-center justify-center group/delete relative shadow-sm"
                       title="削除"
                     >
-                      <span className="material-symbols-outlined text-[20px]">delete</span>
+                      <span className="material-symbols-outlined text-[16px]">delete</span>
                       <span className="absolute bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover/delete:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
                         削除
                       </span>
@@ -195,22 +213,17 @@ export const BannerManager = () => {
               onClick={handleCreateBanner}
               className="group bg-white rounded-lg border-2 border-dashed border-gray-300 hover:border-indigo-400 hover:shadow-lg transition-all overflow-hidden cursor-pointer"
             >
-              <div className="aspect-video bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-indigo-100 flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
-                    <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="aspect-[9/16] bg-gray-50 flex items-center justify-center">
+                <div className="text-center px-4">
+                  <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-indigo-100 flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
+                    <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
                   </div>
-                  <p className="text-sm font-medium text-gray-700 group-hover:text-indigo-600 transition-colors">
+                  <p className="text-xs font-medium text-gray-700 group-hover:text-indigo-600 transition-colors">
                     新規バナー作成
                   </p>
                 </div>
-              </div>
-              <div className="p-4">
-                <h3 className="font-medium text-gray-400 mb-1">新しいバナー</h3>
-                <p className="text-xs text-gray-400 mb-3">&nbsp;</p>
-                <div className="h-[36px]"></div>
               </div>
             </div>
           </div>

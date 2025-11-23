@@ -9,31 +9,46 @@ export const ImageUploader = ({ onAddImage }: ImageUploaderProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showLibrary, setShowLibrary] = useState(false);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    // Check if file is an image
-    if (!file.type.startsWith('image/')) {
-      alert('画像ファイルを選択してください');
+    // Convert FileList to Array
+    const fileArray = Array.from(files);
+
+    // Check if all files are images
+    const invalidFiles = fileArray.filter(file => !file.type.startsWith('image/'));
+    if (invalidFiles.length > 0) {
+      alert('画像ファイルのみ選択してください');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        // Use original image dimensions (1:1 scale)
-        const originalWidth = img.width;
-        const originalHeight = img.height;
+    // Process each file
+    for (let i = 0; i < fileArray.length; i++) {
+      const file = fileArray[i];
 
-        onAddImage(event.target?.result as string, originalWidth, originalHeight);
-      };
-      img.src = event.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+      await new Promise<void>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const img = new Image();
+          img.onload = () => {
+            // Use original image dimensions
+            const originalWidth = img.width;
+            const originalHeight = img.height;
+            const dataUrl = event.target?.result as string;
 
-    // Reset input so same file can be selected again
+            // Add image to canvas (position is calculated in BannerEditor)
+            onAddImage(dataUrl, originalWidth, originalHeight);
+
+            resolve();
+          };
+          img.src = event.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Reset input so same files can be selected again
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -45,6 +60,7 @@ export const ImageUploader = ({ onAddImage }: ImageUploaderProps) => {
         ref={fileInputRef}
         type="file"
         accept="image/*"
+        multiple
         onChange={handleFileSelect}
         className="hidden"
         id="image-upload"
@@ -55,7 +71,7 @@ export const ImageUploader = ({ onAddImage }: ImageUploaderProps) => {
       >
         <div className="flex items-center justify-center gap-2">
           <span className="material-symbols-outlined text-[20px]">upload</span>
-          <span>画像をアップロード</span>
+          <span>画像をアップロード（複数可）</span>
         </div>
       </label>
 

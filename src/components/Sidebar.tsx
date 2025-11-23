@@ -1,7 +1,26 @@
+import { useState } from 'react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { ColorSelector } from './ColorSelector';
 import { TextEditor } from './TextEditor';
 import { ImageUploader } from './ImageUploader';
 import { CanvasSizeSelector } from './CanvasSizeSelector';
+import type { CanvasElement } from '../types/template';
 
 interface SidebarProps {
   canvasColor: string;
@@ -12,8 +31,112 @@ interface SidebarProps {
   onAddText: (text: string) => void;
   onAddShape: (shapeType: 'rectangle' | 'triangle' | 'star' | 'circle' | 'heart') => void;
   onAddImage: (src: string, width: number, height: number) => void;
+  elements?: CanvasElement[];
+  selectedElementIds?: string[];
+  onSelectElement?: (ids: string[]) => void;
+  onReorderElements?: (newOrder: CanvasElement[]) => void;
   isMobile?: boolean;
 }
+
+type TabType = 'page' | 'object' | 'layer';
+
+// Get layer name for display
+const getLayerName = (element: CanvasElement): string => {
+  if (element.type === 'text') {
+    return element.text.length > 20 ? element.text.substring(0, 20) + '...' : element.text;
+  } else if (element.type === 'image') {
+    // Extract filename from URL
+    try {
+      const url = new URL(element.src);
+      const pathParts = url.pathname.split('/');
+      const filename = pathParts[pathParts.length - 1];
+      return filename.length > 20 ? filename.substring(0, 20) + '...' : filename;
+    } catch {
+      return '画像';
+    }
+  } else if (element.type === 'shape') {
+    const shapeNames: Record<string, string> = {
+      rectangle: '四角形',
+      circle: '円形',
+      triangle: '三角形',
+      star: '星',
+      heart: 'ハート',
+    };
+    return shapeNames[element.shapeType] || '図形';
+  }
+  return 'レイヤー';
+};
+
+// Get icon for layer type
+const getLayerIcon = (element: CanvasElement): string => {
+  if (element.type === 'text') return 'text_fields';
+  if (element.type === 'image') return 'image';
+  if (element.type === 'shape') {
+    const iconMap: Record<string, string> = {
+      rectangle: 'rectangle',
+      circle: 'circle',
+      triangle: 'change_history',
+      star: 'star',
+      heart: 'favorite',
+    };
+    return iconMap[element.shapeType] || 'category';
+  }
+  return 'layers';
+};
+
+// Sortable layer item component
+interface SortableLayerItemProps {
+  element: CanvasElement;
+  isSelected: boolean;
+  onSelect: () => void;
+}
+
+const SortableLayerItem = ({ element, isSelected, onSelect }: SortableLayerItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: element.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <button
+        onClick={onSelect}
+        className={`w-full flex items-center gap-2 px-3 py-2 rounded text-left transition-colors ${
+          isSelected
+            ? 'bg-indigo-100 text-indigo-900'
+            : 'hover:bg-gray-100 text-gray-700'
+        }`}
+      >
+        <span
+          {...attributes}
+          {...listeners}
+          className="material-symbols-outlined text-[16px] text-gray-400 cursor-grab active:cursor-grabbing"
+        >
+          drag_indicator
+        </span>
+        <span className="material-symbols-outlined text-[18px]">
+          {getLayerIcon(element)}
+        </span>
+        <span className="flex-1 text-sm truncate">
+          {getLayerName(element)}
+        </span>
+        <span className="text-xs text-gray-400">
+          {element.type === 'text' ? 'T' : element.type === 'image' ? 'I' : 'S'}
+        </span>
+      </button>
+    </div>
+  );
+};
 
 export const Sidebar = ({
   canvasColor,
@@ -24,8 +147,35 @@ export const Sidebar = ({
   onAddText,
   onAddShape,
   onAddImage,
+  elements = [],
+  selectedElementIds = [],
+  onSelectElement,
+  onReorderElements,
   isMobile = false,
 }: SidebarProps) => {
+  const [activeTab, setActiveTab] = useState<TabType>('object');
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const reversedElements = [...elements].reverse();
+      const oldIndex = reversedElements.findIndex((el) => el.id === active.id);
+      const newIndex = reversedElements.findIndex((el) => el.id === over.id);
+
+      const reordered = arrayMove(reversedElements, oldIndex, newIndex);
+      // Reverse back to original order (bottom to top)
+      const finalOrder = reordered.reverse();
+      onReorderElements?.(finalOrder);
+    }
+  };
   if (isMobile) {
     return (
       <aside className="bg-white border-t border-gray-200 overflow-x-auto overflow-y-hidden">
@@ -85,94 +235,173 @@ export const Sidebar = ({
   }
 
   return (
-    <aside className="w-60 bg-white border-r border-gray-200 overflow-y-auto">
-      <div className="p-4 space-y-6">
-        <div className="pb-6 border-b border-gray-200">
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-            キャンバスサイズ
-          </h2>
-          <CanvasSizeSelector
-            width={canvasWidth}
-            height={canvasHeight}
-            onSizeChange={onCanvasSizeChange}
-          />
-        </div>
+    <aside className="w-60 bg-white border-r border-gray-200 flex flex-col">
+      {/* Tabs */}
+      <div className="flex border-b border-gray-200">
+        <button
+          onClick={() => setActiveTab('page')}
+          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            activeTab === 'page'
+              ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+          }`}
+        >
+          ページ
+        </button>
+        <button
+          onClick={() => setActiveTab('object')}
+          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            activeTab === 'object'
+              ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+          }`}
+        >
+          オブジェクト
+        </button>
+        <button
+          onClick={() => setActiveTab('layer')}
+          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            activeTab === 'layer'
+              ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+          }`}
+        >
+          レイヤー
+        </button>
+      </div>
 
-        <div className="pb-6 border-b border-gray-200">
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-            テキスト
-          </h2>
-          <TextEditor onAddText={onAddText} />
-        </div>
+      {/* Tab Content */}
+      <div className="flex-1 overflow-y-auto">
+        {activeTab === 'page' && (
+          <div className="p-4 space-y-6">
+            <div className="pb-6 border-b border-gray-200">
+              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                キャンバスサイズ
+              </h2>
+              <CanvasSizeSelector
+                width={canvasWidth}
+                height={canvasHeight}
+                onSizeChange={onCanvasSizeChange}
+              />
+            </div>
 
-        <div className="pb-6 border-b border-gray-200">
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-            図形
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => onAddShape('rectangle')}
-              className="p-2 hover:bg-gray-100 rounded transition-colors"
-              title="四角形"
-            >
-              <svg viewBox="0 0 24 24" className="w-6 h-6">
-                <rect x="4" y="6" width="16" height="12" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
-              </svg>
-            </button>
-            <button
-              onClick={() => onAddShape('circle')}
-              className="p-2 hover:bg-gray-100 rounded transition-colors"
-              title="円形"
-            >
-              <svg viewBox="0 0 24 24" className="w-6 h-6">
-                <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
-              </svg>
-            </button>
-            <button
-              onClick={() => onAddShape('triangle')}
-              className="p-2 hover:bg-gray-100 rounded transition-colors"
-              title="三角形"
-            >
-              <svg viewBox="0 0 24 24" className="w-6 h-6">
-                <path d="M 12 4 L 20 20 L 4 20 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
-              </svg>
-            </button>
-            <button
-              onClick={() => onAddShape('star')}
-              className="p-2 hover:bg-gray-100 rounded transition-colors"
-              title="星"
-            >
-              <svg viewBox="0 0 24 24" className="w-6 h-6">
-                <path d="M 12 2 L 14 9 L 21 9 L 15 14 L 17 21 L 12 16 L 7 21 L 9 14 L 3 9 L 10 9 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
-              </svg>
-            </button>
-            <button
-              onClick={() => onAddShape('heart')}
-              className="p-2 hover:bg-gray-100 rounded transition-colors"
-              title="ハート"
-            >
-              <svg viewBox="0 0 24 24" className="w-6 h-6">
-                <path d="M 12 21 C 12 21 3 14 3 8 C 3 5 5 3 7.5 3 C 9 3 10.5 4 12 6 C 13.5 4 15 3 16.5 3 C 19 3 21 5 21 8 C 21 14 12 21 12 21 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
-              </svg>
-            </button>
+            <div className="pb-6">
+              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                背景カラー
+              </h2>
+              <ColorSelector selectedColor={canvasColor} onColorChange={onSelectColor} showInput={true} />
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="pb-6 border-b border-gray-200">
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-            画像
-          </h2>
-          <ImageUploader onAddImage={onAddImage} />
-        </div>
+        {activeTab === 'object' && (
+          <div className="p-4 space-y-6">
+            <div className="pb-6 border-b border-gray-200">
+              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                テキスト
+              </h2>
+              <TextEditor onAddText={onAddText} />
+            </div>
 
-        <div className="pb-6">
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-            背景
-          </h2>
-          <div className="space-y-4">
-            <ColorSelector selectedColor={canvasColor} onColorChange={onSelectColor} showInput={true} />
+            <div className="pb-6 border-b border-gray-200">
+              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                図形
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => onAddShape('rectangle')}
+                  className="p-2 hover:bg-gray-100 rounded transition-colors"
+                  title="四角形"
+                >
+                  <svg viewBox="0 0 24 24" className="w-6 h-6">
+                    <rect x="4" y="6" width="16" height="12" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => onAddShape('circle')}
+                  className="p-2 hover:bg-gray-100 rounded transition-colors"
+                  title="円形"
+                >
+                  <svg viewBox="0 0 24 24" className="w-6 h-6">
+                    <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => onAddShape('triangle')}
+                  className="p-2 hover:bg-gray-100 rounded transition-colors"
+                  title="三角形"
+                >
+                  <svg viewBox="0 0 24 24" className="w-6 h-6">
+                    <path d="M 12 4 L 20 20 L 4 20 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => onAddShape('star')}
+                  className="p-2 hover:bg-gray-100 rounded transition-colors"
+                  title="星"
+                >
+                  <svg viewBox="0 0 24 24" className="w-6 h-6">
+                    <path d="M 12 2 L 14 9 L 21 9 L 15 14 L 17 21 L 12 16 L 7 21 L 9 14 L 3 9 L 10 9 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => onAddShape('heart')}
+                  className="p-2 hover:bg-gray-100 rounded transition-colors"
+                  title="ハート"
+                >
+                  <svg viewBox="0 0 24 24" className="w-6 h-6">
+                    <path d="M 12 21 C 12 21 3 14 3 8 C 3 5 5 3 7.5 3 C 9 3 10.5 4 12 6 C 13.5 4 15 3 16.5 3 C 19 3 21 5 21 8 C 21 14 12 21 12 21 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="pb-6">
+              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                画像
+              </h2>
+              <ImageUploader onAddImage={onAddImage} />
+            </div>
           </div>
-        </div>
+        )}
+
+        {activeTab === 'layer' && (
+          <div className="p-2">
+            {elements.length === 0 ? (
+              <div className="text-center text-gray-400 py-12">
+                <span className="material-symbols-outlined text-5xl mb-2">layers</span>
+                <p className="text-sm">レイヤーがありません</p>
+                <p className="text-xs mt-2">オブジェクトを追加してください</p>
+              </div>
+            ) : (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={[...elements].reverse().map((el) => el.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-1">
+                    {/* Display layers in reverse order (top layer first) */}
+                    {[...elements].reverse().map((element) => {
+                      const isSelected = selectedElementIds.includes(element.id);
+                      return (
+                        <SortableLayerItem
+                          key={element.id}
+                          element={element}
+                          isSelected={isSelected}
+                          onSelect={() => onSelectElement?.([element.id])}
+                        />
+                      );
+                    })}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            )}
+          </div>
+        )}
       </div>
     </aside>
   );

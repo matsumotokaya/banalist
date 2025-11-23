@@ -37,11 +37,61 @@ const ImageComponent = ({
   const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
-    const img = new window.Image();
-    img.src = imageElement.src;
-    img.onload = () => {
-      setImage(img);
+    const loadImage = async () => {
+      const img = new window.Image();
+
+      // Check if this is a Supabase Storage URL
+      const isSupabaseUrl = imageElement.src.includes('supabase');
+
+      if (isSupabaseUrl && !imageElement.src.startsWith('blob:')) {
+        // If it's a Supabase URL, download it as Blob to avoid CORS issues
+        try {
+          // Extract bucket name and path from URL
+          const url = new URL(imageElement.src);
+          const pathParts = url.pathname.split('/');
+          const bucketIndex = pathParts.findIndex(part => part === 'object' || part === 'public') + 1;
+          const bucketName = pathParts[bucketIndex];
+          const storagePath = pathParts.slice(bucketIndex + 1).join('/');
+
+          console.log('Loading Supabase image:', { bucketName, storagePath });
+
+          // Import supabase dynamically
+          const { supabase } = await import('../utils/supabase');
+          const { data, error } = await supabase.storage.from(bucketName).download(storagePath);
+
+          if (error) {
+            console.error('Error downloading image from Supabase:', error);
+            // Fallback to direct load with CORS
+            img.crossOrigin = 'anonymous';
+            img.src = imageElement.src;
+          } else {
+            // Create Blob URL
+            const blobUrl = URL.createObjectURL(data);
+            img.src = blobUrl;
+          }
+        } catch (error) {
+          console.error('Error processing Supabase URL:', error);
+          // Fallback to direct load with CORS
+          img.crossOrigin = 'anonymous';
+          img.src = imageElement.src;
+        }
+      } else {
+        // For non-Supabase URLs or already Blob URLs, load normally
+        if (!imageElement.src.startsWith('blob:')) {
+          img.crossOrigin = 'anonymous';
+        }
+        img.src = imageElement.src;
+      }
+
+      img.onload = () => {
+        setImage(img);
+      };
+      img.onerror = (error) => {
+        console.error('Failed to load image:', imageElement.src, error);
+      };
     };
+
+    loadImage();
   }, [imageElement.src]);
 
   return (
@@ -150,34 +200,62 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
 
   useImperativeHandle(ref, () => ({
     exportImage: () => {
-      if (!stageRef.current || !transformerRef.current) return '';
+      if (!stageRef.current) {
+        console.error('Export failed: stageRef is null');
+        return '';
+      }
+
+      const stage = stageRef.current;
+
+      // Save current transformer state
+      const wasTransformerVisible = transformerRef.current && transformerRef.current.nodes().length > 0;
 
       // Hide transformer before export
-      transformerRef.current.nodes([]);
-      const layer = transformerRef.current.getLayer();
-      if (layer) {
-        layer.batchDraw();
+      if (transformerRef.current) {
+        transformerRef.current.nodes([]);
       }
 
-      // Export image
-      const dataURL = stageRef.current.toDataURL({ pixelRatio: 1 / scale });
+      // Force redraw to ensure all elements are rendered
+      const layers = stage.getLayers();
+      if (layers.length > 0) {
+        layers[0].batchDraw();
+      } else {
+        console.error('Export failed: no layers found');
+        return '';
+      }
 
-      // Restore transformer selection after export
-      if (selectedElementIds.length > 0 && !isEditing) {
-        const selectedNodes = selectedElementIds
-          .map(id => nodesRef.current.get(id))
-          .filter((node): node is Konva.Node => node !== undefined);
-        if (selectedNodes.length > 0) {
-          transformerRef.current.nodes(selectedNodes);
-          if (layer) {
-            layer.batchDraw();
+      // Export at original resolution (not scaled)
+      // pixelRatio should be inverse of scale to get original size
+      // e.g., if scale=0.5 (50%), pixelRatio=2 to get 100% size output
+      try {
+        const dataURL = stage.toDataURL({
+          pixelRatio: 1 / scale,
+          mimeType: 'image/png',
+          quality: 1
+        });
+
+        console.log('Export dataURL length:', dataURL?.length || 0);
+
+        // Restore transformer selection after export
+        if (wasTransformerVisible && transformerRef.current && !isEditing) {
+          const selectedNodes = selectedElementIds
+            .map(id => nodesRef.current.get(id))
+            .filter((node): node is Konva.Node => node !== undefined);
+          if (selectedNodes.length > 0) {
+            transformerRef.current.nodes(selectedNodes);
+            if (layers.length > 0) {
+              layers[0].batchDraw();
+            }
           }
         }
-      }
 
-      return dataURL;
+        return dataURL;
+      } catch (error) {
+        console.error('Export failed with error:', error);
+        return '';
+      }
     },
-  }));
+  }), [scale, selectedElementIds, isEditing]);
 
   // Update transformer when selection changes
   useEffect(() => {

@@ -193,21 +193,36 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage }: ImageLibra
     }
   };
 
-  // Get public URL for image
-  const getImageUrl = (storagePath: string, bucketName: 'default-images' | 'user-images') => {
-    const { data } = supabase.storage.from(bucketName).getPublicUrl(storagePath);
-    return data.publicUrl;
+  // Get public URL for image with CORS support
+  const getImageUrl = async (storagePath: string, bucketName: 'default-images' | 'user-images'): Promise<string> => {
+    try {
+      // Download the image as Blob to avoid CORS issues
+      const { data, error } = await supabase.storage.from(bucketName).download(storagePath);
+      if (error) {
+        console.error('Error downloading image:', error);
+        // Fallback to public URL
+        const { data: publicUrlData } = supabase.storage.from(bucketName).getPublicUrl(storagePath);
+        return publicUrlData.publicUrl;
+      }
+      // Create a Blob URL (this avoids CORS issues)
+      return URL.createObjectURL(data);
+    } catch (error) {
+      console.error('Error getting image URL:', error);
+      // Fallback to public URL
+      const { data: publicUrlData } = supabase.storage.from(bucketName).getPublicUrl(storagePath);
+      return publicUrlData.publicUrl;
+    }
   };
 
   // Handle image selection
-  const handleSelectDefaultImage = (image: DefaultImage) => {
-    const url = getImageUrl(image.storage_path, 'default-images');
+  const handleSelectDefaultImage = async (image: DefaultImage) => {
+    const url = await getImageUrl(image.storage_path, 'default-images');
     onSelectImage(url, image.width || 800, image.height || 600);
     onClose();
   };
 
-  const handleSelectUserImage = (image: UserImage) => {
-    const url = getImageUrl(image.storage_path, 'user-images');
+  const handleSelectUserImage = async (image: UserImage) => {
+    const url = await getImageUrl(image.storage_path, 'user-images');
     onSelectImage(url, image.width || 800, image.height || 600);
     onClose();
   };

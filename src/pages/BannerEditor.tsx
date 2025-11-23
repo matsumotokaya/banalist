@@ -19,7 +19,12 @@ export const BannerEditor = () => {
   const [selectedSize, setSelectedSize] = useState<number>(80);
   const [selectedWeight, setSelectedWeight] = useState<number>(400);
   const [selectedTextColor, setSelectedTextColor] = useState<string>('#000000');
-  const [zoom, setZoom] = useState<number>(50);
+  // Calculate initial zoom based on screen size
+  const getInitialZoom = () => {
+    const isMobile = window.innerWidth < 768;
+    return isMobile ? 30 : 40;
+  };
+  const [zoom, setZoom] = useState<number>(getInitialZoom());
   const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]);
   const [history, setHistory] = useState<CanvasElement[][]>([]);
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
@@ -99,18 +104,27 @@ export const BannerEditor = () => {
     saveCanvasColor();
   }, [canvasColor, banner]);
 
-  // Save thumbnail periodically
+  // Save thumbnail when elements change (debounced)
   useEffect(() => {
-    if (banner && canvasRef.current) {
-      const intervalId = setInterval(async () => {
-        const thumbnailDataURL = canvasRef.current?.exportImage();
-        if (thumbnailDataURL) {
-          await bannerStorage.saveThumbnail(banner.id, thumbnailDataURL);
+    if (banner && canvasRef.current && elements.length > 0) {
+      const timeoutId = setTimeout(async () => {
+        try {
+          // Small delay to ensure canvas is fully rendered
+          await new Promise(resolve => setTimeout(resolve, 100));
+          const thumbnailDataURL = canvasRef.current?.exportImage();
+          if (thumbnailDataURL && thumbnailDataURL.length > 100) {
+            await bannerStorage.saveThumbnail(banner.id, thumbnailDataURL);
+            console.log('Thumbnail saved successfully, size:', thumbnailDataURL.length);
+          } else {
+            console.warn('Failed to generate thumbnail: empty or invalid data');
+          }
+        } catch (error) {
+          console.error('Error saving thumbnail:', error);
         }
-      }, 3000);
-      return () => clearInterval(intervalId);
+      }, 1000); // Save 1 second after last change
+      return () => clearTimeout(timeoutId);
     }
-  }, [banner]);
+  }, [elements, canvasColor, banner]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -373,19 +387,46 @@ export const BannerEditor = () => {
   };
 
   const handleAddImage = (src: string, width: number, height: number) => {
-    const newId = `image-${Date.now()}`;
-    const newImage: ImageElement = {
-      id: newId,
-      type: 'image',
-      x: 0,
-      y: 0,
-      src,
-      width,
-      height,
-    };
-    const newElements = [...elements, newImage];
-    setElements(newElements);
-    saveToHistory(newElements);
+    const newId = `image-${Date.now()}-${Math.random()}`;
+
+    setElements(prevElements => {
+      // Calculate position to avoid overlapping with existing images
+      // Find the last image position in the current state
+      const lastImage = [...prevElements].reverse().find(el => el.type === 'image');
+      let x = 50;
+      let y = 50;
+
+      if (lastImage) {
+        // Place new image diagonally offset from the last one
+        x = lastImage.x + 80;
+        y = lastImage.y + 80;
+
+        // Wrap around if it goes off canvas
+        if (selectedTemplate && x > selectedTemplate.width - 200) {
+          x = 50;
+          y = lastImage.y + 150;
+        }
+        if (selectedTemplate && y > selectedTemplate.height - 200) {
+          y = 50;
+        }
+      }
+
+      const newImage: ImageElement = {
+        id: newId,
+        type: 'image',
+        x,
+        y,
+        src,
+        width,
+        height,
+      };
+
+      const newElements = [...prevElements, newImage];
+      // Save to history after state update
+      setTimeout(() => saveToHistory(newElements), 0);
+      return newElements;
+    });
+
     setSelectedElementIds([newId]);
   };
 
@@ -575,6 +616,11 @@ export const BannerEditor = () => {
     }
   };
 
+  const handleReorderElements = (newOrder: CanvasElement[]) => {
+    setElements(newOrder);
+    saveToHistory(newOrder);
+  };
+
   const handleCanvasSizeChange = async (width: number, height: number) => {
     if (banner && selectedTemplate) {
       const updatedTemplate: Template = {
@@ -588,15 +634,31 @@ export const BannerEditor = () => {
     }
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!canvasRef.current || !banner) return;
-    const dataURL = canvasRef.current.exportImage();
-    const link = document.createElement('a');
-    link.download = `${banner.name}.png`;
-    link.href = dataURL;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+
+    try {
+      // Small delay to ensure canvas is fully rendered
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const dataURL = canvasRef.current.exportImage();
+
+      if (!dataURL || dataURL.length < 100) {
+        alert('画像の生成に失敗しました。もう一度お試しください。');
+        console.error('Export failed: invalid data URL');
+        return;
+      }
+
+      const link = document.createElement('a');
+      link.download = `${banner.name}.png`;
+      link.href = dataURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      console.log('Export successful, size:', dataURL.length);
+    } catch (error) {
+      console.error('Error exporting image:', error);
+      alert('画像のエクスポートに失敗しました。');
+    }
   };
 
   return (
@@ -619,6 +681,10 @@ export const BannerEditor = () => {
           onAddText={handleAddText}
           onAddShape={handleAddShape}
           onAddImage={handleAddImage}
+          elements={elements}
+          selectedElementIds={selectedElementIds}
+          onSelectElement={handleSelectElement}
+          onReorderElements={handleReorderElements}
         />
 
         <main
@@ -697,6 +763,10 @@ export const BannerEditor = () => {
           onAddText={handleAddText}
           onAddShape={handleAddShape}
           onAddImage={handleAddImage}
+          elements={elements}
+          selectedElementIds={selectedElementIds}
+          onSelectElement={handleSelectElement}
+          onReorderElements={handleReorderElements}
           isMobile={true}
         />
 
