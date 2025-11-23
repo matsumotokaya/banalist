@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../utils/supabase';
 import type { DefaultImage, UserImage } from '../types/image-library';
 
@@ -12,8 +12,8 @@ interface ImageLibraryModalProps {
 type TabType = 'default' | 'user';
 
 // Extended types with display URL
-type DefaultImageWithUrl = DefaultImage & { displayUrl: string };
-type UserImageWithUrl = UserImage & { displayUrl: string };
+type DefaultImageWithUrl = DefaultImage & { displayUrl?: string };
+type UserImageWithUrl = UserImage & { displayUrl?: string };
 
 export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab = 'default' }: ImageLibraryModalProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
@@ -22,6 +22,9 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab =
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  // Cache for image URLs
+  const urlCacheRef = useRef<Map<string, string>>(new Map());
 
   // Fetch default images
   const fetchDefaultImages = async () => {
@@ -35,14 +38,8 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab =
       console.error('Error fetching default images:', error);
       setDefaultImages([]);
     } else if (data) {
-      // Generate display URLs for all images
-      const imagesWithUrls = await Promise.all(
-        data.map(async (image) => ({
-          ...image,
-          displayUrl: await getDisplayUrl(image.storage_path, 'default-images')
-        }))
-      );
-      setDefaultImages(imagesWithUrls);
+      // Set images without URLs initially (lazy loading)
+      setDefaultImages(data);
     }
     setLoading(false);
   };
@@ -67,14 +64,8 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab =
       console.error('Error fetching user images:', error);
       setUserImages([]);
     } else if (data) {
-      // Generate display URLs for all images
-      const imagesWithUrls = await Promise.all(
-        data.map(async (image) => ({
-          ...image,
-          displayUrl: await getDisplayUrl(image.storage_path, 'user-images')
-        }))
-      );
-      setUserImages(imagesWithUrls);
+      // Set images without URLs initially (lazy loading)
+      setUserImages(data);
     }
     setLoading(false);
   };
@@ -245,25 +236,21 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab =
     }
   };
 
-  // Get display URL for thumbnail preview (temporary Blob URL)
-  const getDisplayUrl = async (storagePath: string, bucketName: 'default-images' | 'user-images'): Promise<string> => {
-    try {
-      // Download the image as Blob to avoid CORS issues
-      const { data, error } = await supabase.storage.from(bucketName).download(storagePath);
-      if (error) {
-        console.error('Error downloading image:', error);
-        // Fallback to public URL
-        const { data: publicUrlData } = supabase.storage.from(bucketName).getPublicUrl(storagePath);
-        return publicUrlData.publicUrl;
-      }
-      // Create a Blob URL (this avoids CORS issues)
-      return URL.createObjectURL(data);
-    } catch (error) {
-      console.error('Error getting image URL:', error);
-      // Fallback to public URL
-      const { data: publicUrlData } = supabase.storage.from(bucketName).getPublicUrl(storagePath);
-      return publicUrlData.publicUrl;
+  // Get cached display URL for thumbnail preview
+  const getCachedDisplayUrl = (storagePath: string, bucketName: 'default-images' | 'user-images'): string => {
+    const cacheKey = `${bucketName}:${storagePath}`;
+
+    // Check cache first
+    if (urlCacheRef.current.has(cacheKey)) {
+      return urlCacheRef.current.get(cacheKey)!;
     }
+
+    // Generate public URL and cache it
+    const { data } = supabase.storage.from(bucketName).getPublicUrl(storagePath);
+    const publicUrl = data.publicUrl;
+    urlCacheRef.current.set(cacheKey, publicUrl);
+
+    return publicUrl;
   };
 
   // Get permanent public URL for canvas (persists after page reload)
@@ -370,7 +357,7 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab =
                     className="group relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-indigo-600 transition-all"
                   >
                     <img
-                      src={image.displayUrl}
+                      src={getCachedDisplayUrl(image.storage_path, 'default-images')}
                       alt={image.name}
                       className="w-full h-full object-cover"
                     />
@@ -400,7 +387,7 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab =
                     className="group relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-indigo-600 transition-all"
                   >
                     <img
-                      src={image.displayUrl}
+                      src={getCachedDisplayUrl(image.storage_path, 'user-images')}
                       alt={image.name}
                       className="w-full h-full object-cover"
                     />

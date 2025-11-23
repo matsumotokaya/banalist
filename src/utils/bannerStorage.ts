@@ -242,4 +242,19 @@ export const bannerStorage = {
   async saveThumbnail(id: string, thumbnailDataURL: string): Promise<void> {
     await this.update(id, { thumbnailDataURL });
   },
+
+  // Batch save multiple properties at once (optimized for auto-save)
+  async batchSave(
+    id: string,
+    updates: {
+      elements?: CanvasElement[];
+      canvasColor?: string;
+      thumbnailDataURL?: string;
+    }
+  ): Promise<void> {
+    // Only update if there are actual changes
+    if (Object.keys(updates).length === 0) return;
+
+    await this.update(id, updates);
+  },
 };

@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, memo } from 'react';
 import { Image as KonvaImage } from 'react-konva';
 import type Konva from 'konva';
 import type { ImageElement } from '../../types/template';
@@ -23,7 +23,7 @@ const constrainedDragBound = (pos: { x: number; y: number }, startPos: { x: numb
   }
 };
 
-export const ImageRenderer = ({
+const ImageRendererComponent = ({
   imageElement,
   isShiftPressed,
   onSelect,
@@ -143,3 +143,22 @@ export const ImageRenderer = ({
     />
   );
 };
+
+// Memo to prevent unnecessary re-renders
+export const ImageRenderer = memo(ImageRendererComponent, (prevProps, nextProps) => {
+  const prevImage = prevProps.imageElement;
+  const nextImage = nextProps.imageElement;
+
+  return (
+    prevImage.id === nextImage.id &&
+    prevImage.src === nextImage.src &&
+    prevImage.x === nextImage.x &&
+    prevImage.y === nextImage.y &&
+    prevImage.width === nextImage.width &&
+    prevImage.height === nextImage.height &&
+    prevImage.rotation === nextImage.rotation &&
+    prevImage.opacity === nextImage.opacity &&
+    prevImage.locked === nextImage.locked &&
+    prevProps.isShiftPressed === nextProps.isShiftPressed
+  );
+});

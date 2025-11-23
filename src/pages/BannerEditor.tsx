@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
@@ -94,47 +94,75 @@ export const BannerEditor = () => {
     loadBanner();
   }, [id, navigate]);
 
-  // Auto-save elements when changed
-  useEffect(() => {
-    if (banner && elements.length > 0) {
-      const timeoutId = setTimeout(async () => {
-        await bannerStorage.saveElements(banner.id, elements);
-      }, 500);
-      return () => clearTimeout(timeoutId);
+  // Batch auto-save all changes (optimized to reduce API calls)
+  const pendingSaveRef = useRef<{
+    elements?: CanvasElement[];
+    canvasColor?: string;
+    needsThumbnail?: boolean;
+  }>({});
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Schedule batch save function (memoized) - defined before useEffect to avoid hooks order issue
+  const scheduleBatchSave = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
     }
-  }, [elements, banner]);
 
-  // Auto-save canvas color when changed
-  useEffect(() => {
-    const saveCanvasColor = async () => {
-      if (banner) {
-        await bannerStorage.saveCanvasColor(banner.id, canvasColor);
+    saveTimeoutRef.current = setTimeout(async () => {
+      if (!banner) return;
+
+      const updates: any = {};
+
+      // Add pending updates
+      if (pendingSaveRef.current.elements) {
+        updates.elements = pendingSaveRef.current.elements;
       }
-    };
-    saveCanvasColor();
-  }, [canvasColor, banner]);
+      if (pendingSaveRef.current.canvasColor) {
+        updates.canvasColor = pendingSaveRef.current.canvasColor;
+      }
 
-  // Save thumbnail when elements change (debounced)
-  useEffect(() => {
-    if (banner && canvasRef.current && elements.length > 0) {
-      const timeoutId = setTimeout(async () => {
+      // Generate thumbnail if needed
+      if (pendingSaveRef.current.needsThumbnail && canvasRef.current && elements.length > 0) {
         try {
           // Small delay to ensure canvas is fully rendered
           await new Promise(resolve => setTimeout(resolve, 100));
           const thumbnailDataURL = canvasRef.current?.exportImage();
           if (thumbnailDataURL && thumbnailDataURL.length > 100) {
-            await bannerStorage.saveThumbnail(banner.id, thumbnailDataURL);
-            console.log('Thumbnail saved successfully, size:', thumbnailDataURL.length);
-          } else {
-            console.warn('Failed to generate thumbnail: empty or invalid data');
+            updates.thumbnailDataURL = thumbnailDataURL;
           }
         } catch (error) {
-          console.error('Error saving thumbnail:', error);
+          console.error('Error generating thumbnail:', error);
         }
-      }, 1000); // Save 1 second after last change
-      return () => clearTimeout(timeoutId);
+      }
+
+      // Batch save all updates at once
+      if (Object.keys(updates).length > 0) {
+        await bannerStorage.batchSave(banner.id, updates);
+        console.log('Batch saved:', Object.keys(updates).join(', '));
+      }
+
+      // Clear pending updates
+      pendingSaveRef.current = {};
+    }, 800); // Single timeout for all saves
+  }, [banner, elements]);
+
+  // Trigger save for elements
+  useEffect(() => {
+    if (banner && elements.length > 0) {
+      pendingSaveRef.current.elements = elements;
+      pendingSaveRef.current.needsThumbnail = true;
+      scheduleBatchSave();
     }
-  }, [elements, canvasColor, banner]);
+  }, [elements, banner, scheduleBatchSave]);
+
+  // Trigger save for canvas color
+  useEffect(() => {
+    if (banner) {
+      pendingSaveRef.current.canvasColor = canvasColor;
+      pendingSaveRef.current.needsThumbnail = true;
+      scheduleBatchSave();
+    }
+  }, [canvasColor, banner, scheduleBatchSave]);
 
   // Copy
   const handleCopy = () => {
@@ -217,6 +245,20 @@ export const BannerEditor = () => {
     }
   };
 
+  // Update selection state and sync properties for single text element
+  const handleSelectElement = useCallback((ids: string[]) => {
+    setSelectedElementIds(ids);
+    if (ids.length === 1) {
+      const element = elements.find((el) => el.id === ids[0]);
+      if (element && element.type === 'text') {
+        setSelectedFont(element.fontFamily);
+        setSelectedSize(element.fontSize);
+        setSelectedWeight(element.fontWeight);
+        setSelectedTextColor(element.fill);
+      }
+    }
+  }, [elements]);
+
   // Keyboard shortcuts
   useKeyboardShortcuts({
     onUndo: handleUndo,
@@ -240,20 +282,6 @@ export const BannerEditor = () => {
       </div>
     );
   }
-
-  // Update selection state and sync properties for single text element
-  const handleSelectElement = (ids: string[]) => {
-    setSelectedElementIds(ids);
-    if (ids.length === 1) {
-      const element = elements.find((el) => el.id === ids[0]);
-      if (element && element.type === 'text') {
-        setSelectedFont(element.fontFamily);
-        setSelectedSize(element.fontSize);
-        setSelectedWeight(element.fontWeight);
-        setSelectedTextColor(element.fill);
-      }
-    }
-  };
 
   const handleAddText = (text: string) => {
     const newId = `text-${Date.now()}`;

@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, memo } from 'react';
 import { Text } from 'react-konva';
 import type Konva from 'konva';
 import type { TextElement } from '../../types/template';
@@ -24,7 +24,7 @@ const constrainedDragBound = (pos: { x: number; y: number }, startPos: { x: numb
   }
 };
 
-export const TextRenderer = ({
+const TextRendererComponent = ({
   textElement,
   isShiftPressed,
   onSelect,
@@ -92,3 +92,23 @@ export const TextRenderer = ({
     />
   );
 };
+
+// Memo to prevent unnecessary re-renders
+export const TextRenderer = memo(TextRendererComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.textElement.id === nextProps.textElement.id &&
+    prevProps.textElement.text === nextProps.textElement.text &&
+    prevProps.textElement.x === nextProps.textElement.x &&
+    prevProps.textElement.y === nextProps.textElement.y &&
+    prevProps.textElement.fontSize === nextProps.textElement.fontSize &&
+    prevProps.textElement.fontFamily === nextProps.textElement.fontFamily &&
+    prevProps.textElement.fontWeight === nextProps.textElement.fontWeight &&
+    prevProps.textElement.fill === nextProps.textElement.fill &&
+    prevProps.textElement.fillEnabled === nextProps.textElement.fillEnabled &&
+    prevProps.textElement.stroke === nextProps.textElement.stroke &&
+    prevProps.textElement.strokeEnabled === nextProps.textElement.strokeEnabled &&
+    prevProps.textElement.strokeWidth === nextProps.textElement.strokeWidth &&
+    prevProps.textElement.rotation === nextProps.textElement.rotation &&
+    prevProps.isShiftPressed === nextProps.isShiftPressed
+  );
+});

@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, memo } from 'react';
 import { Rect, Line, Star, Circle, Path } from 'react-konva';
 import type Konva from 'konva';
 import type { ShapeElement } from '../../types/template';
@@ -23,7 +23,7 @@ const constrainedDragBound = (pos: { x: number; y: number }, startPos: { x: numb
   }
 };
 
-export const ShapeRenderer = ({ shape, isShiftPressed, onSelect, onUpdate, nodeRef }: ShapeRendererProps) => {
+const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, nodeRef }: ShapeRendererProps) => {
   const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
 
   const commonProps = {
@@ -195,3 +195,27 @@ export const ShapeRenderer = ({ shape, isShiftPressed, onSelect, onUpdate, nodeR
 
   return null;
 };
+
+// Memo to prevent unnecessary re-renders
+export const ShapeRenderer = memo(ShapeRendererComponent, (prevProps, nextProps) => {
+  const prevShape = prevProps.shape;
+  const nextShape = nextProps.shape;
+
+  return (
+    prevShape.id === nextShape.id &&
+    prevShape.x === nextShape.x &&
+    prevShape.y === nextShape.y &&
+    prevShape.width === nextShape.width &&
+    prevShape.height === nextShape.height &&
+    prevShape.fill === nextShape.fill &&
+    prevShape.fillEnabled === nextShape.fillEnabled &&
+    prevShape.stroke === nextShape.stroke &&
+    prevShape.strokeEnabled === nextShape.strokeEnabled &&
+    prevShape.strokeWidth === nextShape.strokeWidth &&
+    prevShape.rotation === nextShape.rotation &&
+    prevShape.opacity === nextShape.opacity &&
+    prevShape.locked === nextShape.locked &&
+    prevShape.shapeType === nextShape.shapeType &&
+    prevProps.isShiftPressed === nextProps.isShiftPressed
+  );
+});
