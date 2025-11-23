@@ -7,6 +7,7 @@ import type { Banner } from '../types/template';
 
 export const BannerManager = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const navigate = useNavigate();
@@ -28,8 +29,10 @@ export const BannerManager = () => {
   }, []);
 
   const loadBanners = async () => {
+    setIsLoading(true);
     const allBanners = await bannerStorage.getAll();
     setBanners(allBanners);
+    setIsLoading(false);
   };
 
   const handleCreateBanner = async () => {
@@ -94,7 +97,12 @@ export const BannerManager = () => {
           </h2>
         </div>
 
-        {banners.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-20">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            <p className="mt-4 text-gray-600">読み込み中...</p>
+          </div>
+        ) : banners.length === 0 ? (
           <div className="text-center py-20">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
               <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

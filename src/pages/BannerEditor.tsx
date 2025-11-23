@@ -7,6 +7,10 @@ import { BottomBar } from '../components/BottomBar';
 import { Canvas, type CanvasRef } from '../components/Canvas';
 import { bannerStorage } from '../utils/bannerStorage';
 import type { Template, CanvasElement, TextElement, ShapeElement, ImageElement, Banner } from '../types/template';
+import { useHistory } from '../hooks/useHistory';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { useZoomControl } from '../hooks/useZoomControl';
+import { useElementOperations } from '../hooks/useElementOperations';
 
 export const BannerEditor = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,20 +23,26 @@ export const BannerEditor = () => {
   const [selectedSize, setSelectedSize] = useState<number>(80);
   const [selectedWeight, setSelectedWeight] = useState<number>(400);
   const [selectedTextColor, setSelectedTextColor] = useState<string>('#000000');
-  // Calculate initial zoom based on screen size
+  const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]);
+  const [copiedElement, setCopiedElement] = useState<CanvasElement | null>(null);
+  const canvasRef = useRef<CanvasRef>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
+
+  // Custom hooks
+  const { saveToHistory, undo, redo } = useHistory();
   const getInitialZoom = () => {
     const isMobile = window.innerWidth < 768;
     return isMobile ? 30 : 40;
   };
-  const [zoom, setZoom] = useState<number>(getInitialZoom());
-  const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]);
-  const [history, setHistory] = useState<CanvasElement[][]>([]);
-  const [historyIndex, setHistoryIndex] = useState<number>(-1);
-  const [copiedElement, setCopiedElement] = useState<CanvasElement | null>(null);
-  const canvasRef = useRef<CanvasRef>(null);
-  const mainRef = useRef<HTMLDivElement>(null);
-  const lastTouchDistance = useRef<number | null>(null);
-  const lastGestureScale = useRef<number>(1);
+  const { zoom, setZoom } = useZoomControl({
+    initialZoom: getInitialZoom(),
+    containerRef: mainRef,
+  });
+  const elementOps = useElementOperations({
+    elements,
+    setElements,
+    saveToHistory,
+  });
 
   // Load banner from Supabase
   useEffect(() => {
@@ -126,170 +136,6 @@ export const BannerEditor = () => {
     }
   }, [elements, canvasColor, banner]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore keyboard shortcuts when typing in textarea
-      if ((e.target as HTMLElement).tagName === 'TEXTAREA') {
-        return;
-      }
-
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
-        e.preventDefault();
-        handleUndo();
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'y') {
-        e.preventDefault();
-        handleRedo();
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'c') {
-        e.preventDefault();
-        handleCopy();
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'v') {
-        e.preventDefault();
-        handlePaste();
-      }
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        e.preventDefault();
-        handleDelete();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [historyIndex, history, selectedElementIds, elements, copiedElement]);
-
-  // Pinch zoom and wheel zoom support
-  useEffect(() => {
-    const mainElement = mainRef.current;
-    if (!mainElement) return;
-
-    // Handle pinch zoom (mobile/trackpad)
-    const handleTouchStart = (e: TouchEvent) => {
-      if (e.touches.length === 2) {
-        const touch1 = e.touches[0];
-        const touch2 = e.touches[1];
-        const distance = Math.hypot(
-          touch2.clientX - touch1.clientX,
-          touch2.clientY - touch1.clientY
-        );
-        lastTouchDistance.current = distance;
-      }
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length === 2 && lastTouchDistance.current !== null) {
-        e.preventDefault();
-        const touch1 = e.touches[0];
-        const touch2 = e.touches[1];
-        const distance = Math.hypot(
-          touch2.clientX - touch1.clientX,
-          touch2.clientY - touch1.clientY
-        );
-
-        const delta = distance - lastTouchDistance.current;
-        const zoomDelta = delta * 0.1;
-        const newZoom = Math.max(25, Math.min(200, zoom + zoomDelta));
-        setZoom(Math.round(newZoom));
-
-        lastTouchDistance.current = distance;
-      }
-    };
-
-    const handleTouchEnd = () => {
-      lastTouchDistance.current = null;
-    };
-
-    // Handle wheel zoom (Ctrl/Cmd + scroll on Mac/PC)
-    // On Mac trackpad, pinch gestures trigger wheel events with ctrlKey=true
-    const handleWheel = (e: WheelEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
-        // Larger coefficient for more responsive zoom (was 0.1, now 0.5)
-        const delta = -e.deltaY * 0.5;
-        const newZoom = Math.max(25, Math.min(200, zoom + delta));
-        setZoom(Math.round(newZoom));
-      }
-    };
-
-    // Safari-specific gesture events for trackpad pinch
-    const handleGestureStart = (e: any) => {
-      e.preventDefault();
-      lastGestureScale.current = 1;
-    };
-
-    const handleGestureChange = (e: any) => {
-      e.preventDefault();
-      const scale = e.scale;
-      const delta = (scale - lastGestureScale.current) * 100;
-      const newZoom = Math.max(25, Math.min(200, zoom + delta));
-      setZoom(Math.round(newZoom));
-      lastGestureScale.current = scale;
-    };
-
-    const handleGestureEnd = (e: any) => {
-      e.preventDefault();
-      lastGestureScale.current = 1;
-    };
-
-    mainElement.addEventListener('touchstart', handleTouchStart);
-    mainElement.addEventListener('touchmove', handleTouchMove, { passive: false });
-    mainElement.addEventListener('touchend', handleTouchEnd);
-    mainElement.addEventListener('wheel', handleWheel, { passive: false });
-
-    // Safari gesture events
-    mainElement.addEventListener('gesturestart', handleGestureStart, { passive: false } as any);
-    mainElement.addEventListener('gesturechange', handleGestureChange, { passive: false } as any);
-    mainElement.addEventListener('gestureend', handleGestureEnd, { passive: false } as any);
-
-    return () => {
-      mainElement.removeEventListener('touchstart', handleTouchStart);
-      mainElement.removeEventListener('touchmove', handleTouchMove);
-      mainElement.removeEventListener('touchend', handleTouchEnd);
-      mainElement.removeEventListener('wheel', handleWheel);
-      mainElement.removeEventListener('gesturestart', handleGestureStart as any);
-      mainElement.removeEventListener('gesturechange', handleGestureChange as any);
-      mainElement.removeEventListener('gestureend', handleGestureEnd as any);
-    };
-  }, [zoom]);
-
-  if (!banner || !selectedTemplate) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          <p className="mt-4 text-gray-600">読み込み中...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Save to history (max 50 entries)
-  const saveToHistory = (newElements: CanvasElement[]) => {
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(JSON.parse(JSON.stringify(newElements)));
-    const limitedHistory = newHistory.slice(-50);
-    setHistory(limitedHistory);
-    setHistoryIndex(limitedHistory.length - 1);
-  };
-
-  // Undo
-  const handleUndo = () => {
-    if (historyIndex > 0) {
-      setHistoryIndex(historyIndex - 1);
-      setElements(JSON.parse(JSON.stringify(history[historyIndex - 1])));
-    }
-  };
-
-  // Redo
-  const handleRedo = () => {
-    if (historyIndex < history.length - 1) {
-      setHistoryIndex(historyIndex + 1);
-      setElements(JSON.parse(JSON.stringify(history[historyIndex + 1])));
-    }
-  };
-
   // Copy
   const handleCopy = () => {
     if (selectedElementIds.length === 1) {
@@ -310,9 +156,7 @@ export const BannerEditor = () => {
         x: copiedElement.x + 20,
         y: copiedElement.y + 20,
       } as CanvasElement;
-      const newElements = [...elements, newElement];
-      setElements(newElements);
-      saveToHistory(newElements);
+      elementOps.addElement(newElement);
       setSelectedElementIds([newId]);
     }
   };
@@ -320,12 +164,82 @@ export const BannerEditor = () => {
   // Delete
   const handleDelete = () => {
     if (selectedElementIds.length > 0) {
-      const newElements = elements.filter((el) => !selectedElementIds.includes(el.id));
-      setElements(newElements);
-      saveToHistory(newElements);
+      elementOps.deleteElements(selectedElementIds);
       setSelectedElementIds([]);
     }
   };
+
+  // Undo/Redo handlers
+  const handleUndo = () => {
+    const prevElements = undo();
+    if (prevElements) {
+      setElements(prevElements);
+    }
+  };
+
+  const handleRedo = () => {
+    const nextElements = redo();
+    if (nextElements) {
+      setElements(nextElements);
+    }
+  };
+
+  // Arrow key movement handlers (Photoshop-style: 1px normal, 10px with Shift)
+  const handleMoveUp = (distance: number) => {
+    if (selectedElementIds.length > 0) {
+      elementOps.updateElements(selectedElementIds, (el) => ({
+        y: el.y - distance,
+      }));
+    }
+  };
+
+  const handleMoveDown = (distance: number) => {
+    if (selectedElementIds.length > 0) {
+      elementOps.updateElements(selectedElementIds, (el) => ({
+        y: el.y + distance,
+      }));
+    }
+  };
+
+  const handleMoveLeft = (distance: number) => {
+    if (selectedElementIds.length > 0) {
+      elementOps.updateElements(selectedElementIds, (el) => ({
+        x: el.x - distance,
+      }));
+    }
+  };
+
+  const handleMoveRight = (distance: number) => {
+    if (selectedElementIds.length > 0) {
+      elementOps.updateElements(selectedElementIds, (el) => ({
+        x: el.x + distance,
+      }));
+    }
+  };
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    onUndo: handleUndo,
+    onRedo: handleRedo,
+    onCopy: handleCopy,
+    onPaste: handlePaste,
+    onDelete: handleDelete,
+    onMoveUp: handleMoveUp,
+    onMoveDown: handleMoveDown,
+    onMoveLeft: handleMoveLeft,
+    onMoveRight: handleMoveRight,
+  });
+
+  if (!banner || !selectedTemplate) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <p className="mt-4 text-gray-600">読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Update selection state and sync properties for single text element
   const handleSelectElement = (ids: string[]) => {
@@ -358,9 +272,7 @@ export const BannerEditor = () => {
       strokeEnabled: false,
       fontWeight: selectedWeight,
     };
-    const newElements = [...elements, newElement];
-    setElements(newElements);
-    saveToHistory(newElements);
+    elementOps.addElement(newElement);
     setSelectedElementIds([newId]);
   };
 
@@ -380,9 +292,7 @@ export const BannerEditor = () => {
       strokeEnabled: false,
       shapeType,
     };
-    const newElements = [...elements, newShape];
-    setElements(newElements);
-    saveToHistory(newElements);
+    elementOps.addElement(newShape);
     setSelectedElementIds([newId]);
   };
 
@@ -431,59 +341,42 @@ export const BannerEditor = () => {
   };
 
   const handleTextChange = (id: string, newText: string) => {
-    const newElements = elements.map((el) =>
-      el.id === id && el.type === 'text' ? { ...el, text: newText } : el
-    );
-    setElements(newElements);
-    saveToHistory(newElements);
+    elementOps.updateElement(id, { text: newText });
   };
 
   const handleFontChange = (font: string) => {
     setSelectedFont(font);
     if (selectedElementIds.length > 0) {
-      const newElements = elements.map((el) =>
-        selectedElementIds.includes(el.id) && el.type === 'text' ? { ...el, fontFamily: font } : el
+      elementOps.updateElements(selectedElementIds, (el) =>
+        el.type === 'text' ? { fontFamily: font } : {}
       );
-      setElements(newElements);
-      saveToHistory(newElements);
     }
   };
 
   const handleSizeChange = (size: number) => {
     setSelectedSize(size);
     if (selectedElementIds.length > 0) {
-      const newElements = elements.map((el) =>
-        selectedElementIds.includes(el.id) && el.type === 'text' ? { ...el, fontSize: size } : el
+      elementOps.updateElements(selectedElementIds, (el) =>
+        el.type === 'text' ? { fontSize: size } : {}
       );
-      setElements(newElements);
-      saveToHistory(newElements);
     }
   };
 
   const handleWeightChange = (weight: number) => {
     setSelectedWeight(weight);
     if (selectedElementIds.length > 0) {
-      const newElements = elements.map((el) =>
-        selectedElementIds.includes(el.id) && el.type === 'text' ? { ...el, fontWeight: weight } : el
+      elementOps.updateElements(selectedElementIds, (el) =>
+        el.type === 'text' ? { fontWeight: weight } : {}
       );
-      setElements(newElements);
-      saveToHistory(newElements);
     }
   };
 
 
   const handlePropertyColorChange = (color: string) => {
     if (selectedElementIds.length > 0) {
-      const newElements = elements.map((el) => {
-        if (selectedElementIds.includes(el.id)) {
-          if (el.type === 'text' || el.type === 'shape') {
-            return { ...el, fill: color };
-          }
-        }
-        return el;
-      });
-      setElements(newElements);
-      saveToHistory(newElements);
+      elementOps.updateElements(selectedElementIds, (el) =>
+        (el.type === 'text' || el.type === 'shape') ? { fill: color } : {}
+      );
 
       // Update text color state if single text element is selected
       if (selectedElementIds.length === 1) {
@@ -497,115 +390,52 @@ export const BannerEditor = () => {
 
   const handleOpacityChange = (opacity: number) => {
     if (selectedElementIds.length > 0) {
-      const newElements = elements.map((el) =>
-        selectedElementIds.includes(el.id) ? { ...el, opacity } : el
-      );
-      setElements(newElements);
-      saveToHistory(newElements);
+      elementOps.updateElements(selectedElementIds, () => ({ opacity }));
     }
   };
 
   const handleBringToFront = () => {
-    if (selectedElementIds.length === 0) return;
-
-    const newElements = [...elements];
-    const selectedElements = selectedElementIds
-      .map(id => newElements.find(el => el.id === id))
-      .filter((el): el is CanvasElement => el !== undefined);
-
-    const remainingElements = newElements.filter(el => !selectedElementIds.includes(el.id));
-    const reordered = [...remainingElements, ...selectedElements];
-
-    setElements(reordered);
-    saveToHistory(reordered);
+    elementOps.bringToFront(selectedElementIds);
   };
 
   const handleSendToBack = () => {
-    if (selectedElementIds.length === 0) return;
-
-    const newElements = [...elements];
-    const selectedElements = selectedElementIds
-      .map(id => newElements.find(el => el.id === id))
-      .filter((el): el is CanvasElement => el !== undefined);
-
-    const remainingElements = newElements.filter(el => !selectedElementIds.includes(el.id));
-    const reordered = [...selectedElements, ...remainingElements];
-
-    setElements(reordered);
-    saveToHistory(reordered);
+    elementOps.sendToBack(selectedElementIds);
   };
 
   const handleElementUpdate = (id: string, updates: Partial<CanvasElement>) => {
-    const newElements = elements.map((el) => {
-      if (el.id === id) {
-        // Type-safe merge based on element type
-        if (el.type === 'text' && updates.type === 'text') {
-          return { ...el, ...updates } as TextElement;
-        } else if (el.type === 'shape' && updates.type === 'shape') {
-          return { ...el, ...updates } as ShapeElement;
-        } else if (el.type === 'image' && updates.type === 'image') {
-          return { ...el, ...updates } as ImageElement;
-        } else {
-          // For updates without type change
-          return { ...el, ...updates } as CanvasElement;
-        }
-      }
-      return el;
-    });
-    setElements(newElements);
-    saveToHistory(newElements);
+    elementOps.updateElement(id, updates);
   };
 
   // Shape fill/stroke handlers
   const handleFillEnabledChange = (enabled: boolean) => {
     if (selectedElementIds.length > 0) {
-      const newElements = elements.map((el) => {
-        if (selectedElementIds.includes(el.id) && (el.type === 'shape' || el.type === 'text')) {
-          return { ...el, fillEnabled: enabled };
-        }
-        return el;
-      });
-      setElements(newElements);
-      saveToHistory(newElements);
+      elementOps.updateElements(selectedElementIds, (el) =>
+        (el.type === 'shape' || el.type === 'text') ? { fillEnabled: enabled } : {}
+      );
     }
   };
 
   const handleStrokeChange = (color: string) => {
     if (selectedElementIds.length > 0) {
-      const newElements = elements.map((el) => {
-        if (selectedElementIds.includes(el.id) && (el.type === 'shape' || el.type === 'text')) {
-          return { ...el, stroke: color };
-        }
-        return el;
-      });
-      setElements(newElements);
-      saveToHistory(newElements);
+      elementOps.updateElements(selectedElementIds, (el) =>
+        (el.type === 'shape' || el.type === 'text') ? { stroke: color } : {}
+      );
     }
   };
 
   const handleStrokeWidthChange = (width: number) => {
     if (selectedElementIds.length > 0) {
-      const newElements = elements.map((el) => {
-        if (selectedElementIds.includes(el.id) && (el.type === 'shape' || el.type === 'text')) {
-          return { ...el, strokeWidth: width };
-        }
-        return el;
-      });
-      setElements(newElements);
-      saveToHistory(newElements);
+      elementOps.updateElements(selectedElementIds, (el) =>
+        (el.type === 'shape' || el.type === 'text') ? { strokeWidth: width } : {}
+      );
     }
   };
 
   const handleStrokeEnabledChange = (enabled: boolean) => {
     if (selectedElementIds.length > 0) {
-      const newElements = elements.map((el) => {
-        if (selectedElementIds.includes(el.id) && (el.type === 'shape' || el.type === 'text')) {
-          return { ...el, strokeEnabled: enabled };
-        }
-        return el;
-      });
-      setElements(newElements);
-      saveToHistory(newElements);
+      elementOps.updateElements(selectedElementIds, (el) =>
+        (el.type === 'shape' || el.type === 'text') ? { strokeEnabled: enabled } : {}
+      );
     }
   };
 
@@ -617,8 +447,7 @@ export const BannerEditor = () => {
   };
 
   const handleReorderElements = (newOrder: CanvasElement[]) => {
-    setElements(newOrder);
-    saveToHistory(newOrder);
+    elementOps.reorderElements(newOrder);
   };
 
   const handleCanvasSizeChange = async (width: number, height: number) => {

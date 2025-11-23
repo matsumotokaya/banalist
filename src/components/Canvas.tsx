@@ -1,150 +1,10 @@
 import { useRef, forwardRef, useImperativeHandle, useEffect, useState } from 'react';
-import { Stage, Layer, Rect, Text, Transformer, Line, Star, Circle, Path, Image as KonvaImage } from 'react-konva';
+import { Stage, Layer, Rect, Transformer } from 'react-konva';
 import type { Template, CanvasElement, TextElement, ShapeElement, ImageElement } from '../types/template';
 import type Konva from 'konva';
-
-// Constrain drag to horizontal or vertical when Shift is pressed
-// Illustrator/Figma-style: dynamically switches based on current position
-const constrainedDragBound = (pos: { x: number; y: number }, startPos: { x: number; y: number }): { x: number; y: number } => {
-  const dx = Math.abs(pos.x - startPos.x);
-  const dy = Math.abs(pos.y - startPos.y);
-
-  // Lock to axis with greater distance from drag start position
-  // If moving more horizontally (dx > dy), lock Y axis (horizontal movement)
-  // If moving more vertically (dy > dx), lock X axis (vertical movement)
-  if (dx > dy) {
-    return { x: pos.x, y: startPos.y }; // Horizontal movement - lock Y axis to start position
-  } else {
-    return { x: startPos.x, y: pos.y }; // Vertical movement - lock X axis to start position
-  }
-};
-
-// Image component wrapper
-const ImageComponent = ({
-  imageElement,
-  onSelect,
-  nodeRef,
-  onUpdate,
-  isShiftPressed
-}: {
-  imageElement: ImageElement;
-  onSelect: (id: string, event: Konva.KonvaEventObject<MouseEvent>) => void;
-  nodeRef: (node: Konva.Image | null, id: string) => void;
-  onUpdate?: (id: string, updates: Partial<ImageElement>) => void;
-  isShiftPressed: boolean;
-}) => {
-  const [image, setImage] = useState<HTMLImageElement | null>(null);
-  const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
-
-  useEffect(() => {
-    const loadImage = async () => {
-      const img = new window.Image();
-
-      // Check if this is a Supabase Storage URL
-      const isSupabaseUrl = imageElement.src.includes('supabase');
-
-      if (isSupabaseUrl && !imageElement.src.startsWith('blob:')) {
-        // If it's a Supabase URL, download it as Blob to avoid CORS issues
-        try {
-          // Extract bucket name and path from URL
-          const url = new URL(imageElement.src);
-          const pathParts = url.pathname.split('/');
-          const bucketIndex = pathParts.findIndex(part => part === 'object' || part === 'public') + 1;
-          const bucketName = pathParts[bucketIndex];
-          const storagePath = pathParts.slice(bucketIndex + 1).join('/');
-
-          console.log('Loading Supabase image:', { bucketName, storagePath });
-
-          // Import supabase dynamically
-          const { supabase } = await import('../utils/supabase');
-          const { data, error } = await supabase.storage.from(bucketName).download(storagePath);
-
-          if (error) {
-            console.error('Error downloading image from Supabase:', error);
-            // Fallback to direct load with CORS
-            img.crossOrigin = 'anonymous';
-            img.src = imageElement.src;
-          } else {
-            // Create Blob URL
-            const blobUrl = URL.createObjectURL(data);
-            img.src = blobUrl;
-          }
-        } catch (error) {
-          console.error('Error processing Supabase URL:', error);
-          // Fallback to direct load with CORS
-          img.crossOrigin = 'anonymous';
-          img.src = imageElement.src;
-        }
-      } else {
-        // For non-Supabase URLs or already Blob URLs, load normally
-        if (!imageElement.src.startsWith('blob:')) {
-          img.crossOrigin = 'anonymous';
-        }
-        img.src = imageElement.src;
-      }
-
-      img.onload = () => {
-        setImage(img);
-      };
-      img.onerror = (error) => {
-        console.error('Failed to load image:', imageElement.src, error);
-      };
-    };
-
-    loadImage();
-  }, [imageElement.src]);
-
-  return (
-    <KonvaImage
-      ref={(node) => nodeRef(node, imageElement.id)}
-      image={image || undefined}
-      x={imageElement.x}
-      y={imageElement.y}
-      width={imageElement.width}
-      height={imageElement.height}
-      rotation={imageElement.rotation || 0}
-      opacity={imageElement.opacity ?? 1}
-      draggable
-      onMouseDown={(e) => onSelect(imageElement.id, e)}
-      onDragStart={(e) => {
-        dragStartPosRef.current = { x: e.target.x(), y: e.target.y() };
-      }}
-      dragBoundFunc={(pos) => {
-        if (dragStartPosRef.current && isShiftPressed) {
-          return constrainedDragBound(pos, dragStartPosRef.current);
-        }
-        return pos;
-      }}
-      onDragEnd={(e) => {
-        if (onUpdate) {
-          onUpdate(imageElement.id, {
-            x: e.target.x(),
-            y: e.target.y(),
-          });
-        }
-      }}
-      onTransformEnd={(e) => {
-        const node = e.target;
-        const scaleX = node.scaleX();
-        const scaleY = node.scaleY();
-
-        // Reset scale and apply to width/height
-        node.scaleX(1);
-        node.scaleY(1);
-
-        if (onUpdate) {
-          onUpdate(imageElement.id, {
-            x: node.x(),
-            y: node.y(),
-            width: Math.max(5, node.width() * scaleX),
-            height: Math.max(5, node.height() * scaleY),
-            rotation: node.rotation(),
-          });
-        }
-      }}
-    />
-  );
-};
+import { ShapeRenderer } from './canvas/ShapeRenderer';
+import { TextRenderer } from './canvas/TextRenderer';
+import { ImageRenderer } from './canvas/ImageRenderer';
 
 interface CanvasProps {
   template: Template;
@@ -173,7 +33,6 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   const [selectedNodeType, setSelectedNodeType] = useState<'text' | 'shape' | 'image' | null>(null);
   const [selectionRect, setSelectionRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const selectionStartRef = useRef<{ x: number; y: number } | null>(null);
-  const dragStartPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
   const [isShiftPressed, setIsShiftPressed] = useState(false);
 
   // Track Shift key state
@@ -549,416 +408,46 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
               listening={false}
             />
               {elements.map((element) => {
-                if (element.type === 'shape') {
-                  const shape = element as ShapeElement;
-                  if (shape.shapeType === 'rectangle') {
-                    return (
-                      <Rect
-                        key={shape.id}
-                        ref={(node) => {
-                          if (node) {
-                            nodesRef.current.set(shape.id, node);
-                          } else {
-                            nodesRef.current.delete(shape.id);
-                          }
-                        }}
-                        x={shape.x}
-                        y={shape.y}
-                        width={shape.width}
-                        height={shape.height}
-                        fill={shape.fillEnabled ? shape.fill : undefined}
-                        stroke={shape.strokeEnabled ? shape.stroke : undefined}
-                        strokeWidth={shape.strokeEnabled ? shape.strokeWidth : 0}
-                        rotation={shape.rotation || 0}
-                        opacity={shape.opacity ?? 1}
-                        draggable
-                        onMouseDown={(e) => handleElementClick(shape.id, e)}
-                        onDragStart={(e) => {
-                          dragStartPositions.current.set(shape.id, { x: e.target.x(), y: e.target.y() });
-                        }}
-                        dragBoundFunc={(pos) => {
-                          const startPos = dragStartPositions.current.get(shape.id);
-                          if (startPos && isShiftPressed) {
-                            return constrainedDragBound(pos, startPos);
-                          }
-                          return pos;
-                        }}
-                        onDragEnd={(e) => {
-                          if (onElementUpdate) {
-                            onElementUpdate(shape.id, {
-                              x: e.target.x(),
-                              y: e.target.y(),
-                            });
-                          }
-                        }}
-                        onTransformEnd={(e) => {
-                          const node = e.target;
-                          const scaleX = node.scaleX();
-                          const scaleY = node.scaleY();
-
-                          node.scaleX(1);
-                          node.scaleY(1);
-
-                          if (onElementUpdate) {
-                            onElementUpdate(shape.id, {
-                              x: node.x(),
-                              y: node.y(),
-                              width: Math.max(5, node.width() * scaleX),
-                              height: Math.max(5, node.height() * scaleY),
-                              rotation: node.rotation(),
-                            });
-                          }
-                        }}
-                      />
-                    );
-                  } else if (shape.shapeType === 'triangle') {
-                    return (
-                      <Line
-                        key={shape.id}
-                        ref={(node) => {
-                          if (node) {
-                            nodesRef.current.set(shape.id, node);
-                          } else {
-                            nodesRef.current.delete(shape.id);
-                          }
-                        }}
-                        points={[
-                          shape.width / 2, 0,
-                          shape.width, shape.height,
-                          0, shape.height
-                        ]}
-                        x={shape.x}
-                        y={shape.y}
-                        fill={shape.fillEnabled ? shape.fill : undefined}
-                        stroke={shape.strokeEnabled ? shape.stroke : undefined}
-                        strokeWidth={shape.strokeEnabled ? shape.strokeWidth : 0}
-                        rotation={shape.rotation || 0}
-                        opacity={shape.opacity ?? 1}
-                        closed
-                        draggable
-                        onMouseDown={(e) => handleElementClick(shape.id, e)}
-                        onDragStart={(e) => {
-                          dragStartPositions.current.set(shape.id, { x: e.target.x(), y: e.target.y() });
-                        }}
-                        dragBoundFunc={(pos) => {
-                          const startPos = dragStartPositions.current.get(shape.id);
-                          if (startPos && isShiftPressed) {
-                            return constrainedDragBound(pos, startPos);
-                          }
-                          return pos;
-                        }}
-                        onDragEnd={(e) => {
-                          if (onElementUpdate) {
-                            onElementUpdate(shape.id, {
-                              x: e.target.x(),
-                              y: e.target.y(),
-                            });
-                          }
-                        }}
-                        onTransformEnd={(e) => {
-                          const node = e.target;
-                          const scaleX = node.scaleX();
-                          const scaleY = node.scaleY();
-
-                          node.scaleX(1);
-                          node.scaleY(1);
-
-                          if (onElementUpdate) {
-                            onElementUpdate(shape.id, {
-                              x: node.x(),
-                              y: node.y(),
-                              width: Math.max(5, shape.width * scaleX),
-                              height: Math.max(5, shape.height * scaleY),
-                              rotation: node.rotation(),
-                            });
-                          }
-                        }}
-                      />
-                    );
-                  } else if (shape.shapeType === 'star') {
-                    return (
-                      <Star
-                        key={shape.id}
-                        ref={(node) => {
-                          if (node) {
-                            nodesRef.current.set(shape.id, node);
-                          } else {
-                            nodesRef.current.delete(shape.id);
-                          }
-                        }}
-                        x={shape.x + shape.width / 2}
-                        y={shape.y + shape.height / 2}
-                        numPoints={5}
-                        innerRadius={Math.min(shape.width, shape.height) / 4}
-                        outerRadius={Math.min(shape.width, shape.height) / 2}
-                        fill={shape.fillEnabled ? shape.fill : undefined}
-                        stroke={shape.strokeEnabled ? shape.stroke : undefined}
-                        strokeWidth={shape.strokeEnabled ? shape.strokeWidth : 0}
-                        rotation={shape.rotation || 0}
-                        opacity={shape.opacity ?? 1}
-                        draggable
-                        onMouseDown={(e) => handleElementClick(shape.id, e)}
-                        onDragStart={(e) => {
-                          dragStartPositions.current.set(shape.id, { x: e.target.x(), y: e.target.y() });
-                        }}
-                        dragBoundFunc={(pos) => {
-                          const startPos = dragStartPositions.current.get(shape.id);
-                          if (startPos && isShiftPressed) {
-                            return constrainedDragBound(pos, startPos);
-                          }
-                          return pos;
-                        }}
-                        onDragEnd={(e) => {
-                          if (onElementUpdate) {
-                            const centerX = e.target.x();
-                            const centerY = e.target.y();
-                            onElementUpdate(shape.id, {
-                              x: centerX - shape.width / 2,
-                              y: centerY - shape.height / 2,
-                            });
-                          }
-                        }}
-                        onTransformEnd={(e) => {
-                          const node = e.target;
-                          const scaleX = node.scaleX();
-                          const scaleY = node.scaleY();
-
-                          node.scaleX(1);
-                          node.scaleY(1);
-
-                          const centerX = node.x();
-                          const centerY = node.y();
-                          const newWidth = Math.max(5, shape.width * scaleX);
-                          const newHeight = Math.max(5, shape.height * scaleY);
-
-                          if (onElementUpdate) {
-                            onElementUpdate(shape.id, {
-                              x: centerX - newWidth / 2,
-                              y: centerY - newHeight / 2,
-                              width: newWidth,
-                              height: newHeight,
-                              rotation: node.rotation(),
-                            });
-                          }
-                        }}
-                      />
-                    );
-                  } else if (shape.shapeType === 'circle') {
-                    return (
-                      <Circle
-                        key={shape.id}
-                        ref={(node) => {
-                          if (node) {
-                            nodesRef.current.set(shape.id, node);
-                          } else {
-                            nodesRef.current.delete(shape.id);
-                          }
-                        }}
-                        x={shape.x + shape.width / 2}
-                        y={shape.y + shape.height / 2}
-                        radiusX={shape.width / 2}
-                        radiusY={shape.height / 2}
-                        fill={shape.fillEnabled ? shape.fill : undefined}
-                        stroke={shape.strokeEnabled ? shape.stroke : undefined}
-                        strokeWidth={shape.strokeEnabled ? shape.strokeWidth : 0}
-                        rotation={shape.rotation || 0}
-                        opacity={shape.opacity ?? 1}
-                        draggable
-                        onMouseDown={(e) => handleElementClick(shape.id, e)}
-                        onDragStart={(e) => {
-                          dragStartPositions.current.set(shape.id, { x: e.target.x(), y: e.target.y() });
-                        }}
-                        dragBoundFunc={(pos) => {
-                          const startPos = dragStartPositions.current.get(shape.id);
-                          if (startPos && isShiftPressed) {
-                            return constrainedDragBound(pos, startPos);
-                          }
-                          return pos;
-                        }}
-                        onDragEnd={(e) => {
-                          if (onElementUpdate) {
-                            const centerX = e.target.x();
-                            const centerY = e.target.y();
-                            onElementUpdate(shape.id, {
-                              x: centerX - shape.width / 2,
-                              y: centerY - shape.height / 2,
-                            });
-                          }
-                        }}
-                        onTransformEnd={(e) => {
-                          const node = e.target;
-                          const scaleX = node.scaleX();
-                          const scaleY = node.scaleY();
-
-                          node.scaleX(1);
-                          node.scaleY(1);
-
-                          const centerX = node.x();
-                          const centerY = node.y();
-                          const newWidth = Math.max(5, shape.width * scaleX);
-                          const newHeight = Math.max(5, shape.height * scaleY);
-
-                          if (onElementUpdate) {
-                            onElementUpdate(shape.id, {
-                              x: centerX - newWidth / 2,
-                              y: centerY - newHeight / 2,
-                              width: newWidth,
-                              height: newHeight,
-                              rotation: node.rotation(),
-                            });
-                          }
-                        }}
-                      />
-                    );
-                  } else if (shape.shapeType === 'heart') {
-                    const heartPath = `M ${shape.width / 2} ${shape.height * 0.3}
-                      C ${shape.width / 2} ${shape.height * 0.15}, ${shape.width * 0.35} 0, ${shape.width * 0.25} 0
-                      C ${shape.width * 0.1} 0, 0 ${shape.height * 0.15}, 0 ${shape.height * 0.3}
-                      C 0 ${shape.height * 0.55}, ${shape.width / 2} ${shape.height * 0.8}, ${shape.width / 2} ${shape.height}
-                      C ${shape.width / 2} ${shape.height * 0.8}, ${shape.width} ${shape.height * 0.55}, ${shape.width} ${shape.height * 0.3}
-                      C ${shape.width} ${shape.height * 0.15}, ${shape.width * 0.9} 0, ${shape.width * 0.75} 0
-                      C ${shape.width * 0.65} 0, ${shape.width / 2} ${shape.height * 0.15}, ${shape.width / 2} ${shape.height * 0.3} Z`;
-
-                    return (
-                      <Path
-                        key={shape.id}
-                        ref={(node) => {
-                          if (node) {
-                            nodesRef.current.set(shape.id, node);
-                          } else {
-                            nodesRef.current.delete(shape.id);
-                          }
-                        }}
-                        data={heartPath}
-                        x={shape.x}
-                        y={shape.y}
-                        fill={shape.fillEnabled ? shape.fill : undefined}
-                        stroke={shape.strokeEnabled ? shape.stroke : undefined}
-                        strokeWidth={shape.strokeEnabled ? shape.strokeWidth : 0}
-                        rotation={shape.rotation || 0}
-                        opacity={shape.opacity ?? 1}
-                        draggable
-                        onMouseDown={(e) => handleElementClick(shape.id, e)}
-                        onDragStart={(e) => {
-                          dragStartPositions.current.set(shape.id, { x: e.target.x(), y: e.target.y() });
-                        }}
-                        dragBoundFunc={(pos) => {
-                          const startPos = dragStartPositions.current.get(shape.id);
-                          if (startPos && isShiftPressed) {
-                            return constrainedDragBound(pos, startPos);
-                          }
-                          return pos;
-                        }}
-                        onDragEnd={(e) => {
-                          if (onElementUpdate) {
-                            onElementUpdate(shape.id, {
-                              x: e.target.x(),
-                              y: e.target.y(),
-                            });
-                          }
-                        }}
-                        onTransformEnd={(e) => {
-                          const node = e.target;
-                          const scaleX = node.scaleX();
-                          const scaleY = node.scaleY();
-
-                          node.scaleX(1);
-                          node.scaleY(1);
-
-                          if (onElementUpdate) {
-                            onElementUpdate(shape.id, {
-                              x: node.x(),
-                              y: node.y(),
-                              width: Math.max(5, shape.width * scaleX),
-                              height: Math.max(5, shape.height * scaleY),
-                              rotation: node.rotation(),
-                            });
-                          }
-                        }}
-                      />
-                    );
+                const nodeRefSetter = (node: Konva.Node | null, id: string) => {
+                  if (node) {
+                    nodesRef.current.set(id, node);
+                  } else {
+                    nodesRef.current.delete(id);
                   }
-                } else if (element.type === 'text') {
-                  const textElement = element as TextElement;
+                };
+
+                if (element.type === 'shape') {
                   return (
-                    <Text
-                      key={textElement.id}
-                      ref={(node) => {
-                        if (node) {
-                          nodesRef.current.set(textElement.id, node);
-                        } else {
-                          nodesRef.current.delete(textElement.id);
-                        }
-                      }}
-                      text={textElement.text}
-                      x={textElement.x}
-                      y={textElement.y}
-                      fontSize={textElement.fontSize}
-                      fontFamily={textElement.fontFamily}
-                      fontStyle={textElement.fontWeight >= 700 ? 'bold' : textElement.fontWeight <= 300 ? 'lighter' : 'normal'}
-                      fill={textElement.fillEnabled ? textElement.fill : 'transparent'}
-                      stroke={textElement.strokeEnabled ? textElement.stroke : undefined}
-                      strokeWidth={textElement.strokeEnabled ? textElement.strokeWidth : 0}
-                      rotation={textElement.rotation || 0}
-                      opacity={textElement.opacity ?? 1}
-                      draggable
-                      onMouseDown={(e) => handleElementClick(textElement.id, e)}
-                      onDblClick={(e) => {
-                        const textNode = e.target as Konva.Text;
-                        handleTextDoubleClick(textElement, textNode);
-                      }}
-                      onDragStart={(e) => {
-                        dragStartPositions.current.set(textElement.id, { x: e.target.x(), y: e.target.y() });
-                      }}
-                      dragBoundFunc={(pos) => {
-                        const startPos = dragStartPositions.current.get(textElement.id);
-                        if (startPos && isShiftPressed) {
-                          return constrainedDragBound(pos, startPos);
-                        }
-                        return pos;
-                      }}
-                      onDragEnd={(e) => {
-                        if (onElementUpdate) {
-                          onElementUpdate(textElement.id, {
-                            x: e.target.x(),
-                            y: e.target.y(),
-                          });
-                        }
-                      }}
-                      onTransformEnd={(e) => {
-                        const node = e.target as Konva.Text;
-                        const scaleY = node.scaleY();
-
-                        node.scaleX(1);
-                        node.scaleY(1);
-
-                        if (onElementUpdate) {
-                          onElementUpdate(textElement.id, {
-                            x: node.x(),
-                            y: node.y(),
-                            fontSize: Math.max(10, textElement.fontSize * scaleY),
-                            rotation: node.rotation(),
-                          });
-                        }
-                      }}
+                    <ShapeRenderer
+                      key={element.id}
+                      shape={element as ShapeElement}
+                      isShiftPressed={isShiftPressed}
+                      onSelect={handleElementClick}
+                      onUpdate={onElementUpdate}
+                      nodeRef={nodeRefSetter}
+                    />
+                  );
+                } else if (element.type === 'text') {
+                  return (
+                    <TextRenderer
+                      key={element.id}
+                      textElement={element as TextElement}
+                      isShiftPressed={isShiftPressed}
+                      onSelect={handleElementClick}
+                      onDoubleClick={handleTextDoubleClick}
+                      onUpdate={onElementUpdate}
+                      nodeRef={nodeRefSetter}
                     />
                   );
                 } else if (element.type === 'image') {
-                  const imageElement = element as ImageElement;
                   return (
-                    <ImageComponent
-                      key={imageElement.id}
-                      imageElement={imageElement}
-                      nodeRef={(node, id) => {
-                        if (node) {
-                          nodesRef.current.set(id, node);
-                        } else {
-                          nodesRef.current.delete(id);
-                        }
-                      }}
+                    <ImageRenderer
+                      key={element.id}
+                      imageElement={element as ImageElement}
+                      isShiftPressed={isShiftPressed}
                       onSelect={handleElementClick}
                       onUpdate={onElementUpdate}
-                      isShiftPressed={isShiftPressed}
+                      nodeRef={nodeRefSetter}
                     />
                   );
                 }
