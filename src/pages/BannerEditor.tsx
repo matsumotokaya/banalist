@@ -300,32 +300,11 @@ export const BannerEditor = () => {
     const newId = `image-${Date.now()}-${Math.random()}`;
 
     setElements(prevElements => {
-      // Calculate position to avoid overlapping with existing images
-      // Find the last image position in the current state
-      const lastImage = [...prevElements].reverse().find(el => el.type === 'image');
-      let x = 50;
-      let y = 50;
-
-      if (lastImage) {
-        // Place new image diagonally offset from the last one
-        x = lastImage.x + 80;
-        y = lastImage.y + 80;
-
-        // Wrap around if it goes off canvas
-        if (selectedTemplate && x > selectedTemplate.width - 200) {
-          x = 50;
-          y = lastImage.y + 150;
-        }
-        if (selectedTemplate && y > selectedTemplate.height - 200) {
-          y = 50;
-        }
-      }
-
       const newImage: ImageElement = {
         id: newId,
         type: 'image',
-        x,
-        y,
+        x: 0,
+        y: 0,
         src,
         width,
         height,
@@ -404,6 +383,13 @@ export const BannerEditor = () => {
 
   const handleElementUpdate = (id: string, updates: Partial<CanvasElement>) => {
     elementOps.updateElement(id, updates);
+  };
+
+  const handleToggleLock = (id: string) => {
+    const element = elements.find(el => el.id === id);
+    if (element) {
+      elementOps.updateElement(id, { locked: !element.locked });
+    }
   };
 
   // Shape fill/stroke handlers
@@ -514,6 +500,7 @@ export const BannerEditor = () => {
           selectedElementIds={selectedElementIds}
           onSelectElement={handleSelectElement}
           onReorderElements={handleReorderElements}
+          onToggleLock={handleToggleLock}
         />
 
         <main
@@ -527,17 +514,17 @@ export const BannerEditor = () => {
           }}
         >
           <Canvas
-            ref={canvasRef}
-            template={selectedTemplate}
-            elements={elements}
-            scale={zoom / 100}
-            canvasColor={canvasColor}
-            fileName={`${banner.name}.png`}
-            onTextChange={handleTextChange}
-            selectedElementIds={selectedElementIds}
-            onSelectElement={handleSelectElement}
-            onElementUpdate={handleElementUpdate}
-          />
+              ref={canvasRef}
+              template={selectedTemplate}
+              elements={elements}
+              scale={zoom / 100}
+              canvasColor={canvasColor}
+              fileName={`${banner.name}.png`}
+              onTextChange={handleTextChange}
+              selectedElementIds={selectedElementIds}
+              onSelectElement={handleSelectElement}
+              onElementUpdate={handleElementUpdate}
+            />
         </main>
 
         <PropertyPanel
@@ -560,7 +547,7 @@ export const BannerEditor = () => {
       <div className="flex md:hidden flex-1 flex-col overflow-hidden">
         <main
           ref={mainRef}
-          className="flex-1 overflow-auto bg-gray-100 flex items-center justify-center"
+          className="flex-1 overflow-auto bg-gray-100 p-8 flex items-center justify-center"
           style={{ touchAction: 'none' }}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
@@ -569,17 +556,17 @@ export const BannerEditor = () => {
           }}
         >
           <Canvas
-            ref={canvasRef}
-            template={selectedTemplate}
-            elements={elements}
-            scale={zoom / 100}
-            canvasColor={canvasColor}
-            fileName={`${banner.name}.png`}
-            onTextChange={handleTextChange}
-            selectedElementIds={selectedElementIds}
-            onSelectElement={handleSelectElement}
-            onElementUpdate={handleElementUpdate}
-          />
+              ref={canvasRef}
+              template={selectedTemplate}
+              elements={elements}
+              scale={zoom / 100}
+              canvasColor={canvasColor}
+              fileName={`${banner.name}.png`}
+              onTextChange={handleTextChange}
+              selectedElementIds={selectedElementIds}
+              onSelectElement={handleSelectElement}
+              onElementUpdate={handleElementUpdate}
+            />
         </main>
 
         {/* Mobile Sidebar - Bottom horizontal scrollable */}
@@ -596,6 +583,7 @@ export const BannerEditor = () => {
           selectedElementIds={selectedElementIds}
           onSelectElement={handleSelectElement}
           onReorderElements={handleReorderElements}
+          onToggleLock={handleToggleLock}
           isMobile={true}
         />
 

@@ -35,6 +35,7 @@ interface SidebarProps {
   selectedElementIds?: string[];
   onSelectElement?: (ids: string[]) => void;
   onReorderElements?: (newOrder: CanvasElement[]) => void;
+  onToggleLock?: (id: string) => void;
   isMobile?: boolean;
 }
 
@@ -88,10 +89,11 @@ const getLayerIcon = (element: CanvasElement): string => {
 interface SortableLayerItemProps {
   element: CanvasElement;
   isSelected: boolean;
-  onSelect: () => void;
+  onSelect: (shiftKey: boolean) => void;
+  onToggleLock: (id: string) => void;
 }
 
-const SortableLayerItem = ({ element, isSelected, onSelect }: SortableLayerItemProps) => {
+const SortableLayerItem = ({ element, isSelected, onSelect, onToggleLock }: SortableLayerItemProps) => {
   const {
     attributes,
     listeners,
@@ -109,31 +111,40 @@ const SortableLayerItem = ({ element, isSelected, onSelect }: SortableLayerItemP
 
   return (
     <div ref={setNodeRef} style={style}>
-      <button
-        onClick={onSelect}
-        className={`w-full flex items-center gap-2 px-3 py-2 rounded text-left transition-colors ${
-          isSelected
-            ? 'bg-indigo-100 text-indigo-900'
-            : 'hover:bg-gray-100 text-gray-700'
-        }`}
-      >
-        <span
+      <div className="flex items-center gap-1">
+        <button
           {...attributes}
           {...listeners}
-          className="material-symbols-outlined text-[16px] text-gray-400 cursor-grab active:cursor-grabbing"
+          onClick={(e) => onSelect(e.shiftKey)}
+          className={`flex-1 flex items-center gap-2 px-3 py-2 rounded text-left transition-colors cursor-grab active:cursor-grabbing ${
+            isSelected
+              ? 'bg-indigo-100 text-indigo-900'
+              : 'hover:bg-gray-100 text-gray-700'
+          }`}
         >
-          drag_indicator
-        </span>
-        <span className="material-symbols-outlined text-[18px]">
-          {getLayerIcon(element)}
-        </span>
-        <span className="flex-1 text-sm truncate">
-          {getLayerName(element)}
-        </span>
-        <span className="text-xs text-gray-400">
-          {element.type === 'text' ? 'T' : element.type === 'image' ? 'I' : 'S'}
-        </span>
-      </button>
+          <span className="material-symbols-outlined text-[18px]">
+            {getLayerIcon(element)}
+          </span>
+          <span className="flex-1 text-sm truncate">
+            {getLayerName(element)}
+          </span>
+          <span className="text-xs text-gray-400">
+            {element.type === 'text' ? 'T' : element.type === 'image' ? 'I' : 'S'}
+          </span>
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleLock(element.id);
+          }}
+          className="p-2 hover:bg-gray-200 rounded transition-colors"
+          title={element.locked ? 'ロック解除' : 'ロック'}
+        >
+          <span className="material-symbols-outlined text-[18px] text-gray-600">
+            {element.locked ? 'lock' : 'lock_open'}
+          </span>
+        </button>
+      </div>
     </div>
   );
 };
@@ -151,6 +162,7 @@ export const Sidebar = ({
   selectedElementIds = [],
   onSelectElement,
   onReorderElements,
+  onToggleLock,
   isMobile = false,
 }: SidebarProps) => {
   const [activeTab, setActiveTab] = useState<TabType>('object');
@@ -392,7 +404,22 @@ export const Sidebar = ({
                           key={element.id}
                           element={element}
                           isSelected={isSelected}
-                          onSelect={() => onSelectElement?.([element.id])}
+                          onSelect={(shiftKey) => {
+                            if (shiftKey) {
+                              // Shift + Click: Toggle selection
+                              if (isSelected) {
+                                // Remove from selection
+                                onSelectElement?.(selectedElementIds.filter(id => id !== element.id));
+                              } else {
+                                // Add to selection
+                                onSelectElement?.([...selectedElementIds, element.id]);
+                              }
+                            } else {
+                              // Regular click: Select only this element
+                              onSelectElement?.([element.id]);
+                            }
+                          }}
+                          onToggleLock={(id) => onToggleLock?.(id)}
                         />
                       );
                     })}

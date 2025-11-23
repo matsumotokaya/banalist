@@ -101,7 +101,8 @@ export const ImageRenderer = ({
       height={imageElement.height}
       rotation={imageElement.rotation || 0}
       opacity={imageElement.opacity ?? 1}
-      draggable
+      draggable={!imageElement.locked}
+      listening={!imageElement.locked}
       onMouseDown={(e) => onSelect(imageElement.id, e)}
       onDragStart={(e) => {
         dragStartPosRef.current = { x: e.target.x(), y: e.target.y() };

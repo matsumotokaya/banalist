@@ -6,14 +6,19 @@ interface ImageLibraryModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectImage: (url: string, width: number, height: number) => void;
+  initialTab?: 'default' | 'user';
 }
 
 type TabType = 'default' | 'user';
 
-export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage }: ImageLibraryModalProps) => {
-  const [activeTab, setActiveTab] = useState<TabType>('default');
-  const [defaultImages, setDefaultImages] = useState<DefaultImage[]>([]);
-  const [userImages, setUserImages] = useState<UserImage[]>([]);
+// Extended types with display URL
+type DefaultImageWithUrl = DefaultImage & { displayUrl: string };
+type UserImageWithUrl = UserImage & { displayUrl: string };
+
+export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab = 'default' }: ImageLibraryModalProps) => {
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
+  const [defaultImages, setDefaultImages] = useState<DefaultImageWithUrl[]>([]);
+  const [userImages, setUserImages] = useState<UserImageWithUrl[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -28,8 +33,16 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage }: ImageLibra
 
     if (error) {
       console.error('Error fetching default images:', error);
-    } else {
-      setDefaultImages(data || []);
+      setDefaultImages([]);
+    } else if (data) {
+      // Generate display URLs for all images
+      const imagesWithUrls = await Promise.all(
+        data.map(async (image) => ({
+          ...image,
+          displayUrl: await getDisplayUrl(image.storage_path, 'default-images')
+        }))
+      );
+      setDefaultImages(imagesWithUrls);
     }
     setLoading(false);
   };
@@ -52,8 +65,16 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage }: ImageLibra
 
     if (error) {
       console.error('Error fetching user images:', error);
-    } else {
-      setUserImages(data || []);
+      setUserImages([]);
+    } else if (data) {
+      // Generate display URLs for all images
+      const imagesWithUrls = await Promise.all(
+        data.map(async (image) => ({
+          ...image,
+          displayUrl: await getDisplayUrl(image.storage_path, 'user-images')
+        }))
+      );
+      setUserImages(imagesWithUrls);
     }
     setLoading(false);
   };
@@ -83,6 +104,13 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage }: ImageLibra
     checkAdmin();
   }, []);
 
+  // Set initial tab when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab]);
+
   // Load images when modal opens or tab changes
   useEffect(() => {
     if (isOpen) {
@@ -96,11 +124,16 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage }: ImageLibra
 
   // Handle file upload (works for both default and user images)
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    if (!file.type.startsWith('image/')) {
-      alert('画像ファイルを選択してください');
+    // Convert FileList to Array
+    const fileArray = Array.from(files);
+
+    // Check if all files are images
+    const invalidFiles = fileArray.filter(file => !file.type.startsWith('image/'));
+    if (invalidFiles.length > 0) {
+      alert('画像ファイルのみ選択してください');
       return;
     }
 
@@ -113,77 +146,96 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage }: ImageLibra
     setUploading(true);
 
     try {
-      // Get image dimensions
-      const img = new Image();
-      const objectUrl = URL.createObjectURL(file);
+      let successCount = 0;
+      let failCount = 0;
 
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-        img.src = objectUrl;
-      });
+      // Process each file
+      for (const file of fileArray) {
+        try {
+          // Get image dimensions
+          const img = new Image();
+          const objectUrl = URL.createObjectURL(file);
 
-      const width = img.width;
-      const height = img.height;
-      URL.revokeObjectURL(objectUrl);
-
-      const fileName = `${Date.now()}-${file.name}`;
-
-      if (activeTab === 'default') {
-        // Upload to default-images bucket
-        const filePath = fileName; // No user folder for default images
-
-        const { error: uploadError } = await supabase.storage
-          .from('default-images')
-          .upload(filePath, file);
-
-        if (uploadError) throw uploadError;
-
-        // Save metadata to default_images table
-        const { error: dbError } = await supabase
-          .from('default_images')
-          .insert({
-            name: file.name,
-            storage_path: filePath,
-            width,
-            height,
-            file_size: file.size,
-            tags: [],
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = objectUrl;
           });
 
-        if (dbError) throw dbError;
+          const width = img.width;
+          const height = img.height;
+          URL.revokeObjectURL(objectUrl);
 
-        // Refresh default images list
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}-${file.name}`;
+
+          if (activeTab === 'default') {
+            // Upload to default-images bucket
+            const filePath = fileName; // No user folder for default images
+
+            const { error: uploadError } = await supabase.storage
+              .from('default-images')
+              .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            // Save metadata to default_images table
+            const { error: dbError } = await supabase
+              .from('default_images')
+              .insert({
+                name: file.name,
+                storage_path: filePath,
+                width,
+                height,
+                file_size: file.size,
+                tags: [],
+              });
+
+            if (dbError) throw dbError;
+          } else {
+            // Upload to user-images bucket
+            const filePath = `${user.id}/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+              .from('user-images')
+              .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            // Save metadata to user_images table
+            const { error: dbError } = await supabase
+              .from('user_images')
+              .insert({
+                user_id: user.id,
+                name: file.name,
+                storage_path: filePath,
+                width,
+                height,
+                file_size: file.size,
+              });
+
+            if (dbError) throw dbError;
+          }
+
+          successCount++;
+        } catch (error) {
+          console.error('Error uploading file:', file.name, error);
+          failCount++;
+        }
+      }
+
+      // Refresh images list
+      if (activeTab === 'default') {
         await fetchDefaultImages();
       } else {
-        // Upload to user-images bucket
-        const filePath = `${user.id}/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('user-images')
-          .upload(filePath, file);
-
-        if (uploadError) throw uploadError;
-
-        // Save metadata to user_images table
-        const { error: dbError } = await supabase
-          .from('user_images')
-          .insert({
-            user_id: user.id,
-            name: file.name,
-            storage_path: filePath,
-            width,
-            height,
-            file_size: file.size,
-          });
-
-        if (dbError) throw dbError;
-
-        // Refresh user images list
         await fetchUserImages();
       }
 
-      alert('画像をアップロードしました');
+      // Show result message
+      if (failCount === 0) {
+        alert(`${successCount}枚の画像をアップロードしました`);
+      } else {
+        alert(`${successCount}枚成功、${failCount}枚失敗しました`);
+      }
     } catch (error) {
       console.error('Upload error:', error);
       alert('アップロードに失敗しました');
@@ -193,8 +245,8 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage }: ImageLibra
     }
   };
 
-  // Get public URL for image with CORS support
-  const getImageUrl = async (storagePath: string, bucketName: 'default-images' | 'user-images'): Promise<string> => {
+  // Get display URL for thumbnail preview (temporary Blob URL)
+  const getDisplayUrl = async (storagePath: string, bucketName: 'default-images' | 'user-images'): Promise<string> => {
     try {
       // Download the image as Blob to avoid CORS issues
       const { data, error } = await supabase.storage.from(bucketName).download(storagePath);
@@ -214,16 +266,22 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage }: ImageLibra
     }
   };
 
+  // Get permanent public URL for canvas (persists after page reload)
+  const getPublicUrl = (storagePath: string, bucketName: 'default-images' | 'user-images'): string => {
+    const { data } = supabase.storage.from(bucketName).getPublicUrl(storagePath);
+    return data.publicUrl;
+  };
+
   // Handle image selection
-  const handleSelectDefaultImage = async (image: DefaultImage) => {
-    const url = await getImageUrl(image.storage_path, 'default-images');
-    onSelectImage(url, image.width || 800, image.height || 600);
+  const handleSelectDefaultImage = (image: DefaultImageWithUrl) => {
+    const publicUrl = getPublicUrl(image.storage_path, 'default-images');
+    onSelectImage(publicUrl, image.width || 800, image.height || 600);
     onClose();
   };
 
-  const handleSelectUserImage = async (image: UserImage) => {
-    const url = await getImageUrl(image.storage_path, 'user-images');
-    onSelectImage(url, image.width || 800, image.height || 600);
+  const handleSelectUserImage = (image: UserImageWithUrl) => {
+    const publicUrl = getPublicUrl(image.storage_path, 'user-images');
+    onSelectImage(publicUrl, image.width || 800, image.height || 600);
     onClose();
   };
 
@@ -277,6 +335,7 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage }: ImageLibra
                 <input
                   type="file"
                   accept="image/*"
+                  multiple
                   onChange={handleFileUpload}
                   disabled={uploading}
                   className="hidden"
@@ -311,7 +370,7 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage }: ImageLibra
                     className="group relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-indigo-600 transition-all"
                   >
                     <img
-                      src={getImageUrl(image.storage_path, 'default-images')}
+                      src={image.displayUrl}
                       alt={image.name}
                       className="w-full h-full object-cover"
                     />
@@ -341,7 +400,7 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage }: ImageLibra
                     className="group relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-indigo-600 transition-all"
                   >
                     <img
-                      src={getImageUrl(image.storage_path, 'user-images')}
+                      src={image.displayUrl}
                       alt={image.name}
                       className="w-full h-full object-cover"
                     />

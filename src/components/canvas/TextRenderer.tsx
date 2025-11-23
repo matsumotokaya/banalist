@@ -49,7 +49,8 @@ export const TextRenderer = ({
       strokeWidth={textElement.strokeEnabled ? textElement.strokeWidth : 0}
       rotation={textElement.rotation || 0}
       opacity={textElement.opacity ?? 1}
-      draggable
+      draggable={!textElement.locked}
+      listening={!textElement.locked}
       onMouseDown={(e) => onSelect(textElement.id, e)}
       onDblClick={(e) => {
         const textNode = e.target as Konva.Text;

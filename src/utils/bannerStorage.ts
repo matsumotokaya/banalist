@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { cacheManager } from './cacheManager';
 import type { Banner, CanvasElement, Template } from '../types/template';
 
 interface DbBanner {
@@ -27,9 +28,20 @@ const dbToBanner = (db: DbBanner): Banner => ({
 
 export const bannerStorage = {
   // Get all banners
-  async getAll(): Promise<Banner[]> {
+  async getAll(useCache = true): Promise<Banner[]> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
+
+    const cacheKey = `banners:all:${user.id}`;
+
+    // Check cache first
+    if (useCache) {
+      const cached = cacheManager.get<Banner[]>(cacheKey);
+      if (cached) {
+        console.log('✅ Cache hit: banners list');
+        return cached;
+      }
+    }
 
     const { data, error } = await supabase
       .from('banners')
@@ -42,13 +54,29 @@ export const bannerStorage = {
       return [];
     }
 
-    return (data || []).map(dbToBanner);
+    const banners = (data || []).map(dbToBanner);
+
+    // Cache for 5 minutes
+    cacheManager.set(cacheKey, banners, 5 * 60 * 1000);
+
+    return banners;
   },
 
   // Get banner by ID
-  async getById(id: string): Promise<Banner | null> {
+  async getById(id: string, useCache = true): Promise<Banner | null> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
+
+    const cacheKey = `banner:${id}`;
+
+    // Check cache first
+    if (useCache) {
+      const cached = cacheManager.get<Banner>(cacheKey);
+      if (cached) {
+        console.log(`✅ Cache hit: banner ${id}`);
+        return cached;
+      }
+    }
 
     const { data, error } = await supabase
       .from('banners')
@@ -62,7 +90,14 @@ export const bannerStorage = {
       return null;
     }
 
-    return data ? dbToBanner(data) : null;
+    const banner = data ? dbToBanner(data) : null;
+
+    if (banner) {
+      // Cache for 5 minutes
+      cacheManager.set(cacheKey, banner, 5 * 60 * 1000);
+    }
+
+    return banner;
   },
 
   // Create new banner
@@ -109,6 +144,9 @@ export const bannerStorage = {
       return null;
     }
 
+    // Invalidate list cache
+    cacheManager.invalidate(`banners:all:${user.id}`);
+
     return data ? dbToBanner(data) : null;
   },
 
@@ -132,6 +170,10 @@ export const bannerStorage = {
 
     if (error) {
       console.error('Error updating banner:', error);
+    } else {
+      // Invalidate cache for this banner and the list
+      cacheManager.invalidate(`banner:${id}`);
+      cacheManager.invalidate(`banners:all:${user.id}`);
     }
   },
 
@@ -148,6 +190,10 @@ export const bannerStorage = {
 
     if (error) {
       console.error('Error deleting banner:', error);
+    } else {
+      // Invalidate cache
+      cacheManager.invalidate(`banner:${id}`);
+      cacheManager.invalidate(`banners:all:${user.id}`);
     }
   },
 
@@ -175,6 +221,9 @@ export const bannerStorage = {
       console.error('Error duplicating banner:', error);
       return null;
     }
+
+    // Invalidate list cache
+    cacheManager.invalidate(`banners:all:${user.id}`);
 
     return data ? dbToBanner(data) : null;
   },

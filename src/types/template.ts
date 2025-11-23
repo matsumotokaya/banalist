@@ -14,6 +14,7 @@ export interface BaseElement {
   y: number;
   rotation?: number;
   opacity?: number;
+  locked?: boolean;
 }
 
 export interface TextElement extends BaseElement {
