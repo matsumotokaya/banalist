@@ -69,4 +69,5 @@ export interface Banner {
   elements: CanvasElement[];
   canvasColor: string;
   thumbnailDataURL?: string;
+  planType: 'free' | 'premium';
 }

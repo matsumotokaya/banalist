@@ -143,6 +143,16 @@ export const BannerManager = () => {
                     </div>
                   )}
 
+                  {/* Premium lock badge (top left) */}
+                  {banner.planType === 'premium' && (
+                    <div className="absolute top-2 left-2 bg-gradient-to-r from-yellow-400 to-amber-500 text-white px-2 py-1 rounded-md shadow-lg flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z" />
+                      </svg>
+                      <span className="text-xs font-bold">PREMIUM</span>
+                    </div>
+                  )}
+
                   {/* Semi-transparent overlay with banner info */}
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-3 pt-8">
                     {editingId === banner.id ? (

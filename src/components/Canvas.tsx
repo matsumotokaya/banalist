@@ -16,6 +16,7 @@ interface CanvasProps {
   selectedElementIds?: string[];
   onSelectElement?: (ids: string[]) => void;
   onElementUpdate?: (id: string, updates: Partial<CanvasElement>) => void;
+  onImageDrop?: (imageUrl: string, x: number, y: number, width: number, height: number) => void;
 }
 
 export interface CanvasRef {
@@ -23,7 +24,7 @@ export interface CanvasRef {
 }
 
 export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
-  { template, elements, scale = 0.5, canvasColor, fileName = 'artwork-01.png', onTextChange, selectedElementIds = [], onSelectElement, onElementUpdate },
+  { template, elements, scale = 0.5, canvasColor, fileName = 'artwork-01.png', onTextChange, selectedElementIds = [], onSelectElement, onElementUpdate, onImageDrop },
   ref
 ) {
   const stageRef = useRef<Konva.Stage>(null);
@@ -34,6 +35,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   const [selectionRect, setSelectionRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const selectionStartRef = useRef<{ x: number; y: number } | null>(null);
   const [isShiftPressed, setIsShiftPressed] = useState(false);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   // Track Shift key state
   useEffect(() => {
@@ -257,11 +259,67 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
     textarea.addEventListener('blur', handleSubmit);
   };
 
+  // Handle file drop on canvas
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+
+    if (!onImageDrop || !stageRef.current) return;
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+
+    if (!imageFile) return;
+
+    // Get drop position relative to canvas
+    const stage = stageRef.current;
+    const stageContainer = stage.container().getBoundingClientRect();
+    const dropX = (e.clientX - stageContainer.left) / scale;
+    const dropY = (e.clientY - stageContainer.top) / scale;
+
+    // Read the file and create an image element
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const imageUrl = event.target?.result as string;
+
+      // Create temp image to get dimensions
+      const img = new Image();
+      img.onload = () => {
+        onImageDrop(imageUrl, dropX, dropY, img.width, img.height);
+      };
+      img.src = imageUrl;
+    };
+    reader.readAsDataURL(imageFile);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set to false if leaving the canvas container itself
+    if (e.currentTarget === e.target) {
+      setIsDraggingOver(false);
+    }
+  };
+
   return (
-    <div className="relative">
+    <div className="relative" onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave}>
       <div className="absolute -top-8 left-0 text-sm font-medium text-gray-700">
         {fileName}
       </div>
+      {isDraggingOver && (
+        <div className="absolute inset-0 bg-blue-500 bg-opacity-20 border-4 border-blue-500 border-dashed z-50 flex items-center justify-center pointer-events-none">
+          <div className="bg-white px-6 py-3 rounded-lg shadow-lg">
+            <p className="text-blue-600 font-semibold text-lg">画像をドロップ</p>
+          </div>
+        </div>
+      )}
       <div className="bg-white shadow-xl border border-gray-200">
         <Stage
           ref={stageRef}

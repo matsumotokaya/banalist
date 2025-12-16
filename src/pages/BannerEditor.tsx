@@ -25,6 +25,7 @@ export const BannerEditor = () => {
   const [selectedTextColor, setSelectedTextColor] = useState<string>('#000000');
   const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]);
   const [copiedElement, setCopiedElement] = useState<CanvasElement | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const canvasRef = useRef<CanvasRef>(null);
   const mainRef = useRef<HTMLDivElement>(null);
 
@@ -85,10 +86,16 @@ export const BannerEditor = () => {
         return el;
       });
 
-      setBanner(loadedBanner);
-      setSelectedTemplate(loadedBanner.template);
+      // Set default planType if missing
+      const bannerWithPlanType = {
+        ...loadedBanner,
+        planType: loadedBanner.planType || 'free',
+      };
+
+      setBanner(bannerWithPlanType);
+      setSelectedTemplate(bannerWithPlanType.template);
       setElements(migratedElements);
-      setCanvasColor(loadedBanner.canvasColor);
+      setCanvasColor(bannerWithPlanType.canvasColor);
     };
 
     loadBanner();
@@ -107,6 +114,8 @@ export const BannerEditor = () => {
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
+
+    setIsSaving(true);
 
     saveTimeoutRef.current = setTimeout(async () => {
       if (!banner) return;
@@ -143,6 +152,7 @@ export const BannerEditor = () => {
 
       // Clear pending updates
       pendingSaveRef.current = {};
+      setIsSaving(false);
     }, 800); // Single timeout for all saves
   }, [banner, elements]);
 
@@ -347,6 +357,29 @@ export const BannerEditor = () => {
     setSelectedElementIds([newId]);
   };
 
+  const handleImageDrop = (imageUrl: string, x: number, y: number, width: number, height: number) => {
+    const newId = `image-${Date.now()}-${Math.random()}`;
+
+    setElements(prevElements => {
+      const newImage: ImageElement = {
+        id: newId,
+        type: 'image',
+        x,
+        y,
+        src: imageUrl,
+        width,
+        height,
+      };
+
+      const newElements = [...prevElements, newImage];
+      // Save to history after state update
+      setTimeout(() => saveToHistory(newElements), 0);
+      return newElements;
+    });
+
+    setSelectedElementIds([newId]);
+  };
+
   const handleTextChange = (id: string, newText: string) => {
     elementOps.updateElement(id, { text: newText });
   };
@@ -460,6 +493,14 @@ export const BannerEditor = () => {
     }
   };
 
+  const handlePremiumChange = async (isPremium: boolean) => {
+    if (banner) {
+      const newPlanType = isPremium ? 'premium' : 'free';
+      await bannerStorage.update(banner.id, { planType: newPlanType });
+      setBanner({ ...banner, planType: newPlanType });
+    }
+  };
+
   const handleReorderElements = (newOrder: CanvasElement[]) => {
     elementOps.reorderElements(newOrder);
   };
@@ -511,6 +552,8 @@ export const BannerEditor = () => {
         bannerName={banner.name}
         bannerId={banner.id}
         onBannerNameChange={handleBannerNameChange}
+        isPremium={banner.planType === 'premium'}
+        onPremiumChange={handlePremiumChange}
       />
 
       {/* Desktop Layout */}
@@ -552,6 +595,7 @@ export const BannerEditor = () => {
               selectedElementIds={selectedElementIds}
               onSelectElement={handleSelectElement}
               onElementUpdate={handleElementUpdate}
+              onImageDrop={handleImageDrop}
             />
         </main>
 
@@ -594,6 +638,7 @@ export const BannerEditor = () => {
               selectedElementIds={selectedElementIds}
               onSelectElement={handleSelectElement}
               onElementUpdate={handleElementUpdate}
+              onImageDrop={handleImageDrop}
             />
         </main>
 
@@ -634,7 +679,7 @@ export const BannerEditor = () => {
         />
       </div>
 
-      <BottomBar zoom={zoom} onZoomChange={setZoom} onExport={handleExport} />
+      <BottomBar zoom={zoom} onZoomChange={setZoom} onExport={handleExport} isSaving={isSaving} />
     </div>
   );
 }

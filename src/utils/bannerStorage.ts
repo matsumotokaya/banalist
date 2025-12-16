@@ -10,6 +10,7 @@ interface DbBanner {
   elements: CanvasElement[];
   canvas_color: string;
   thumbnail_data_url: string | null;
+  plan_type?: 'free' | 'premium' | null;
   created_at: string;
   updated_at: string;
 }
@@ -22,6 +23,7 @@ const dbToBanner = (db: DbBanner): Banner => ({
   elements: db.elements,
   canvasColor: db.canvas_color,
   thumbnailDataURL: db.thumbnail_data_url || undefined,
+  planType: db.plan_type || 'free',
   createdAt: db.created_at,
   updatedAt: db.updated_at,
 });
@@ -161,6 +163,7 @@ export const bannerStorage = {
     if (updates.elements !== undefined) dbUpdates.elements = updates.elements;
     if (updates.canvasColor !== undefined) dbUpdates.canvas_color = updates.canvasColor;
     if (updates.thumbnailDataURL !== undefined) dbUpdates.thumbnail_data_url = updates.thumbnailDataURL;
+    if (updates.planType !== undefined) dbUpdates.plan_type = updates.planType;
 
     const { error } = await supabase
       .from('banners')

@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { AuthButton } from './AuthButton';
+import { useAuth } from '../contexts/AuthContext';
 
 interface HeaderProps {
   onBackToManager?: () => void;
   bannerName?: string;
   bannerId?: string;
   onBannerNameChange?: (newName: string) => void;
+  isPremium?: boolean;
+  onPremiumChange?: (isPremium: boolean) => void;
 }
 
-export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChange }: HeaderProps) => {
+export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChange, isPremium = false, onPremiumChange }: HeaderProps) => {
+  const { profile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editingName, setEditingName] = useState('');
 
@@ -82,6 +86,23 @@ export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChan
               </div>
             )}
           </>
+        )}
+        {/* Premium checkbox - only visible to admins */}
+        {bannerId && profile?.role === 'admin' && onPremiumChange && (
+          <label className="hidden md:flex items-center gap-2 ml-4 cursor-pointer group/premium">
+            <input
+              type="checkbox"
+              checked={isPremium}
+              onChange={(e) => onPremiumChange(e.target.checked)}
+              className="w-4 h-4 text-yellow-500 bg-white/20 border-white/50 rounded focus:ring-yellow-500 focus:ring-2 cursor-pointer"
+            />
+            <span className="text-white/90 text-sm font-medium flex items-center gap-1">
+              <svg className="w-4 h-4 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z" />
+              </svg>
+              Premium
+            </span>
+          </label>
         )}
       </div>
 
