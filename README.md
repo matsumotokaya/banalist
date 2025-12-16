@@ -152,8 +152,9 @@ interface ShapeElement {
 ### Canvas Operations
 - Add/edit text elements
 - Add shapes (rectangle, triangle, star)
-- Add images
-- Drag and drop elements
+- Add images (via image library or drag & drop from local files)
+- Drag and drop elements on canvas
+- **Drag & Drop Local Images** ✨ NEW (2025-12-16): Drag images from desktop/folders directly onto canvas with visual feedback
 - Resize elements (shape: free resize, text: proportional)
 - Delete elements
 
@@ -181,15 +182,26 @@ interface ShapeElement {
 - **UI**: Canva-style avatar dropdown menu
 - **Status**: ✅ Fully implemented with database integration
 
-### User Roles & Permissions ✅ NEW (2025-11-23)
+### User Roles & Permissions ✅ (2025-11-23, Updated 2025-12-16)
 - **Role Types**: `admin` | `user`
 - **Subscription Tiers**: `free` | `premium`
 - **Storage**: `profiles` table with `role` and `subscription_tier` columns
 - **Admin Privileges**:
   - Upload to default image library
+  - Mark banners as Premium (via checkbox in header)
   - Manage default templates (future)
 - **Free Users**: Basic banner creation & personal image library
 - **Premium Users**: Advanced features (planned)
+
+### Banner Plan Types ✅ NEW (2025-12-16)
+Each banner can be designated as Free or Premium:
+- **Plan Types**: `free` | `premium`
+- **Storage**: `banners` table with `plan_type` column (default: `free`)
+- **Admin Control**: Only admin users can mark banners as Premium via checkbox in editor header
+- **Visual Indicators**:
+  - **Premium Badge**: Gold "PREMIUM" badge with lock icon displayed on banner cards in list view (top-left corner)
+  - **Header Label**: "Premium" checkbox with lock icon in banner editor (visible to admins only)
+- **Future**: Free users will be blocked from accessing premium banners (with upgrade prompt)
 
 ### Image Library System ✅ NEW (2025-11-23)
 WordPress-style image library with dual storage:
@@ -217,14 +229,15 @@ WordPress-style image library with dual storage:
 - **Grid Display**: Thumbnail previews with hover effects
 - **One-Click Insert**: Click to add image to canvas at original size
 
-### Data Persistence ✅ NEW (2025-11-23)
+### Data Persistence ✅ (2025-11-23, Updated 2025-12-16)
 - **Storage**: Migrated from localStorage to Supabase PostgreSQL
 - **Tables**:
-  - `banners`: User banner data with JSONB elements
+  - `banners`: User banner data with JSONB elements and `plan_type`
   - `profiles`: User metadata (role, subscription tier)
   - `default_images`: Default library metadata
   - `user_images`: User library metadata
-- **Auto-save**: Elements (500ms debounce), canvas color, thumbnails (3s interval)
+- **Auto-save**: Elements (800ms debounce), canvas color, thumbnails (3s interval)
+- **Save Status Indicator** ✨ NEW (2025-12-16): Real-time "Saving..." / "Saved" indicator in bottom-left corner
 - **RLS Policies**: Row-level security ensures users only access their own data
 
 ### Export
@@ -296,6 +309,7 @@ WordPress-style image library with dual storage:
 - elements: jsonb
 - canvas_color: text
 - thumbnail_data_url: text
+- plan_type: text (free | premium) DEFAULT 'free' -- NEW (2025-12-16)
 - created_at: timestamp
 - updated_at: timestamp
 ```
