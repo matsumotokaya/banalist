@@ -5,8 +5,8 @@ import { Sidebar } from '../components/Sidebar';
 import { PropertyPanel } from '../components/PropertyPanel';
 import { BottomBar } from '../components/BottomBar';
 import { Canvas, type CanvasRef } from '../components/Canvas';
-import { bannerStorage } from '../utils/bannerStorage';
-import type { Template, CanvasElement, TextElement, ShapeElement, ImageElement, Banner } from '../types/template';
+import { useBanner, useBatchSaveBanner, useUpdateBanner, useUpdateBannerName, useUpdateBannerPlanType } from '../hooks/useBanners';
+import type { Template, CanvasElement, TextElement, ShapeElement, ImageElement } from '../types/template';
 import { useHistory } from '../hooks/useHistory';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useZoomControl } from '../hooks/useZoomControl';
@@ -15,8 +15,15 @@ import { useElementOperations } from '../hooks/useElementOperations';
 export const BannerEditor = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [banner, setBanner] = useState<Banner | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+
+  // React Query hooks
+  const { data: banner, isLoading } = useBanner(id);
+  const batchSave = useBatchSaveBanner(id || '');
+  const updateBanner = useUpdateBanner(id || '');
+  const updateName = useUpdateBannerName(id || '');
+  const updatePlanType = useUpdateBannerPlanType(id || '');
+
+  // Local state for editing (not persisted immediately)
   const [elements, setElements] = useState<CanvasElement[]>([]);
   const [canvasColor, setCanvasColor] = useState<string>('#FFFFFF');
   const [selectedFont, setSelectedFont] = useState<string>('Arial');
@@ -25,7 +32,6 @@ export const BannerEditor = () => {
   const [selectedTextColor, setSelectedTextColor] = useState<string>('#000000');
   const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]);
   const [copiedElement, setCopiedElement] = useState<CanvasElement | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
   const canvasRef = useRef<CanvasRef>(null);
   const mainRef = useRef<HTMLDivElement>(null);
 
@@ -45,63 +51,47 @@ export const BannerEditor = () => {
     saveToHistory,
   });
 
-  // Load banner from Supabase
+  // Initialize local state from React Query data
   useEffect(() => {
-    const loadBanner = async () => {
-      if (!id) {
+    if (!banner) {
+      if (!isLoading && !id) {
         navigate('/');
-        return;
       }
+      return;
+    }
 
-      const loadedBanner = await bannerStorage.getById(id);
-      if (!loadedBanner) {
-        navigate('/');
-        return;
+    // Migrate existing shapes and text to new fill/stroke structure
+    const migratedElements = banner.elements.map((el) => {
+      if (el.type === 'shape') {
+        const shape = el as ShapeElement;
+        return {
+          ...shape,
+          fillEnabled: shape.fillEnabled !== undefined ? shape.fillEnabled : true,
+          stroke: shape.stroke || '#000000',
+          strokeWidth: shape.strokeWidth || 2,
+          strokeEnabled: shape.strokeEnabled !== undefined ? shape.strokeEnabled : false,
+        } as ShapeElement;
       }
+      if (el.type === 'text') {
+        const text = el as TextElement;
+        // Migrate old strokeOnly property to new structure
+        const strokeOnly = (text as any).strokeOnly;
+        return {
+          ...text,
+          fillEnabled: text.fillEnabled !== undefined ? text.fillEnabled : (strokeOnly === undefined ? true : !strokeOnly),
+          stroke: text.stroke || text.fill || '#000000',
+          strokeWidth: text.strokeWidth || Math.max(text.fontSize * 0.03, 2),
+          strokeEnabled: text.strokeEnabled !== undefined ? text.strokeEnabled : (strokeOnly || false),
+        } as TextElement;
+      }
+      return el;
+    });
 
-      // Migrate existing shapes and text to new fill/stroke structure
-      const migratedElements = loadedBanner.elements.map((el) => {
-        if (el.type === 'shape') {
-          const shape = el as ShapeElement;
-          return {
-            ...shape,
-            fillEnabled: shape.fillEnabled !== undefined ? shape.fillEnabled : true,
-            stroke: shape.stroke || '#000000',
-            strokeWidth: shape.strokeWidth || 2,
-            strokeEnabled: shape.strokeEnabled !== undefined ? shape.strokeEnabled : false,
-          } as ShapeElement;
-        }
-        if (el.type === 'text') {
-          const text = el as TextElement;
-          // Migrate old strokeOnly property to new structure
-          const strokeOnly = (text as any).strokeOnly;
-          return {
-            ...text,
-            fillEnabled: text.fillEnabled !== undefined ? text.fillEnabled : (strokeOnly === undefined ? true : !strokeOnly),
-            stroke: text.stroke || text.fill || '#000000',
-            strokeWidth: text.strokeWidth || Math.max(text.fontSize * 0.03, 2),
-            strokeEnabled: text.strokeEnabled !== undefined ? text.strokeEnabled : (strokeOnly || false),
-          } as TextElement;
-        }
-        return el;
-      });
+    setElements(migratedElements);
+    setCanvasColor(banner.canvasColor);
+  }, [banner, isLoading, id, navigate]);
 
-      // Set default planType if missing
-      const bannerWithPlanType = {
-        ...loadedBanner,
-        planType: loadedBanner.planType || 'free',
-      };
-
-      setBanner(bannerWithPlanType);
-      setSelectedTemplate(bannerWithPlanType.template);
-      setElements(migratedElements);
-      setCanvasColor(bannerWithPlanType.canvasColor);
-    };
-
-    loadBanner();
-  }, [id, navigate]);
-
-  // Batch auto-save all changes (optimized to reduce API calls)
+  // Auto-save with React Query mutation (optimized batch save)
   const pendingSaveRef = useRef<{
     elements?: CanvasElement[];
     canvasColor?: string;
@@ -109,20 +99,16 @@ export const BannerEditor = () => {
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const thumbnailTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Schedule batch save function (memoized) - defined before useEffect to avoid hooks order issue
   const scheduleBatchSave = useCallback(() => {
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
-
-    setIsSaving(true);
 
     saveTimeoutRef.current = setTimeout(async () => {
       if (!banner) return;
 
       const updates: any = {};
 
-      // Add pending updates
       if (pendingSaveRef.current.elements) {
         updates.elements = pendingSaveRef.current.elements;
       }
@@ -130,17 +116,14 @@ export const BannerEditor = () => {
         updates.canvasColor = pendingSaveRef.current.canvasColor;
       }
 
-      // Batch save all updates at once
       if (Object.keys(updates).length > 0) {
-        await bannerStorage.batchSave(banner.id, updates);
+        await batchSave.mutateAsync(updates);
         console.log('Batch saved:', Object.keys(updates).join(', '));
       }
 
-      // Clear pending updates
       pendingSaveRef.current = {};
-      setIsSaving(false);
-    }, 2000); // Increased from 800ms to reduce network spam
-  }, [banner]);
+    }, 2000); // 2 second debounce
+  }, [banner, batchSave]);
 
   // Trigger save for elements
   useEffect(() => {
@@ -168,24 +151,23 @@ export const BannerEditor = () => {
 
     thumbnailTimeoutRef.current = setTimeout(async () => {
       try {
-        // Small delay to ensure canvas is fully rendered
         await new Promise(resolve => setTimeout(resolve, 100));
         const thumbnailDataURL = canvasRef.current?.exportImage();
         if (thumbnailDataURL && thumbnailDataURL.length > 100) {
-          await bannerStorage.batchSave(banner.id, { thumbnailDataURL });
+          await batchSave.mutateAsync({ thumbnailDataURL });
           console.log('Thumbnail saved');
         }
       } catch (error) {
         console.error('Error generating thumbnail:', error);
       }
-    }, 5000); // Generate thumbnail every 5 seconds
+    }, 5000);
 
     return () => {
       if (thumbnailTimeoutRef.current) {
         clearTimeout(thumbnailTimeoutRef.current);
       }
     };
-  }, [elements, canvasColor, banner]);
+  }, [elements, canvasColor, banner, batchSave]);
 
   // Copy
   const handleCopy = () => {
@@ -295,7 +277,7 @@ export const BannerEditor = () => {
     onMoveRight: handleMoveRight,
   });
 
-  if (!banner || !selectedTemplate) {
+  if (!banner) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -500,18 +482,12 @@ export const BannerEditor = () => {
   };
 
   const handleBannerNameChange = async (newName: string) => {
-    if (banner) {
-      await bannerStorage.update(banner.id, { name: newName });
-      setBanner({ ...banner, name: newName });
-    }
+    await updateName.mutateAsync(newName);
   };
 
   const handlePremiumChange = async (isPremium: boolean) => {
-    if (banner) {
-      const newPlanType = isPremium ? 'premium' : 'free';
-      await bannerStorage.update(banner.id, { planType: newPlanType });
-      setBanner({ ...banner, planType: newPlanType });
-    }
+    const newPlanType = isPremium ? 'premium' : 'free';
+    await updatePlanType.mutateAsync(newPlanType);
   };
 
   const handleReorderElements = (newOrder: CanvasElement[]) => {
@@ -519,15 +495,13 @@ export const BannerEditor = () => {
   };
 
   const handleCanvasSizeChange = async (width: number, height: number) => {
-    if (banner && selectedTemplate) {
+    if (banner) {
       const updatedTemplate: Template = {
-        ...selectedTemplate,
+        ...banner.template,
         width,
         height,
       };
-      await bannerStorage.update(banner.id, { template: updatedTemplate });
-      setSelectedTemplate(updatedTemplate);
-      setBanner({ ...banner, template: updatedTemplate });
+      await updateBanner.mutateAsync({ template: updatedTemplate });
     }
   };
 
@@ -558,6 +532,18 @@ export const BannerEditor = () => {
     }
   };
 
+  // Loading state
+  if (isLoading || !banner) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <p className="mt-4 text-gray-600">読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <Header
@@ -573,8 +559,8 @@ export const BannerEditor = () => {
       <div className="hidden md:flex flex-1 overflow-hidden">
         <Sidebar
           canvasColor={canvasColor}
-          canvasWidth={selectedTemplate.width}
-          canvasHeight={selectedTemplate.height}
+          canvasWidth={banner.template.width}
+          canvasHeight={banner.template.height}
           onSelectColor={setCanvasColor}
           onCanvasSizeChange={handleCanvasSizeChange}
           onAddText={handleAddText}
@@ -599,7 +585,7 @@ export const BannerEditor = () => {
         >
           <Canvas
               ref={canvasRef}
-              template={selectedTemplate}
+              template={banner.template}
               elements={elements}
               scale={zoom / 100}
               canvasColor={canvasColor}
@@ -642,7 +628,7 @@ export const BannerEditor = () => {
         >
           <Canvas
               ref={canvasRef}
-              template={selectedTemplate}
+              template={banner.template}
               elements={elements}
               scale={zoom / 100}
               canvasColor={canvasColor}
@@ -658,8 +644,8 @@ export const BannerEditor = () => {
         {/* Mobile Sidebar - Bottom horizontal scrollable */}
         <Sidebar
           canvasColor={canvasColor}
-          canvasWidth={selectedTemplate.width}
-          canvasHeight={selectedTemplate.height}
+          canvasWidth={banner.template.width}
+          canvasHeight={banner.template.height}
           onSelectColor={setCanvasColor}
           onCanvasSizeChange={handleCanvasSizeChange}
           onAddText={handleAddText}
