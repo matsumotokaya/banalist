@@ -1,59 +1,58 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { bannerStorage } from '../utils/bannerStorage';
+import {
+  useBanners,
+  useCreateBanner,
+  useDeleteBanner,
+  useDuplicateBanner,
+  useUpdateBannerName,
+} from '../hooks/useBanners';
 import { DEFAULT_TEMPLATES } from '../templates/defaultTemplates';
 import type { Banner } from '../types/template';
 
 export const BannerManager = () => {
-  const [banners, setBanners] = useState<Banner[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    loadBanners();
-  }, []);
+  // React Query hooks
+  const { data: banners = [], isLoading, refetch } = useBanners();
+  const createBanner = useCreateBanner();
+  const deleteBanner = useDeleteBanner();
+  const duplicateBanner = useDuplicateBanner();
+  const updateName = useUpdateBannerName(editingId || '');
 
   // Reload banners when page becomes visible (to refresh thumbnails)
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        loadBanners();
+        refetch();
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
-
-  const loadBanners = async () => {
-    setIsLoading(true);
-    const allBanners = await bannerStorage.getAll();
-    setBanners(allBanners);
-    setIsLoading(false);
-  };
+  }, [refetch]);
 
   const handleCreateBanner = async () => {
-    const newBanner = await bannerStorage.create('Untitled Banner', DEFAULT_TEMPLATES[0]);
-    if (newBanner) {
-      navigate(`/banner/${newBanner.id}`);
+    const result = await createBanner.mutateAsync({
+      name: 'Untitled Banner',
+      template: DEFAULT_TEMPLATES[0],
+    });
+    if (result) {
+      navigate(`/banner/${result.id}`);
     }
   };
 
   const handleDeleteBanner = async (id: string) => {
     if (window.confirm('このバナーを削除しますか？')) {
-      await bannerStorage.delete(id);
-      await loadBanners();
+      await deleteBanner.mutateAsync(id);
     }
   };
 
   const handleDuplicateBanner = async (id: string) => {
-    const duplicated = await bannerStorage.duplicate(id);
-    if (duplicated) {
-      await loadBanners();
-    }
+    await duplicateBanner.mutateAsync(id);
   };
 
   const handleStartEdit = (id: string, currentName: string) => {
@@ -63,8 +62,7 @@ export const BannerManager = () => {
 
   const handleSaveName = async (id: string) => {
     if (editingName.trim()) {
-      await bannerStorage.update(id, { name: editingName.trim() });
-      await loadBanners();
+      await updateName.mutateAsync(editingName.trim());
     }
     setEditingId(null);
     setEditingName('');
@@ -113,9 +111,10 @@ export const BannerManager = () => {
             <p className="text-gray-500 mb-6">新しいバナーを作成して始めましょう</p>
             <button
               onClick={handleCreateBanner}
-              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
+              disabled={createBanner.isPending}
+              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
             >
-              最初のバナーを作成
+              {createBanner.isPending ? '作成中...' : '最初のバナーを作成'}
             </button>
           </div>
         ) : (
@@ -200,7 +199,8 @@ export const BannerManager = () => {
                         e.stopPropagation();
                         handleDuplicateBanner(banner.id);
                       }}
-                      className="w-7 h-7 bg-white/90 hover:bg-white text-gray-700 rounded-md transition-colors flex items-center justify-center group/duplicate relative shadow-sm"
+                      disabled={duplicateBanner.isPending}
+                      className="w-7 h-7 bg-white/90 hover:bg-white text-gray-700 rounded-md transition-colors flex items-center justify-center group/duplicate relative shadow-sm disabled:opacity-50"
                       title="複製"
                     >
                       <span className="material-symbols-outlined text-[16px]">content_copy</span>
@@ -213,7 +213,8 @@ export const BannerManager = () => {
                         e.stopPropagation();
                         handleDeleteBanner(banner.id);
                       }}
-                      className="w-7 h-7 bg-white/90 hover:bg-white text-red-600 rounded-md transition-colors flex items-center justify-center group/delete relative shadow-sm"
+                      disabled={deleteBanner.isPending}
+                      className="w-7 h-7 bg-white/90 hover:bg-white text-red-600 rounded-md transition-colors flex items-center justify-center group/delete relative shadow-sm disabled:opacity-50"
                       title="削除"
                     >
                       <span className="material-symbols-outlined text-[16px]">delete</span>
