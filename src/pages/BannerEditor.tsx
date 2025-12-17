@@ -5,16 +5,20 @@ import { Sidebar } from '../components/Sidebar';
 import { PropertyPanel } from '../components/PropertyPanel';
 import { BottomBar } from '../components/BottomBar';
 import { Canvas, type CanvasRef } from '../components/Canvas';
-import { useBanner, useBatchSaveBanner, useUpdateBanner, useUpdateBannerName, useUpdateBannerPlanType } from '../hooks/useBanners';
+import { UpgradeModal } from '../components/UpgradeModal';
+import { useBanner, useBatchSaveBanner, useUpdateBanner, useUpdateBannerName, useUpdateBannerPlanType, useUpdateBannerIsPublic } from '../hooks/useBanners';
 import type { Template, CanvasElement, TextElement, ShapeElement, ImageElement } from '../types/template';
 import { useHistory } from '../hooks/useHistory';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useZoomControl } from '../hooks/useZoomControl';
 import { useElementOperations } from '../hooks/useElementOperations';
+import { useAuth } from '../contexts/AuthContext';
 
 export const BannerEditor = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { profile } = useAuth();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // React Query hooks
   const { data: banner, isLoading } = useBanner(id);
@@ -22,6 +26,7 @@ export const BannerEditor = () => {
   const updateBanner = useUpdateBanner(id || '');
   const updateName = useUpdateBannerName(id || '');
   const updatePlanType = useUpdateBannerPlanType(id || '');
+  const updateIsPublic = useUpdateBannerIsPublic(id || '');
 
   // Local state for editing (not persisted immediately)
   const [elements, setElements] = useState<CanvasElement[]>([]);
@@ -60,6 +65,15 @@ export const BannerEditor = () => {
       return;
     }
 
+    // Check if premium banner and user is not premium
+    if (banner.planType === 'premium') {
+      // Not logged in OR free tier -> show upgrade modal
+      if (!profile || profile.subscriptionTier === 'free') {
+        setShowUpgradeModal(true);
+        return;
+      }
+    }
+
     // Migrate existing shapes and text to new fill/stroke structure
     const migratedElements = banner.elements.map((el) => {
       if (el.type === 'shape') {
@@ -89,7 +103,7 @@ export const BannerEditor = () => {
 
     setElements(migratedElements);
     setCanvasColor(banner.canvasColor);
-  }, [banner, isLoading, id, navigate]);
+  }, [banner, isLoading, id, navigate, profile]);
 
   // Auto-save with React Query mutation (optimized batch save)
   const pendingSaveRef = useRef<{
@@ -279,7 +293,7 @@ export const BannerEditor = () => {
 
   if (!banner) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-50">
+      <div className="h-screen flex items-center justify-center bg-[#212526]">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           <p className="mt-4 text-gray-600">読み込み中...</p>
@@ -490,6 +504,10 @@ export const BannerEditor = () => {
     await updatePlanType.mutateAsync(newPlanType);
   };
 
+  const handlePublicChange = async (isPublic: boolean) => {
+    await updateIsPublic.mutateAsync(isPublic);
+  };
+
   const handleReorderElements = (newOrder: CanvasElement[]) => {
     elementOps.reorderElements(newOrder);
   };
@@ -535,7 +553,7 @@ export const BannerEditor = () => {
   // Loading state
   if (isLoading || !banner) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-50">
+      <div className="h-screen flex items-center justify-center bg-[#212526]">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           <p className="mt-4 text-gray-600">読み込み中...</p>
@@ -545,7 +563,7 @@ export const BannerEditor = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-[#212526]">
       <Header
         onBackToManager={() => navigate('/')}
         bannerName={banner.name}
@@ -553,6 +571,8 @@ export const BannerEditor = () => {
         onBannerNameChange={handleBannerNameChange}
         isPremium={banner.planType === 'premium'}
         onPremiumChange={handlePremiumChange}
+        isPublic={banner.isPublic}
+        onPublicChange={handlePublicChange}
       />
 
       {/* Desktop Layout */}
@@ -575,7 +595,7 @@ export const BannerEditor = () => {
 
         <main
           ref={mainRef}
-          className="flex-1 overflow-auto bg-gray-100 p-8 flex items-center justify-center"
+          className="flex-1 overflow-auto bg-[#212526] p-8 flex items-center justify-center"
           style={{ touchAction: 'none' }}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
@@ -618,7 +638,7 @@ export const BannerEditor = () => {
       <div className="flex md:hidden flex-1 flex-col overflow-hidden">
         <main
           ref={mainRef}
-          className="flex-1 overflow-auto bg-gray-100 p-8 flex items-center justify-center"
+          className="flex-1 overflow-auto bg-[#212526] p-8 flex items-center justify-center"
           style={{ touchAction: 'none' }}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
@@ -679,6 +699,15 @@ export const BannerEditor = () => {
       </div>
 
       <BottomBar zoom={zoom} onZoomChange={setZoom} onExport={handleExport} isSaving={batchSave.isPending} />
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => {
+          setShowUpgradeModal(false);
+          navigate('/');
+        }}
+      />
     </div>
   );
 }

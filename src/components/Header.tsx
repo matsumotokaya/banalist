@@ -9,9 +9,11 @@ interface HeaderProps {
   onBannerNameChange?: (newName: string) => void;
   isPremium?: boolean;
   onPremiumChange?: (isPremium: boolean) => void;
+  isPublic?: boolean;
+  onPublicChange?: (isPublic: boolean) => void;
 }
 
-export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChange, isPremium = false, onPremiumChange }: HeaderProps) => {
+export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChange, isPremium = false, onPremiumChange, isPublic = false, onPublicChange }: HeaderProps) => {
   const { profile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editingName, setEditingName] = useState('');
@@ -36,7 +38,7 @@ export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChan
   };
 
   return (
-    <header className="h-14 md:h-16 bg-gradient-to-r from-blue-500 to-purple-600 border-b border-blue-700 flex items-center justify-between px-3 md:px-6">
+    <header className="h-14 md:h-16 bg-[#1a1a1a] border-b border-[#2b2b2b] flex items-center justify-between px-3 md:px-6">
       <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
         {onBackToManager && (
           <button
@@ -50,8 +52,7 @@ export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChan
           </button>
         )}
         <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
-          <span className="text-xl md:text-2xl">🍌</span>
-          <h1 className="text-white text-base md:text-xl font-bold">BANALIST</h1>
+          <h1 className="text-white text-base md:text-xl font-bold" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>WHATHIF EXPERIMENT</h1>
         </div>
         {bannerName && (
           <>
@@ -87,22 +88,64 @@ export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChan
             )}
           </>
         )}
-        {/* Premium checkbox - only visible to admins */}
-        {bannerId && profile?.role === 'admin' && onPremiumChange && (
-          <label className="hidden md:flex items-center gap-2 ml-4 cursor-pointer group/premium">
-            <input
-              type="checkbox"
-              checked={isPremium}
-              onChange={(e) => onPremiumChange(e.target.checked)}
-              className="w-4 h-4 text-yellow-500 bg-white/20 border-white/50 rounded focus:ring-yellow-500 focus:ring-2 cursor-pointer"
-            />
-            <span className="text-white/90 text-sm font-medium flex items-center gap-1">
-              <svg className="w-4 h-4 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z" />
-              </svg>
-              Premium
-            </span>
-          </label>
+        {/* Settings (Premium checkbox + Public/Private radio) */}
+        {bannerId && (
+          <div className="hidden md:flex items-center gap-4 ml-4">
+            {/* Premium checkbox - only visible to admins */}
+            {profile?.role === 'admin' && onPremiumChange && (
+              <label className="flex items-center gap-2 cursor-pointer group/premium">
+                <input
+                  type="checkbox"
+                  checked={isPremium}
+                  onChange={(e) => onPremiumChange(e.target.checked)}
+                  className="w-4 h-4 text-yellow-500 bg-white/20 border-white/50 rounded focus:ring-yellow-500 focus:ring-2 cursor-pointer"
+                />
+                <span className="text-white/90 text-sm font-medium flex items-center gap-1">
+                  <svg className="w-4 h-4 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z" />
+                  </svg>
+                  Premium
+                </span>
+              </label>
+            )}
+
+            {/* Public/Private radio buttons */}
+            {onPublicChange && (
+              <div className="flex items-center gap-3 px-3 py-1 bg-white/10 rounded-lg">
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="visibility"
+                    checked={!isPublic}
+                    onChange={() => onPublicChange(false)}
+                    className="w-3.5 h-3.5 text-white bg-white/20 border-white/50 focus:ring-white focus:ring-2 cursor-pointer"
+                  />
+                  <span className="text-white/90 text-sm font-medium flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z" />
+                    </svg>
+                    Private
+                  </span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="visibility"
+                    checked={isPublic}
+                    onChange={() => onPublicChange(true)}
+                    className="w-3.5 h-3.5 text-white bg-white/20 border-white/50 focus:ring-white focus:ring-2 cursor-pointer"
+                  />
+                  <span className="text-white/90 text-sm font-medium flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                      <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                    </svg>
+                    Public
+                  </span>
+                </label>
+              </div>
+            )}
+          </div>
         )}
       </div>
 

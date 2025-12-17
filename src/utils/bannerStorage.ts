@@ -11,6 +11,7 @@ interface DbBanner {
   canvas_color: string;
   thumbnail_data_url: string | null;
   plan_type?: 'free' | 'premium' | null;
+  is_public?: boolean | null;
   created_at: string;
   updated_at: string;
 }
@@ -24,17 +25,17 @@ const dbToBanner = (db: DbBanner): Banner => ({
   canvasColor: db.canvas_color,
   thumbnailDataURL: db.thumbnail_data_url || undefined,
   planType: db.plan_type || 'free',
+  isPublic: db.is_public || false,
   createdAt: db.created_at,
   updatedAt: db.updated_at,
 });
 
 export const bannerStorage = {
-  // Get all banners
+  // Get all banners (public + own private)
   async getAll(useCache = true): Promise<Banner[]> {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return [];
 
-    const cacheKey = `banners:all:${user.id}`;
+    const cacheKey = user ? `banners:all:${user.id}` : 'banners:public';
 
     // Check cache first
     if (useCache) {
@@ -45,10 +46,10 @@ export const bannerStorage = {
       }
     }
 
+    // RLS policy handles access control: public banners OR own banners
     const { data, error } = await supabase
       .from('banners')
       .select('*')
-      .eq('user_id', user.id)
       .order('updated_at', { ascending: false });
 
     if (error) {
@@ -64,11 +65,8 @@ export const bannerStorage = {
     return banners;
   },
 
-  // Get banner by ID
+  // Get banner by ID (public or own)
   async getById(id: string, useCache = true): Promise<Banner | null> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-
     const cacheKey = `banner:${id}`;
 
     // Check cache first
@@ -80,11 +78,11 @@ export const bannerStorage = {
       }
     }
 
+    // RLS policy handles access control: public banners OR own banners
     const { data, error } = await supabase
       .from('banners')
       .select('*')
       .eq('id', id)
-      .eq('user_id', user.id)
       .single();
 
     if (error) {
@@ -164,6 +162,7 @@ export const bannerStorage = {
     if (updates.canvasColor !== undefined) dbUpdates.canvas_color = updates.canvasColor;
     if (updates.thumbnailDataURL !== undefined) dbUpdates.thumbnail_data_url = updates.thumbnailDataURL;
     if (updates.planType !== undefined) dbUpdates.plan_type = updates.planType;
+    if (updates.isPublic !== undefined) dbUpdates.is_public = updates.isPublic;
 
     const { error } = await supabase
       .from('banners')
@@ -259,5 +258,15 @@ export const bannerStorage = {
     if (Object.keys(updates).length === 0) return;
 
     await this.update(id, updates);
+  },
+
+  // Update plan type (admin only)
+  async updatePlanType(id: string, planType: 'free' | 'premium'): Promise<void> {
+    await this.update(id, { planType });
+  },
+
+  // Update public status
+  async updateIsPublic(id: string, isPublic: boolean): Promise<void> {
+    await this.update(id, { isPublic });
   },
 };

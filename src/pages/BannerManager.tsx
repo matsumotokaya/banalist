@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
+import { UpgradeModal } from '../components/UpgradeModal';
 import {
   useBanners,
   useCreateBanner,
@@ -10,11 +11,14 @@ import {
 } from '../hooks/useBanners';
 import { DEFAULT_TEMPLATES } from '../templates/defaultTemplates';
 import type { Banner } from '../types/template';
+import { useAuth } from '../contexts/AuthContext';
 
 export const BannerManager = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const navigate = useNavigate();
+  const { profile } = useAuth();
 
   // React Query hooks
   const { data: banners = [], isLoading, refetch } = useBanners();
@@ -84,13 +88,25 @@ export const BannerManager = () => {
     }).format(date);
   };
 
+  const handleBannerClick = (banner: Banner) => {
+    // Check if premium banner and user is not premium
+    if (banner.planType === 'premium') {
+      // Not logged in OR free tier -> show upgrade modal
+      if (!profile || profile.subscriptionTier === 'free') {
+        setShowUpgradeModal(true);
+        return;
+      }
+    }
+    navigate(`/banner/${banner.id}`);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#212526]">
       <Header />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-800">
+          <h2 className="text-xl font-semibold text-gray-100">
             マイバナー ({banners.length})
           </h2>
         </div>
@@ -126,7 +142,7 @@ export const BannerManager = () => {
               >
                 <div
                   className="aspect-[9/16] bg-gray-100 cursor-pointer relative overflow-hidden"
-                  onClick={() => navigate(`/banner/${banner.id}`)}
+                  onClick={() => handleBannerClick(banner)}
                 >
                   {banner.thumbnailDataURL ? (
                     <img
@@ -142,15 +158,28 @@ export const BannerManager = () => {
                     </div>
                   )}
 
-                  {/* Premium lock badge (top left) */}
-                  {banner.planType === 'premium' && (
-                    <div className="absolute top-2 left-2 bg-gradient-to-r from-yellow-400 to-amber-500 text-white px-2 py-1 rounded-md shadow-lg flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z" />
-                      </svg>
-                      <span className="text-xs font-bold">PREMIUM</span>
-                    </div>
-                  )}
+                  {/* Badges (top left) */}
+                  <div className="absolute top-2 left-2 flex flex-col gap-1">
+                    {/* Premium badge */}
+                    {banner.planType === 'premium' && (
+                      <div className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white px-2 py-1 rounded-md shadow-lg flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z" />
+                        </svg>
+                        <span className="text-xs font-bold">PREMIUM</span>
+                      </div>
+                    )}
+                    {/* Public badge */}
+                    {banner.isPublic && (
+                      <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-2 py-1 rounded-md shadow-lg flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                          <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-xs font-bold">PUBLIC</span>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Semi-transparent overlay with banner info */}
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-3 pt-8">
@@ -248,6 +277,9 @@ export const BannerManager = () => {
           </div>
         )}
       </main>
+
+      {/* Upgrade Modal */}
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </div>
   );
 };

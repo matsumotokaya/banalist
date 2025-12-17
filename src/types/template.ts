@@ -70,4 +70,5 @@ export interface Banner {
   canvasColor: string;
   thumbnailDataURL?: string;
   planType: 'free' | 'premium';
+  isPublic: boolean;
 }

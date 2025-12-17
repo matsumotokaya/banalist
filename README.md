@@ -72,6 +72,19 @@ Illustratorのような高度な視覚効果を実現する
 
 **Status**: 📋 TODO（将来実装予定）
 
+### Google OAuth後のアバター画像表示遅延
+
+**現在の問題:**
+- 初回ログイン時、アバター画像が約2分間表示されない
+- リロードしても改善されない
+- ユーザーが戸惑う可能性がある
+
+**原因:**
+- Supabase側でGoogle OAuthのコールバック処理後、`user_metadata.avatar_url`の保存に時間がかかる
+- `onAuthStateChange`イベントが先に発火し、メタデータの保存が遅れる
+
+**Status**: 🔴 未解決（Supabase仕様による制約、将来的に対応が必要）
+
 ---
 
 ## Tech Stack
@@ -209,15 +222,82 @@ interface ShapeElement {
 - **Free Users**: Basic banner creation & personal image library
 - **Premium Users**: Advanced features (planned)
 
-### Banner Plan Types ✅ NEW (2025-12-16)
-Each banner can be designated as Free or Premium:
-- **Plan Types**: `free` | `premium`
-- **Storage**: `banners` table with `plan_type` column (default: `free`)
-- **Admin Control**: Only admin users can mark banners as Premium via checkbox in editor header
-- **Visual Indicators**:
-  - **Premium Badge**: Gold "PREMIUM" badge with lock icon displayed on banner cards in list view (top-left corner)
-  - **Header Label**: "Premium" checkbox with lock icon in banner editor (visible to admins only)
-- **Future**: Free users will be blocked from accessing premium banners (with upgrade prompt)
+### Banner Visibility & Access Control ✅ (2025-12-17)
+
+#### 概念の整理
+
+本サービスには **2つの独立した概念** があります：
+
+##### 1. バナーの表示範囲（Public / Private）
+- **Public**: すべてのユーザー（ログイン不要）が一覧・詳細を閲覧可能
+- **Private**: 作成者のみが閲覧可能
+- **設定方法**: エディターヘッダーのラジオボタン（Public / Private）
+- **保存先**: `banners.is_public` カラム（boolean）
+
+##### 2. バナーのプランタイプ（Free / Premium）
+- **Free Banner**: すべてのユーザーが編集・閲覧可能
+- **Premium Banner**: Premiumプランユーザーのみ編集・閲覧可能
+- **設定方法**: エディターヘッダーのチェックボックス（**Adminのみ表示**）
+- **保存先**: `banners.plan_type` カラム（`free` | `premium`）
+
+#### アクセス制限マトリックス
+
+| バナー設定 | 未ログインユーザー | Free User | Premium User | Admin |
+|-----------|------------------|-----------|--------------|-------|
+| **Public + Free** | ✅ 閲覧可 | ✅ 編集可 | ✅ 編集可 | ✅ 編集可 |
+| **Public + Premium** | ❌ ロック<sup>*1</sup> | ❌ ロック<sup>*1</sup> | ✅ 編集可 | ✅ 編集可 |
+| **Private + Free** | ❌ 非表示 | ✅ 編集可<sup>*2</sup> | ✅ 編集可<sup>*2</sup> | ✅ 編集可<sup>*2</sup> |
+| **Private + Premium** | ❌ 非表示 | ❌ 非表示 | ✅ 編集可<sup>*2</sup> | ✅ 編集可<sup>*2</sup> |
+
+<sup>*1</sup> アップグレードモーダルを表示
+<sup>*2</sup> 自分のバナーのみ（他人のバナーは非表示）
+
+#### ユーザータイプとサブスクリプション
+
+##### サブスクリプションプラン（`profiles.subscription_tier`）
+- **Free**: 無料プラン（デフォルト）
+  - Freeバナーのみ作成・編集可能
+  - Premiumバナーは閲覧・編集不可（アップグレードモーダル表示）
+- **Premium**: 有料サブスクリプションプラン
+  - すべてのバナー（Free/Premium）を作成・編集可能
+  - 優先サポート、今後の新機能への早期アクセス
+  - **現在プラン変更画面は開発中（Stripe連携予定）**
+
+##### ユーザーロール（`profiles.role`）
+- **User**: 一般ユーザー（デフォルト）
+- **Admin**: 管理者
+  - デフォルト画像ライブラリへのアップロード権限
+  - バナーをPremiumに設定する権限（チェックボックス表示）
+  - テンプレート管理権限（今後実装予定）
+
+#### 実装詳細
+
+##### バナー一覧（BannerManager）
+- **RLS Policy**: `is_public = TRUE OR auth.uid() = user_id`
+- **フロントエンド**: `.eq('user_id')` フィルターを削除し、RLSに委譲
+- **Premiumバナークリック時**: `!profile || profile.subscriptionTier === 'free'` → UpgradeModal表示
+
+##### バナーエディター（BannerEditor）
+- **直URL アクセス時**: `useEffect`内でPremiumチェック → モーダル表示 → ホームへリダイレクト
+- **編集制限**: Premiumユーザー・Adminのみ編集可能
+
+##### バッジ表示
+- **Premium Badge**: ゴールドグラデーション + ロックアイコン（バナーカード左上）
+- **Public Badge**: グリーングラデーション + 目アイコン（バナーカード左上）
+
+#### データベーススキーマ
+
+```sql
+-- banners table
+is_public: boolean DEFAULT FALSE  -- 表示範囲（Public/Private）
+plan_type: text DEFAULT 'free'    -- プランタイプ（free/premium）
+```
+
+#### 今後の実装予定
+- [ ] Stripe統合（サブスクリプション決済）
+- [ ] プラン変更画面
+- [ ] Premium限定機能（AI文言生成、高度なエフェクトなど）
+- [ ] サブスクリプション有効期限管理（`subscription_expires_at`）
 
 ### Image Library System ✅ NEW (2025-11-23)
 WordPress-style image library with dual storage:
@@ -325,7 +405,8 @@ WordPress-style image library with dual storage:
 - elements: jsonb
 - canvas_color: text
 - thumbnail_data_url: text
-- plan_type: text (free | premium) DEFAULT 'free' -- NEW (2025-12-16)
+- plan_type: text (free | premium) DEFAULT 'free' -- プランタイプ (2025-12-16)
+- is_public: boolean DEFAULT FALSE -- 表示範囲 (2025-12-17)
 - created_at: timestamp
 - updated_at: timestamp
 ```
@@ -416,15 +497,6 @@ const mutation = useMutation(updateFn, {
 3. **React StrictMode**: Caused 4-5x duplicate executions in development
 4. **Aggressive Auto-save**: 800ms was too frequent for network operations
 5. **No Request Deduplication**: Multiple components fetching same data simultaneously
-
-### Next Steps (REFACTORING.md)
-
-See `REFACTORING.md` for detailed refactoring roadmap:
-- **Phase 1.2**: IndexedDB persistence (offline support)
-- **Phase 1.3**: Supabase Realtime integration
-- **Phase 2**: Zustand state management (BannerEditor: 687 → ~200 lines)
-- **Phase 3**: Canvas optimization (Layer separation, virtualization, WebWorker)
-- **Phase 4**: Advanced features (WASM, CRDT, Edge Functions)
 
 ---
 

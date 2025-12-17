@@ -2,9 +2,16 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
 export const AuthButton = () => {
-  const { user, loading, signInWithGoogle, signOut } = useAuth();
+  const { user, profile, loading, signInWithGoogle, signOut } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Debug: Log profile data
+  useEffect(() => {
+    if (profile) {
+      console.log('[AuthButton] Profile data:', profile);
+    }
+  }, [profile]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -71,6 +78,20 @@ export const AuthButton = () => {
                   </div>
                   <div className="text-sm text-gray-500 truncate">
                     {user.email}
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    {profile?.role === 'admin' && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                        Admin
+                      </span>
+                    )}
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                      profile?.subscriptionTier === 'premium'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {profile?.subscriptionTier === 'premium' ? 'Premium' : 'Free'}
+                    </span>
                   </div>
                 </div>
               </div>

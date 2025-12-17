@@ -236,3 +236,37 @@ export function useUpdateBannerPlanType(id: string) {
     },
   });
 }
+
+// Update public status
+export function useUpdateBannerIsPublic(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (isPublic: boolean) => {
+      await bannerStorage.updateIsPublic(id, isPublic);
+      return isPublic;
+    },
+    onMutate: async (isPublic) => {
+      await queryClient.cancelQueries({ queryKey: bannerKeys.detail(id) });
+      const previousBanner = queryClient.getQueryData<Banner>(bannerKeys.detail(id));
+
+      if (previousBanner) {
+        queryClient.setQueryData<Banner>(bannerKeys.detail(id), {
+          ...previousBanner,
+          isPublic,
+        });
+      }
+
+      return { previousBanner };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousBanner) {
+        queryClient.setQueryData(bannerKeys.detail(id), context.previousBanner);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: bannerKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: bannerKeys.lists() });
+    },
+  });
+}

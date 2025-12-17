@@ -73,6 +73,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
     // Clear sessionStorage cache on sign out
     sessionStorage.removeItem('banalist_profile_cache');
+    sessionStorage.removeItem('banalist_profile_cache_v2');
   };
 
   // Provide optimistic default profile while loading

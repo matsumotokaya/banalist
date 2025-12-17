@@ -16,8 +16,8 @@ export const profileKeys = {
 
 // Fetch profile from Supabase
 async function fetchProfile(userId: string): Promise<UserProfile> {
-  // Check sessionStorage cache first
-  const PROFILE_CACHE_KEY = 'banalist_profile_cache';
+  // Check sessionStorage cache first (v2 - added subscription tier support)
+  const PROFILE_CACHE_KEY = 'banalist_profile_cache_v2';
   try {
     const sessionCached = sessionStorage.getItem(PROFILE_CACHE_KEY);
     if (sessionCached) {
