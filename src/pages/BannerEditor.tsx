@@ -105,9 +105,9 @@ export const BannerEditor = () => {
   const pendingSaveRef = useRef<{
     elements?: CanvasElement[];
     canvasColor?: string;
-    needsThumbnail?: boolean;
   }>({});
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const thumbnailTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Schedule batch save function (memoized) - defined before useEffect to avoid hooks order issue
   const scheduleBatchSave = useCallback(() => {
@@ -130,20 +130,6 @@ export const BannerEditor = () => {
         updates.canvasColor = pendingSaveRef.current.canvasColor;
       }
 
-      // Generate thumbnail if needed
-      if (pendingSaveRef.current.needsThumbnail && canvasRef.current && elements.length > 0) {
-        try {
-          // Small delay to ensure canvas is fully rendered
-          await new Promise(resolve => setTimeout(resolve, 100));
-          const thumbnailDataURL = canvasRef.current?.exportImage();
-          if (thumbnailDataURL && thumbnailDataURL.length > 100) {
-            updates.thumbnailDataURL = thumbnailDataURL;
-          }
-        } catch (error) {
-          console.error('Error generating thumbnail:', error);
-        }
-      }
-
       // Batch save all updates at once
       if (Object.keys(updates).length > 0) {
         await bannerStorage.batchSave(banner.id, updates);
@@ -153,14 +139,13 @@ export const BannerEditor = () => {
       // Clear pending updates
       pendingSaveRef.current = {};
       setIsSaving(false);
-    }, 800); // Single timeout for all saves
-  }, [banner, elements]);
+    }, 2000); // Increased from 800ms to reduce network spam
+  }, [banner]);
 
   // Trigger save for elements
   useEffect(() => {
     if (banner && elements.length > 0) {
       pendingSaveRef.current.elements = elements;
-      pendingSaveRef.current.needsThumbnail = true;
       scheduleBatchSave();
     }
   }, [elements, banner, scheduleBatchSave]);
@@ -169,10 +154,38 @@ export const BannerEditor = () => {
   useEffect(() => {
     if (banner) {
       pendingSaveRef.current.canvasColor = canvasColor;
-      pendingSaveRef.current.needsThumbnail = true;
       scheduleBatchSave();
     }
   }, [canvasColor, banner, scheduleBatchSave]);
+
+  // Separate thumbnail generation (every 5 seconds)
+  useEffect(() => {
+    if (!banner || !canvasRef.current || elements.length === 0) return;
+
+    if (thumbnailTimeoutRef.current) {
+      clearTimeout(thumbnailTimeoutRef.current);
+    }
+
+    thumbnailTimeoutRef.current = setTimeout(async () => {
+      try {
+        // Small delay to ensure canvas is fully rendered
+        await new Promise(resolve => setTimeout(resolve, 100));
+        const thumbnailDataURL = canvasRef.current?.exportImage();
+        if (thumbnailDataURL && thumbnailDataURL.length > 100) {
+          await bannerStorage.batchSave(banner.id, { thumbnailDataURL });
+          console.log('Thumbnail saved');
+        }
+      } catch (error) {
+        console.error('Error generating thumbnail:', error);
+      }
+    }, 5000); // Generate thumbnail every 5 seconds
+
+    return () => {
+      if (thumbnailTimeoutRef.current) {
+        clearTimeout(thumbnailTimeoutRef.current);
+      }
+    };
+  }, [elements, canvasColor, banner]);
 
   // Copy
   const handleCopy = () => {

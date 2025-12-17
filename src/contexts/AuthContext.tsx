@@ -20,8 +20,11 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Profile cache
+// Profile cache (in-memory)
 const profileCache = new Map<string, UserProfile>();
+
+// SessionStorage key for persistent cache
+const PROFILE_CACHE_KEY = 'banalist_profile_cache';
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -40,24 +43,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const fetchProfile = async (userId: string): Promise<UserProfile> => {
       console.log('[AuthContext] fetchProfile called for userId:', userId);
 
-      // Check cache first
+      // Check in-memory cache first
       const cached = profileCache.get(userId);
       if (cached) {
-        console.log('[AuthContext] Using cached profile:', cached);
+        console.log('[AuthContext] Using in-memory cached profile:', cached);
         return cached;
       }
 
-      // Extend timeout to 30 seconds for slow Supabase queries
+      // Check sessionStorage cache
+      try {
+        const sessionCached = sessionStorage.getItem(PROFILE_CACHE_KEY);
+        if (sessionCached) {
+          const parsedCache = JSON.parse(sessionCached);
+          if (parsedCache.userId === userId) {
+            console.log('[AuthContext] Using sessionStorage cached profile:', parsedCache.profile);
+            profileCache.set(userId, parsedCache.profile);
+            return parsedCache.profile;
+          }
+        }
+      } catch (err) {
+        console.error('[AuthContext] Error reading sessionStorage cache:', err);
+      }
+
+      // Timeout for slow Supabase queries (reduced to 10 seconds)
       const timeoutPromise = new Promise<UserProfile>((resolve) => {
         setTimeout(() => {
-          console.error('[AuthContext] Profile fetch timed out after 30 seconds');
+          console.warn('[AuthContext] Profile fetch timed out after 10 seconds, using defaults');
           resolve({
             id: userId,
             email: '',
-            role: 'admin',  // Default to admin for now since we know you're admin
-            subscriptionTier: 'premium',
+            role: 'user',
+            subscriptionTier: 'free',
           });
-        }, 30000); // 30 second timeout
+        }, 10000); // 10 second timeout
       });
 
       const fetchPromise = (async () => {
@@ -87,8 +105,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             subscriptionTier: (data.subscription_tier || 'free') as 'free' | 'premium',
           };
 
-          // Cache the profile
+          // Cache the profile (both in-memory and sessionStorage)
           profileCache.set(userId, userProfile);
+          try {
+            sessionStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify({
+              userId,
+              profile: userProfile,
+              timestamp: Date.now(),
+            }));
+          } catch (err) {
+            console.error('[AuthContext] Error saving to sessionStorage:', err);
+          }
 
           return userProfile;
         } catch (err) {
@@ -112,14 +139,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('[AuthContext] Got session:', session);
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) {
-        console.log('[AuthContext] User found, fetching profile...');
-        const userProfile = await fetchProfile(session.user.id);
-        console.log('[AuthContext] Setting profile:', userProfile);
-        setProfile(userProfile);
-      }
-      console.log('[AuthContext] Setting loading to false');
+
+      // Set loading to false immediately to show UI
       setLoading(false);
+
+      if (session?.user) {
+        console.log('[AuthContext] User found, fetching profile in background...');
+        // Fetch profile in background (non-blocking)
+        fetchProfile(session.user.id).then((userProfile) => {
+          console.log('[AuthContext] Setting profile:', userProfile);
+          setProfile(userProfile);
+        });
+      }
     }).catch((error) => {
       console.error('[AuthContext] Error getting session:', error);
       setLoading(false);
@@ -165,7 +196,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const value = {
     user,
     session,
-    profile,
+    // Provide optimistic default profile if still loading
+    profile: profile || (user ? {
+      id: user.id,
+      email: user.email || '',
+      role: 'user' as const,
+      subscriptionTier: 'free' as const,
+    } : null),
     loading,
     signInWithGoogle,
     signOut,

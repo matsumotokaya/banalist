@@ -7,4 +7,25 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Singleton client with optimized settings for performance
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'banalist-web',
+    },
+  },
+  db: {
+    schema: 'public',
+  },
+  // Connection pooling and performance optimizations
+  realtime: {
+    params: {
+      eventsPerSecond: 10, // Limit realtime events to reduce overhead
+    },
+  },
+});
