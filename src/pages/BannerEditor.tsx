@@ -678,7 +678,7 @@ export const BannerEditor = () => {
         />
       </div>
 
-      <BottomBar zoom={zoom} onZoomChange={setZoom} onExport={handleExport} isSaving={isSaving} />
+      <BottomBar zoom={zoom} onZoomChange={setZoom} onExport={handleExport} isSaving={batchSave.isPending} />
     </div>
   );
 }
