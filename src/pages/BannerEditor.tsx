@@ -562,10 +562,26 @@ export const BannerEditor = () => {
     );
   }
 
+  const handleBackToManager = async () => {
+    // Generate final thumbnail before leaving
+    if (canvasRef.current && elements.length > 0) {
+      try {
+        const thumbnailDataURL = canvasRef.current.exportImage();
+        if (thumbnailDataURL && thumbnailDataURL.length > 100) {
+          await batchSave.mutateAsync({ thumbnailDataURL });
+          console.log('Final thumbnail saved before leaving');
+        }
+      } catch (error) {
+        console.error('Error generating final thumbnail:', error);
+      }
+    }
+    navigate('/');
+  };
+
   return (
     <div className="h-screen flex flex-col bg-[#212526]">
       <Header
-        onBackToManager={() => navigate('/')}
+        onBackToManager={handleBackToManager}
         bannerName={banner.name}
         bannerId={banner.id}
         onBannerNameChange={handleBannerNameChange}

@@ -260,6 +260,11 @@ export const bannerStorage = {
     await this.update(id, updates);
   },
 
+  // Update banner name
+  async updateName(id: string, name: string): Promise<void> {
+    await this.update(id, { name });
+  },
+
   // Update plan type (admin only)
   async updatePlanType(id: string, planType: 'free' | 'premium'): Promise<void> {
     await this.update(id, { planType });

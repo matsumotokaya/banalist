@@ -25,8 +25,9 @@ export const useKeyboardShortcuts = ({
 }: KeyboardShortcutsConfig) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore keyboard shortcuts when typing in textarea
-      if ((e.target as HTMLElement).tagName === 'TEXTAREA') {
+      // Ignore keyboard shortcuts when typing in input fields or textarea
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
         return;
       }
 

@@ -112,32 +112,48 @@ const SortableLayerItem = ({ element, isSelected, onSelect, onToggleLock }: Sort
   return (
     <div ref={setNodeRef} style={style}>
       <div className="flex items-center gap-1">
-        <button
+        {/* Drag handle */}
+        <div
           {...attributes}
           {...listeners}
-          onClick={(e) => onSelect(e.shiftKey)}
-          className={`flex-1 flex items-center gap-2 px-3 py-2 rounded text-left transition-colors cursor-grab active:cursor-grabbing ${
+          className="p-2 hover:bg-gray-200 rounded cursor-grab active:cursor-grabbing flex-shrink-0"
+          title="ドラッグして並び替え"
+        >
+          <span className="material-symbols-outlined text-[18px] text-gray-400">
+            drag_indicator
+          </span>
+        </div>
+
+        {/* Layer info - clickable for selection */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelect(e.shiftKey);
+          }}
+          className={`flex-1 min-w-0 flex items-center gap-2 px-3 py-2 rounded text-left transition-colors ${
             isSelected
               ? 'bg-indigo-100 text-indigo-900'
               : 'hover:bg-gray-100 text-gray-700'
           }`}
         >
-          <span className="material-symbols-outlined text-[18px]">
+          <span className="material-symbols-outlined text-[18px] flex-shrink-0">
             {getLayerIcon(element)}
           </span>
-          <span className="flex-1 text-sm truncate">
+          <span className="flex-1 min-w-0 text-sm truncate">
             {getLayerName(element)}
           </span>
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-gray-400 flex-shrink-0">
             {element.type === 'text' ? 'T' : element.type === 'image' ? 'I' : 'S'}
           </span>
         </button>
+
+        {/* Lock button */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onToggleLock(element.id);
           }}
-          className="p-2 hover:bg-gray-200 rounded transition-colors"
+          className="p-2 hover:bg-gray-200 rounded transition-colors flex-shrink-0"
           title={element.locked ? 'ロック解除' : 'ロック'}
         >
           <span className="material-symbols-outlined text-[18px] text-gray-600">
