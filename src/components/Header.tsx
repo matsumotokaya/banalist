@@ -52,7 +52,7 @@ export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChan
           </button>
         )}
         <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
-          <h1 className="text-white text-base md:text-xl" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+          <h1 className="text-white text-sm md:text-lg" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
             <span className="mr-1">🧪</span>
             <span className="font-bold">WHATHIF</span>
             <span className="font-light"> EXPERIMENT</span>

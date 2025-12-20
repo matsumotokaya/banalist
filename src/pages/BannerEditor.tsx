@@ -183,25 +183,48 @@ export const BannerEditor = () => {
     };
   }, [elements, canvasColor, banner, batchSave]);
 
-  // Copy
+  // Copy (with localStorage for cross-banner support)
   const handleCopy = () => {
     if (selectedElementIds.length === 1) {
       const element = elements.find((el) => el.id === selectedElementIds[0]);
       if (element) {
-        setCopiedElement(JSON.parse(JSON.stringify(element)));
+        const clonedElement = JSON.parse(JSON.stringify(element));
+        setCopiedElement(clonedElement);
+        // Save to localStorage for cross-banner paste
+        try {
+          localStorage.setItem('whathif_clipboard', JSON.stringify(clonedElement));
+          console.log('Element copied to clipboard (cross-banner enabled)');
+        } catch (error) {
+          console.error('Failed to save to localStorage:', error);
+        }
       }
     }
   };
 
-  // Paste
+  // Paste (with localStorage for cross-banner support)
   const handlePaste = () => {
-    if (copiedElement) {
-      const newId = `${copiedElement.type}-${Date.now()}`;
+    let elementToPaste = copiedElement;
+
+    // Try to get from localStorage if no local copy
+    if (!elementToPaste) {
+      try {
+        const stored = localStorage.getItem('whathif_clipboard');
+        if (stored) {
+          elementToPaste = JSON.parse(stored);
+          console.log('Element retrieved from cross-banner clipboard');
+        }
+      } catch (error) {
+        console.error('Failed to read from localStorage:', error);
+      }
+    }
+
+    if (elementToPaste) {
+      const newId = `${elementToPaste.type}-${Date.now()}`;
       const newElement: CanvasElement = {
-        ...copiedElement,
+        ...elementToPaste,
         id: newId,
-        x: copiedElement.x + 20,
-        y: copiedElement.y + 20,
+        x: elementToPaste.x + 20,
+        y: elementToPaste.y + 20,
       } as CanvasElement;
       elementOps.addElement(newElement);
       setSelectedElementIds([newId]);

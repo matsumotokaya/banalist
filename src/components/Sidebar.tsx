@@ -116,7 +116,7 @@ const SortableLayerItem = ({ element, isSelected, onSelect, onToggleLock }: Sort
         <div
           {...attributes}
           {...listeners}
-          className="p-2 hover:bg-gray-200 rounded cursor-grab active:cursor-grabbing flex-shrink-0"
+          className="p-2 hover:bg-[#444444] rounded cursor-grab active:cursor-grabbing flex-shrink-0"
           title="ドラッグして並び替え"
         >
           <span className="material-symbols-outlined text-[18px] text-gray-400">
@@ -133,7 +133,7 @@ const SortableLayerItem = ({ element, isSelected, onSelect, onToggleLock }: Sort
           className={`flex-1 min-w-0 flex items-center gap-2 px-3 py-2 rounded text-left transition-colors ${
             isSelected
               ? 'bg-indigo-100 text-indigo-900'
-              : 'hover:bg-gray-100 text-gray-700'
+              : 'hover:bg-[#333333] text-gray-300'
           }`}
         >
           <span className="material-symbols-outlined text-[18px] flex-shrink-0">
@@ -153,10 +153,10 @@ const SortableLayerItem = ({ element, isSelected, onSelect, onToggleLock }: Sort
             e.stopPropagation();
             onToggleLock(element.id);
           }}
-          className="p-2 hover:bg-gray-200 rounded transition-colors flex-shrink-0"
+          className="p-2 hover:bg-[#444444] rounded transition-colors flex-shrink-0"
           title={element.locked ? 'ロック解除' : 'ロック'}
         >
-          <span className="material-symbols-outlined text-[18px] text-gray-600">
+          <span className="material-symbols-outlined text-[18px] text-gray-400">
             {element.locked ? 'lock' : 'lock_open'}
           </span>
         </button>
@@ -206,7 +206,7 @@ export const Sidebar = ({
   };
   if (isMobile) {
     return (
-      <aside className="bg-white border-t border-gray-200 overflow-x-auto overflow-y-hidden">
+      <aside className="bg-[#1a1a1a] border-t border-[#2b2b2b] overflow-x-auto overflow-y-hidden">
         <div className="flex gap-6 p-4 min-w-max">
           {/* Text section */}
           <div className="flex flex-col items-center gap-2 min-w-[80px]">
@@ -218,29 +218,29 @@ export const Sidebar = ({
           <div className="flex flex-col items-center gap-2 min-w-[200px]">
             <h3 className="text-[10px] font-semibold text-gray-400 uppercase">図形</h3>
             <div className="flex gap-2">
-              <button onClick={() => onAddShape('rectangle')} className="p-2 hover:bg-gray-100 rounded" title="四角形">
+              <button onClick={() => onAddShape('rectangle')} className="p-2 hover:bg-[#333333] rounded" title="四角形">
                 <svg viewBox="0 0 24 24" className="w-6 h-6">
-                  <rect x="4" y="6" width="16" height="12" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
+                  <rect x="4" y="6" width="16" height="12" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
                 </svg>
               </button>
-              <button onClick={() => onAddShape('circle')} className="p-2 hover:bg-gray-100 rounded" title="円形">
+              <button onClick={() => onAddShape('circle')} className="p-2 hover:bg-[#333333] rounded" title="円形">
                 <svg viewBox="0 0 24 24" className="w-6 h-6">
-                  <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
+                  <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
                 </svg>
               </button>
-              <button onClick={() => onAddShape('triangle')} className="p-2 hover:bg-gray-100 rounded" title="三角形">
+              <button onClick={() => onAddShape('triangle')} className="p-2 hover:bg-[#333333] rounded" title="三角形">
                 <svg viewBox="0 0 24 24" className="w-6 h-6">
-                  <path d="M 12 4 L 20 20 L 4 20 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
+                  <path d="M 12 4 L 20 20 L 4 20 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
                 </svg>
               </button>
-              <button onClick={() => onAddShape('star')} className="p-2 hover:bg-gray-100 rounded" title="星">
+              <button onClick={() => onAddShape('star')} className="p-2 hover:bg-[#333333] rounded" title="星">
                 <svg viewBox="0 0 24 24" className="w-6 h-6">
-                  <path d="M 12 2 L 14 9 L 21 9 L 15 14 L 17 21 L 12 16 L 7 21 L 9 14 L 3 9 L 10 9 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
+                  <path d="M 12 2 L 14 9 L 21 9 L 15 14 L 17 21 L 12 16 L 7 21 L 9 14 L 3 9 L 10 9 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
                 </svg>
               </button>
-              <button onClick={() => onAddShape('heart')} className="p-2 hover:bg-gray-100 rounded" title="ハート">
+              <button onClick={() => onAddShape('heart')} className="p-2 hover:bg-[#333333] rounded" title="ハート">
                 <svg viewBox="0 0 24 24" className="w-6 h-6">
-                  <path d="M 12 21 C 12 21 3 14 3 8 C 3 5 5 3 7.5 3 C 9 3 10.5 4 12 6 C 13.5 4 15 3 16.5 3 C 19 3 21 5 21 8 C 21 14 12 21 12 21 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
+                  <path d="M 12 21 C 12 21 3 14 3 8 C 3 5 5 3 7.5 3 C 9 3 10.5 4 12 6 C 13.5 4 15 3 16.5 3 C 19 3 21 5 21 8 C 21 14 12 21 12 21 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
                 </svg>
               </button>
             </div>
@@ -263,15 +263,15 @@ export const Sidebar = ({
   }
 
   return (
-    <aside className="w-60 bg-white border-r border-gray-200 flex flex-col">
+    <aside className="w-60 bg-[#1a1a1a] border-r border-[#2b2b2b] flex flex-col">
       {/* Tabs */}
-      <div className="flex border-b border-gray-200">
+      <div className="flex border-b border-[#2b2b2b]">
         <button
           onClick={() => setActiveTab('page')}
           className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
             activeTab === 'page'
               ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              : 'text-gray-400 hover:text-gray-100 hover:bg-[#2b2b2b]'
           }`}
         >
           ページ
@@ -281,7 +281,7 @@ export const Sidebar = ({
           className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
             activeTab === 'object'
               ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              : 'text-gray-400 hover:text-gray-100 hover:bg-[#2b2b2b]'
           }`}
         >
           オブジェクト
@@ -291,7 +291,7 @@ export const Sidebar = ({
           className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
             activeTab === 'layer'
               ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              : 'text-gray-400 hover:text-gray-100 hover:bg-[#2b2b2b]'
           }`}
         >
           レイヤー
@@ -302,7 +302,7 @@ export const Sidebar = ({
       <div className="flex-1 overflow-y-auto">
         {activeTab === 'page' && (
           <div className="p-4 space-y-6">
-            <div className="pb-6 border-b border-gray-200">
+            <div className="pb-6 border-b border-[#2b2b2b]">
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
                 キャンバスサイズ
               </h2>
@@ -324,61 +324,61 @@ export const Sidebar = ({
 
         {activeTab === 'object' && (
           <div className="p-4 space-y-6">
-            <div className="pb-6 border-b border-gray-200">
+            <div className="pb-6 border-b border-[#2b2b2b]">
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
                 テキスト
               </h2>
               <TextEditor onAddText={onAddText} />
             </div>
 
-            <div className="pb-6 border-b border-gray-200">
+            <div className="pb-6 border-b border-[#2b2b2b]">
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
                 図形
               </h2>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => onAddShape('rectangle')}
-                  className="p-2 hover:bg-gray-100 rounded transition-colors"
+                  className="p-2 hover:bg-[#333333] rounded transition-colors"
                   title="四角形"
                 >
                   <svg viewBox="0 0 24 24" className="w-6 h-6">
-                    <rect x="4" y="6" width="16" height="12" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
+                    <rect x="4" y="6" width="16" height="12" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
                   </svg>
                 </button>
                 <button
                   onClick={() => onAddShape('circle')}
-                  className="p-2 hover:bg-gray-100 rounded transition-colors"
+                  className="p-2 hover:bg-[#333333] rounded transition-colors"
                   title="円形"
                 >
                   <svg viewBox="0 0 24 24" className="w-6 h-6">
-                    <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
+                    <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
                   </svg>
                 </button>
                 <button
                   onClick={() => onAddShape('triangle')}
-                  className="p-2 hover:bg-gray-100 rounded transition-colors"
+                  className="p-2 hover:bg-[#333333] rounded transition-colors"
                   title="三角形"
                 >
                   <svg viewBox="0 0 24 24" className="w-6 h-6">
-                    <path d="M 12 4 L 20 20 L 4 20 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
+                    <path d="M 12 4 L 20 20 L 4 20 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
                   </svg>
                 </button>
                 <button
                   onClick={() => onAddShape('star')}
-                  className="p-2 hover:bg-gray-100 rounded transition-colors"
+                  className="p-2 hover:bg-[#333333] rounded transition-colors"
                   title="星"
                 >
                   <svg viewBox="0 0 24 24" className="w-6 h-6">
-                    <path d="M 12 2 L 14 9 L 21 9 L 15 14 L 17 21 L 12 16 L 7 21 L 9 14 L 3 9 L 10 9 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
+                    <path d="M 12 2 L 14 9 L 21 9 L 15 14 L 17 21 L 12 16 L 7 21 L 9 14 L 3 9 L 10 9 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
                   </svg>
                 </button>
                 <button
                   onClick={() => onAddShape('heart')}
-                  className="p-2 hover:bg-gray-100 rounded transition-colors"
+                  className="p-2 hover:bg-[#333333] rounded transition-colors"
                   title="ハート"
                 >
                   <svg viewBox="0 0 24 24" className="w-6 h-6">
-                    <path d="M 12 21 C 12 21 3 14 3 8 C 3 5 5 3 7.5 3 C 9 3 10.5 4 12 6 C 13.5 4 15 3 16.5 3 C 19 3 21 5 21 8 C 21 14 12 21 12 21 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700" />
+                    <path d="M 12 21 C 12 21 3 14 3 8 C 3 5 5 3 7.5 3 C 9 3 10.5 4 12 6 C 13.5 4 15 3 16.5 3 C 19 3 21 5 21 8 C 21 14 12 21 12 21 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
                   </svg>
                 </button>
               </div>

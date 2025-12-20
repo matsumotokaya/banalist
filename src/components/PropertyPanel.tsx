@@ -49,12 +49,12 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
       return null;
     }
     return (
-      <aside className="w-60 bg-white border-l border-gray-200 overflow-y-auto">
+      <aside className="w-60 bg-[#1a1a1a] border-l border-[#2b2b2b] overflow-y-auto">
         <div className="p-4">
-          <h2 className="text-base font-semibold text-gray-900 mb-3">プロパティ</h2>
+          <h2 className="text-base font-semibold text-gray-100 mb-3">プロパティ</h2>
           <div className="text-center py-8">
             <span className="material-symbols-outlined text-gray-300 text-4xl">select_all</span>
-            <p className="text-xs text-gray-500 mt-3">オブジェクトを選択</p>
+            <p className="text-xs text-gray-400 mt-3">オブジェクトを選択</p>
           </div>
         </div>
       </aside>
@@ -70,21 +70,21 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
   const panelContent = (
     <>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-base font-semibold text-gray-900">プロパティ</h2>
+        <h2 className="text-base font-semibold text-gray-100">プロパティ</h2>
         {isMobile && onClose && (
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-            <span className="material-symbols-outlined text-gray-600 text-xl">close</span>
+          <button onClick={onClose} className="p-1 hover:bg-[#333333] rounded">
+            <span className="material-symbols-outlined text-gray-400 text-xl">close</span>
           </button>
         )}
       </div>
 
       {/* Object type indicator */}
-      <div className="mb-4 p-2 bg-gray-50 rounded-lg">
+      <div className="mb-4 p-2 bg-[#2b2b2b] rounded-lg">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-indigo-600 text-[18px]">
             {selectedElement.type === 'text' ? 'text_fields' : selectedElement.type === 'image' ? 'image' : 'category'}
           </span>
-          <span className="text-xs font-medium text-gray-700">
+          <span className="text-xs font-medium text-gray-300">
             {selectedElement.type === 'text' ? 'テキスト' : selectedElement.type === 'image' ? '画像' : '図形'}
           </span>
         </div>
@@ -93,14 +93,14 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
       {/* Font selector - only for text */}
       {isTextElement && textElement && onFontChange && (
         <div className="mb-3">
-          <label className="block text-xs font-medium text-gray-700 mb-2">
+          <label className="block text-xs font-medium text-gray-300 mb-2">
             フォント
           </label>
           <div className="relative">
             <select
               value={textElement.fontFamily}
               onChange={(e) => onFontChange(e.target.value)}
-              className="w-full appearance-none px-3 py-2 pr-8 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer hover:bg-gray-100"
+              className="w-full appearance-none px-3 py-2 pr-8 bg-[#2b2b2b] border border-[#444444] rounded-lg text-xs text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer hover:bg-[#333333]"
             >
               {AVAILABLE_FONTS.map((font) => (
                 <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
@@ -120,7 +120,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
       {/* Font size slider - only for text */}
       {isTextElement && textElement && onSizeChange && (
         <div className="mb-3">
-          <label className="block text-xs font-medium text-gray-700 mb-2">
+          <label className="block text-xs font-medium text-gray-300 mb-2">
             テキストサイズ
           </label>
           <div className="flex items-center gap-2">
@@ -131,9 +131,9 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
               step="1"
               value={textElement.fontSize}
               onChange={(e) => onSizeChange(Number(e.target.value))}
-              className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+              className="flex-1 h-1.5 bg-[#444444] rounded-lg appearance-none cursor-pointer accent-indigo-500"
             />
-            <span className="text-xs font-medium text-gray-700 w-12 text-right">
+            <span className="text-xs font-medium text-gray-300 w-12 text-right">
               {textElement.fontSize}px
             </span>
           </div>
@@ -143,7 +143,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
       {/* Font weight slider - only for text */}
       {isTextElement && textElement && onWeightChange && (
         <div className="mb-3">
-          <label className="block text-xs font-medium text-gray-700 mb-2">
+          <label className="block text-xs font-medium text-gray-300 mb-2">
             フォントウェイト
           </label>
           <div className="flex items-center gap-2">
@@ -154,9 +154,9 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
               step="100"
               value={textElement.fontWeight}
               onChange={(e) => onWeightChange(Number(e.target.value))}
-              className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+              className="flex-1 h-1.5 bg-[#444444] rounded-lg appearance-none cursor-pointer accent-indigo-500"
             />
-            <span className="text-xs font-medium text-gray-700 w-20 text-right">
+            <span className="text-xs font-medium text-gray-300 w-20 text-right">
               {getWeightLabel(textElement.fontWeight)}
             </span>
           </div>
@@ -165,9 +165,9 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
 
       {/* Shape-specific: Fill controls */}
       {isShapeElement && shapeElement && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+        <div className="mb-4 p-3 bg-[#2b2b2b] rounded-lg">
           <div className="flex items-center justify-between mb-3">
-            <label className="text-xs font-semibold text-gray-700">塗り</label>
+            <label className="text-xs font-semibold text-gray-300">塗り</label>
             {onFillEnabledChange && (
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -176,7 +176,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
                   onChange={(e) => onFillEnabledChange(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                <div className="w-9 h-5 bg-[#444444] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
               </label>
             )}
           </div>
@@ -192,9 +192,9 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
 
       {/* Shape-specific: Stroke controls */}
       {isShapeElement && shapeElement && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+        <div className="mb-4 p-3 bg-[#2b2b2b] rounded-lg">
           <div className="flex items-center justify-between mb-3">
-            <label className="text-xs font-semibold text-gray-700">線</label>
+            <label className="text-xs font-semibold text-gray-300">線</label>
             {onStrokeEnabledChange && (
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -203,7 +203,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
                   onChange={(e) => onStrokeEnabledChange(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                <div className="w-9 h-5 bg-[#444444] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
               </label>
             )}
           </div>
@@ -216,7 +216,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
               />
               {onStrokeWidthChange && (
                 <div className="mt-3">
-                  <label className="block text-xs font-medium text-gray-700 mb-2">線の太さ</label>
+                  <label className="block text-xs font-medium text-gray-300 mb-2">線の太さ</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="range"
@@ -225,9 +225,9 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
                       step="1"
                       value={shapeElement.strokeWidth}
                       onChange={(e) => onStrokeWidthChange(Number(e.target.value))}
-                      className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                      className="flex-1 h-1.5 bg-[#444444] rounded-lg appearance-none cursor-pointer accent-indigo-500"
                     />
-                    <span className="text-xs font-medium text-gray-700 w-10 text-right">
+                    <span className="text-xs font-medium text-gray-300 w-10 text-right">
                       {shapeElement.strokeWidth}px
                     </span>
                   </div>
@@ -242,9 +242,9 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
       {isTextElement && textElement && (
         <>
           {/* Fill controls */}
-          <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+          <div className="mb-4 p-3 bg-[#2b2b2b] rounded-lg">
             <div className="flex items-center justify-between mb-3">
-              <label className="text-xs font-semibold text-gray-700">塗り</label>
+              <label className="text-xs font-semibold text-gray-300">塗り</label>
               {onFillEnabledChange && (
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -253,7 +253,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
                     onChange={(e) => onFillEnabledChange(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                  <div className="w-9 h-5 bg-[#444444] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
                 </label>
               )}
             </div>
@@ -267,9 +267,9 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
           </div>
 
           {/* Stroke controls */}
-          <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+          <div className="mb-4 p-3 bg-[#2b2b2b] rounded-lg">
             <div className="flex items-center justify-between mb-3">
-              <label className="text-xs font-semibold text-gray-700">線</label>
+              <label className="text-xs font-semibold text-gray-300">線</label>
               {onStrokeEnabledChange && (
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -278,7 +278,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
                     onChange={(e) => onStrokeEnabledChange(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                  <div className="w-9 h-5 bg-[#444444] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
                 </label>
               )}
             </div>
@@ -291,7 +291,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
                 />
                 {onStrokeWidthChange && (
                   <div className="mt-3">
-                    <label className="block text-xs font-medium text-gray-700 mb-2">線の太さ</label>
+                    <label className="block text-xs font-medium text-gray-300 mb-2">線の太さ</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="range"
@@ -300,9 +300,9 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
                         step="1"
                         value={textElement.strokeWidth}
                         onChange={(e) => onStrokeWidthChange(Number(e.target.value))}
-                        className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                        className="flex-1 h-1.5 bg-[#444444] rounded-lg appearance-none cursor-pointer accent-indigo-500"
                       />
-                      <span className="text-xs font-medium text-gray-700 w-10 text-right">
+                      <span className="text-xs font-medium text-gray-300 w-10 text-right">
                         {textElement.strokeWidth}px
                       </span>
                     </div>
@@ -317,7 +317,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
       {/* Opacity slider */}
       {onOpacityChange && (
         <div className="mb-4">
-          <label className="block text-xs font-medium text-gray-700 mb-2">
+          <label className="block text-xs font-medium text-gray-300 mb-2">
             透明度
           </label>
           <div className="flex items-center gap-2">
@@ -328,9 +328,9 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
               step="1"
               value={(selectedElement.opacity ?? 1) * 100}
               onChange={(e) => onOpacityChange(Number(e.target.value) / 100)}
-              className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+              className="flex-1 h-1.5 bg-[#444444] rounded-lg appearance-none cursor-pointer accent-indigo-500"
             />
-            <span className="text-xs font-medium text-gray-700 w-12 text-right">
+            <span className="text-xs font-medium text-gray-300 w-12 text-right">
               {Math.round((selectedElement.opacity ?? 1) * 100)}%
             </span>
           </div>
@@ -339,13 +339,13 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
 
       {/* Layer controls */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-2">
+        <label className="block text-xs font-medium text-gray-300 mb-2">
           レイヤー
         </label>
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={onBringToFront}
-            className="px-3 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors flex items-center justify-center gap-1"
+            className="px-3 py-2 text-xs font-medium text-gray-300 bg-[#333333] hover:bg-[#444444] rounded transition-colors flex items-center justify-center gap-1"
             title="最前面へ"
           >
             <span className="material-symbols-outlined text-[16px]">flip_to_front</span>
@@ -353,7 +353,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
           </button>
           <button
             onClick={onSendToBack}
-            className="px-3 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors flex items-center justify-center gap-1"
+            className="px-3 py-2 text-xs font-medium text-gray-300 bg-[#333333] hover:bg-[#444444] rounded transition-colors flex items-center justify-center gap-1"
             title="最背面へ"
           >
             <span className="material-symbols-outlined text-[16px]">flip_to_back</span>
@@ -381,7 +381,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
   }
 
   return (
-    <aside className="w-60 bg-white border-l border-gray-200 overflow-y-auto">
+    <aside className="w-60 bg-[#1a1a1a] border-l border-[#2b2b2b] overflow-y-auto">
       <div className="p-4">
         {panelContent}
       </div>
