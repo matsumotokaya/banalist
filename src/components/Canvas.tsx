@@ -1,4 +1,5 @@
 import { useRef, forwardRef, useImperativeHandle, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Stage, Layer, Rect, Transformer } from 'react-konva';
 import type { Template, CanvasElement, TextElement, ShapeElement, ImageElement } from '../types/template';
 import type Konva from 'konva';
@@ -27,6 +28,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   { template, elements, scale = 0.5, canvasColor, fileName = 'artwork-01.png', onTextChange, selectedElementIds = [], onSelectElement, onElementUpdate, onImageDrop },
   ref
 ) {
+  const { t } = useTranslation('editor');
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
   const nodesRef = useRef<Map<string, Konva.Node>>(new Map());
@@ -316,7 +318,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
       {isDraggingOver && (
         <div className="absolute inset-0 bg-blue-500 bg-opacity-20 border-4 border-blue-500 border-dashed z-50 flex items-center justify-center pointer-events-none">
           <div className="bg-white px-6 py-3 rounded-lg shadow-lg">
-            <p className="text-blue-600 font-semibold text-lg">画像をドロップ</p>
+            <p className="text-blue-600 font-semibold text-lg">{t('dropImage')}</p>
           </div>
         </div>
       )}

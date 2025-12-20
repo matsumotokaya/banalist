@@ -1,0 +1,58 @@
+{
+  "tabs": {
+    "page": "Page",
+    "object": "Object",
+    "layer": "Layer"
+  },
+  "page": {
+    "canvasSize": "Canvas Size",
+    "backgroundColor": "Background Color",
+    "noLayers": "No layers",
+    "addObjects": "Add objects to get started"
+  },
+  "object": {
+    "text": "Text",
+    "shapes": "Shapes",
+    "image": "Image",
+    "addText": "Add Text",
+    "templates": "Templates"
+  },
+  "shapes": {
+    "rectangle": "Rectangle",
+    "circle": "Circle",
+    "triangle": "Triangle",
+    "star": "Star",
+    "heart": "Heart"
+  },
+  "properties": {
+    "title": "Properties",
+    "selectObject": "Select an object",
+    "font": "Font",
+    "textSize": "Text Size",
+    "fontWeight": "Font Weight",
+    "fill": "Fill",
+    "stroke": "Stroke",
+    "strokeOnly": "Stroke Only",
+    "strokeWidth": "Stroke Width",
+    "opacity": "Opacity",
+    "layer": "Layer",
+    "bringToFront": "Bring to Front",
+    "sendToBack": "Send to Back",
+    "moveUp": "Move Up",
+    "moveDown": "Move Down",
+    "width": "Width",
+    "height": "Height",
+    "delete": "Delete"
+  },
+  "textInput": {
+    "placeholder": "Enter text...",
+    "add": "Add"
+  },
+  "download": "Download",
+  "dropImage": "Drop image here",
+  "zoom": "Zoom",
+  "save": "Save",
+  "dragToReorder": "Drag to reorder",
+  "lock": "Lock",
+  "unlock": "Unlock"
+}

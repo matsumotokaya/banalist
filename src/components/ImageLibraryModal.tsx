@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../utils/supabase';
 import type { DefaultImage, UserImage } from '../types/image-library';
 
@@ -16,6 +17,7 @@ type DefaultImageWithUrl = DefaultImage & { displayUrl?: string };
 type UserImageWithUrl = UserImage & { displayUrl?: string };
 
 export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab = 'default' }: ImageLibraryModalProps) => {
+  const { t } = useTranslation(['modal', 'message']);
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [defaultImages, setDefaultImages] = useState<DefaultImageWithUrl[]>([]);
   const [userImages, setUserImages] = useState<UserImageWithUrl[]>([]);
@@ -124,13 +126,13 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab =
     // Check if all files are images
     const invalidFiles = fileArray.filter(file => !file.type.startsWith('image/'));
     if (invalidFiles.length > 0) {
-      alert('画像ファイルのみ選択してください');
+      alert(t('message:error.onlyImageFiles'));
       return;
     }
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      alert('ログインが必要です');
+      alert(t('modal:imageLibrary.loginRequired'));
       return;
     }
 
@@ -223,13 +225,13 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab =
 
       // Show result message
       if (failCount === 0) {
-        alert(`${successCount}枚の画像をアップロードしました`);
+        alert(t('modal:imageLibrary.uploadSuccess', { count: successCount }));
       } else {
-        alert(`${successCount}枚成功、${failCount}枚失敗しました`);
+        alert(t('modal:imageLibrary.uploadPartialFail', { success: successCount, fail: failCount }));
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('アップロードに失敗しました');
+      alert(t('modal:imageLibrary.uploadFailed'));
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -279,7 +281,7 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab =
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl h-[80vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">画像ライブラリ</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{t('modal:imageLibrary.title')}</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -298,7 +300,7 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab =
                 : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
-            デフォルト
+            {t('modal:imageLibrary.tabs.default')}
           </button>
           <button
             onClick={() => setActiveTab('user')}
@@ -308,7 +310,7 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab =
                 : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
-            マイライブラリ
+            {t('modal:imageLibrary.tabs.myLibrary')}
           </button>
         </div>
 
@@ -318,7 +320,7 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab =
             <div className="flex items-center justify-between">
               <label className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 cursor-pointer transition-colors">
                 <span className="material-symbols-outlined text-[20px]">upload</span>
-                <span className="text-sm font-medium">{uploading ? 'アップロード中...' : '画像をアップロード'}</span>
+                <span className="text-sm font-medium">{uploading ? t('modal:imageLibrary.uploading') : t('modal:imageLibrary.upload')}</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -346,7 +348,7 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab =
           ) : activeTab === 'default' ? (
             defaultImages.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
-                デフォルト画像がまだありません
+                {t('modal:imageLibrary.noDefaultImages')}
               </div>
             ) : (
               <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
@@ -376,7 +378,7 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab =
           ) : (
             userImages.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
-                画像をアップロードしてライブラリに追加しましょう
+                {t('modal:imageLibrary.noUserImages')}
               </div>
             ) : (
               <div className="grid grid-cols-3 md:grid-cols-4 gap-4">

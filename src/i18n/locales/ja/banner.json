@@ -1,0 +1,14 @@
+{
+  "title": "マイバナー",
+  "count": "{{count}} 個のバナー",
+  "count_plural": "{{count}} 個のバナー",
+  "noBanners": "バナーがありません",
+  "createFirst": "最初のバナーを作成しましょう",
+  "newBanner": "新規バナー",
+  "untitled": "無題のバナー",
+  "duplicate": "複製",
+  "delete": "削除",
+  "confirmDelete": "このバナーを削除してもよろしいですか？",
+  "editName": "名前を編集",
+  "backToManager": "管理画面に戻る"
+}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   DndContext,
   closestCenter,
@@ -41,8 +42,8 @@ interface SidebarProps {
 
 type TabType = 'page' | 'object' | 'layer';
 
-// Get layer name for display
-const getLayerName = (element: CanvasElement): string => {
+// Get layer name for display (will be called from component with t function)
+const getLayerName = (element: CanvasElement, t: (key: string) => string): string => {
   if (element.type === 'text') {
     return element.text.length > 20 ? element.text.substring(0, 20) + '...' : element.text;
   } else if (element.type === 'image') {
@@ -53,19 +54,12 @@ const getLayerName = (element: CanvasElement): string => {
       const filename = pathParts[pathParts.length - 1];
       return filename.length > 20 ? filename.substring(0, 20) + '...' : filename;
     } catch {
-      return '画像';
+      return t('editor:object.image');
     }
   } else if (element.type === 'shape') {
-    const shapeNames: Record<string, string> = {
-      rectangle: '四角形',
-      circle: '円形',
-      triangle: '三角形',
-      star: '星',
-      heart: 'ハート',
-    };
-    return shapeNames[element.shapeType] || '図形';
+    return t(`editor:shapes.${element.shapeType}`);
   }
-  return 'レイヤー';
+  return t('editor:properties.layer');
 };
 
 // Get icon for layer type
@@ -91,9 +85,10 @@ interface SortableLayerItemProps {
   isSelected: boolean;
   onSelect: (shiftKey: boolean) => void;
   onToggleLock: (id: string) => void;
+  t: (key: string) => string;
 }
 
-const SortableLayerItem = ({ element, isSelected, onSelect, onToggleLock }: SortableLayerItemProps) => {
+const SortableLayerItem = ({ element, isSelected, onSelect, onToggleLock, t }: SortableLayerItemProps) => {
   const {
     attributes,
     listeners,
@@ -117,7 +112,7 @@ const SortableLayerItem = ({ element, isSelected, onSelect, onToggleLock }: Sort
           {...attributes}
           {...listeners}
           className="p-2 hover:bg-[#444444] rounded cursor-grab active:cursor-grabbing flex-shrink-0"
-          title="ドラッグして並び替え"
+          title={t('editor:dragToReorder')}
         >
           <span className="material-symbols-outlined text-[18px] text-gray-400">
             drag_indicator
@@ -140,7 +135,7 @@ const SortableLayerItem = ({ element, isSelected, onSelect, onToggleLock }: Sort
             {getLayerIcon(element)}
           </span>
           <span className="flex-1 min-w-0 text-sm truncate">
-            {getLayerName(element)}
+            {getLayerName(element, t)}
           </span>
           <span className="text-xs text-gray-400 flex-shrink-0">
             {element.type === 'text' ? 'T' : element.type === 'image' ? 'I' : 'S'}
@@ -154,7 +149,7 @@ const SortableLayerItem = ({ element, isSelected, onSelect, onToggleLock }: Sort
             onToggleLock(element.id);
           }}
           className="p-2 hover:bg-[#444444] rounded transition-colors flex-shrink-0"
-          title={element.locked ? 'ロック解除' : 'ロック'}
+          title={element.locked ? t('editor:unlock') : t('editor:lock')}
         >
           <span className="material-symbols-outlined text-[18px] text-gray-400">
             {element.locked ? 'lock' : 'lock_open'}
@@ -181,6 +176,7 @@ export const Sidebar = ({
   onToggleLock,
   isMobile = false,
 }: SidebarProps) => {
+  const { t } = useTranslation('editor');
   const [activeTab, setActiveTab] = useState<TabType>('object');
 
   const sensors = useSensors(
@@ -210,35 +206,35 @@ export const Sidebar = ({
         <div className="flex gap-6 p-4 min-w-max">
           {/* Text section */}
           <div className="flex flex-col items-center gap-2 min-w-[80px]">
-            <h3 className="text-[10px] font-semibold text-gray-400 uppercase">テキスト</h3>
+            <h3 className="text-[10px] font-semibold text-gray-400 uppercase">{t('object.text')}</h3>
             <TextEditor onAddText={onAddText} />
           </div>
 
           {/* Shape section */}
           <div className="flex flex-col items-center gap-2 min-w-[200px]">
-            <h3 className="text-[10px] font-semibold text-gray-400 uppercase">図形</h3>
+            <h3 className="text-[10px] font-semibold text-gray-400 uppercase">{t('object.shapes')}</h3>
             <div className="flex gap-2">
-              <button onClick={() => onAddShape('rectangle')} className="p-2 hover:bg-[#333333] rounded" title="四角形">
+              <button onClick={() => onAddShape('rectangle')} className="p-2 hover:bg-[#333333] rounded" title={t('shapes.rectangle')}>
                 <svg viewBox="0 0 24 24" className="w-6 h-6">
                   <rect x="4" y="6" width="16" height="12" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
                 </svg>
               </button>
-              <button onClick={() => onAddShape('circle')} className="p-2 hover:bg-[#333333] rounded" title="円形">
+              <button onClick={() => onAddShape('circle')} className="p-2 hover:bg-[#333333] rounded" title={t('shapes.circle')}>
                 <svg viewBox="0 0 24 24" className="w-6 h-6">
                   <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
                 </svg>
               </button>
-              <button onClick={() => onAddShape('triangle')} className="p-2 hover:bg-[#333333] rounded" title="三角形">
+              <button onClick={() => onAddShape('triangle')} className="p-2 hover:bg-[#333333] rounded" title={t('shapes.triangle')}>
                 <svg viewBox="0 0 24 24" className="w-6 h-6">
                   <path d="M 12 4 L 20 20 L 4 20 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
                 </svg>
               </button>
-              <button onClick={() => onAddShape('star')} className="p-2 hover:bg-[#333333] rounded" title="星">
+              <button onClick={() => onAddShape('star')} className="p-2 hover:bg-[#333333] rounded" title={t('shapes.star')}>
                 <svg viewBox="0 0 24 24" className="w-6 h-6">
                   <path d="M 12 2 L 14 9 L 21 9 L 15 14 L 17 21 L 12 16 L 7 21 L 9 14 L 3 9 L 10 9 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
                 </svg>
               </button>
-              <button onClick={() => onAddShape('heart')} className="p-2 hover:bg-[#333333] rounded" title="ハート">
+              <button onClick={() => onAddShape('heart')} className="p-2 hover:bg-[#333333] rounded" title={t('shapes.heart')}>
                 <svg viewBox="0 0 24 24" className="w-6 h-6">
                   <path d="M 12 21 C 12 21 3 14 3 8 C 3 5 5 3 7.5 3 C 9 3 10.5 4 12 6 C 13.5 4 15 3 16.5 3 C 19 3 21 5 21 8 C 21 14 12 21 12 21 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
                 </svg>
@@ -248,7 +244,7 @@ export const Sidebar = ({
 
           {/* Image section */}
           <div className="flex flex-col items-center gap-2 min-w-[80px]">
-            <h3 className="text-[10px] font-semibold text-gray-400 uppercase">画像</h3>
+            <h3 className="text-[10px] font-semibold text-gray-400 uppercase">{t('object.image')}</h3>
             <ImageUploader onAddImage={onAddImage} />
           </div>
 
@@ -274,7 +270,7 @@ export const Sidebar = ({
               : 'text-gray-400 hover:text-gray-100 hover:bg-[#2b2b2b]'
           }`}
         >
-          ページ
+          {t('tabs.page')}
         </button>
         <button
           onClick={() => setActiveTab('object')}
@@ -284,7 +280,7 @@ export const Sidebar = ({
               : 'text-gray-400 hover:text-gray-100 hover:bg-[#2b2b2b]'
           }`}
         >
-          オブジェクト
+          {t('tabs.object')}
         </button>
         <button
           onClick={() => setActiveTab('layer')}
@@ -294,7 +290,7 @@ export const Sidebar = ({
               : 'text-gray-400 hover:text-gray-100 hover:bg-[#2b2b2b]'
           }`}
         >
-          レイヤー
+          {t('tabs.layer')}
         </button>
       </div>
 
@@ -304,7 +300,7 @@ export const Sidebar = ({
           <div className="p-4 space-y-6">
             <div className="pb-6 border-b border-[#2b2b2b]">
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                キャンバスサイズ
+                {t('page.canvasSize')}
               </h2>
               <CanvasSizeSelector
                 width={canvasWidth}
@@ -315,7 +311,7 @@ export const Sidebar = ({
 
             <div className="pb-6">
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                背景カラー
+                {t('page.backgroundColor')}
               </h2>
               <ColorSelector selectedColor={canvasColor} onColorChange={onSelectColor} showInput={true} />
             </div>
@@ -326,20 +322,20 @@ export const Sidebar = ({
           <div className="p-4 space-y-6">
             <div className="pb-6 border-b border-[#2b2b2b]">
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                テキスト
+                {t('object.text')}
               </h2>
               <TextEditor onAddText={onAddText} />
             </div>
 
             <div className="pb-6 border-b border-[#2b2b2b]">
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                図形
+                {t('object.shapes')}
               </h2>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => onAddShape('rectangle')}
                   className="p-2 hover:bg-[#333333] rounded transition-colors"
-                  title="四角形"
+                  title={t('shapes.rectangle')}
                 >
                   <svg viewBox="0 0 24 24" className="w-6 h-6">
                     <rect x="4" y="6" width="16" height="12" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
@@ -348,7 +344,7 @@ export const Sidebar = ({
                 <button
                   onClick={() => onAddShape('circle')}
                   className="p-2 hover:bg-[#333333] rounded transition-colors"
-                  title="円形"
+                  title={t('shapes.circle')}
                 >
                   <svg viewBox="0 0 24 24" className="w-6 h-6">
                     <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
@@ -357,7 +353,7 @@ export const Sidebar = ({
                 <button
                   onClick={() => onAddShape('triangle')}
                   className="p-2 hover:bg-[#333333] rounded transition-colors"
-                  title="三角形"
+                  title={t('shapes.triangle')}
                 >
                   <svg viewBox="0 0 24 24" className="w-6 h-6">
                     <path d="M 12 4 L 20 20 L 4 20 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
@@ -366,7 +362,7 @@ export const Sidebar = ({
                 <button
                   onClick={() => onAddShape('star')}
                   className="p-2 hover:bg-[#333333] rounded transition-colors"
-                  title="星"
+                  title={t('shapes.star')}
                 >
                   <svg viewBox="0 0 24 24" className="w-6 h-6">
                     <path d="M 12 2 L 14 9 L 21 9 L 15 14 L 17 21 L 12 16 L 7 21 L 9 14 L 3 9 L 10 9 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
@@ -375,7 +371,7 @@ export const Sidebar = ({
                 <button
                   onClick={() => onAddShape('heart')}
                   className="p-2 hover:bg-[#333333] rounded transition-colors"
-                  title="ハート"
+                  title={t('shapes.heart')}
                 >
                   <svg viewBox="0 0 24 24" className="w-6 h-6">
                     <path d="M 12 21 C 12 21 3 14 3 8 C 3 5 5 3 7.5 3 C 9 3 10.5 4 12 6 C 13.5 4 15 3 16.5 3 C 19 3 21 5 21 8 C 21 14 12 21 12 21 Z" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300" />
@@ -386,7 +382,7 @@ export const Sidebar = ({
 
             <div className="pb-6">
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                画像
+                {t('object.image')}
               </h2>
               <ImageUploader onAddImage={onAddImage} />
             </div>
@@ -398,8 +394,8 @@ export const Sidebar = ({
             {elements.length === 0 ? (
               <div className="text-center text-gray-400 py-12">
                 <span className="material-symbols-outlined text-5xl mb-2">layers</span>
-                <p className="text-sm">レイヤーがありません</p>
-                <p className="text-xs mt-2">オブジェクトを追加してください</p>
+                <p className="text-sm">{t('page.noLayers')}</p>
+                <p className="text-xs mt-2">{t('page.addObjects')}</p>
               </div>
             ) : (
               <DndContext
@@ -436,6 +432,7 @@ export const Sidebar = ({
                             }
                           }}
                           onToggleLock={(id) => onToggleLock?.(id)}
+                          t={t}
                         />
                       );
                     })}

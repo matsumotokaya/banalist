@@ -1,0 +1,14 @@
+{
+  "title": "My Banners",
+  "count": "{{count}} banner",
+  "count_plural": "{{count}} banners",
+  "noBanners": "No banners",
+  "createFirst": "Create your first banner",
+  "newBanner": "New Banner",
+  "untitled": "Untitled Banner",
+  "duplicate": "Duplicate",
+  "delete": "Delete",
+  "confirmDelete": "Are you sure you want to delete this banner?",
+  "editName": "Edit name",
+  "backToManager": "Back to Manager"
+}

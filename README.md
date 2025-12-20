@@ -95,6 +95,7 @@ Illustratorのような高度な視覚効果を実現する
 - **Backend**: Supabase (Auth, Database, Storage)
 - **Data Fetching**: React Query (@tanstack/react-query)
 - **State Management**: Local useState (planned: Zustand in Phase 2)
+- **i18n**: react-i18next (English/Japanese support)
 
 ## Getting Started
 
@@ -142,6 +143,39 @@ src/
 │   ├── cacheManager.ts      # In-memory cache (legacy, being replaced by React Query)
 │   └── supabase.ts          # Supabase client
 └── App.tsx           # Main app component
+```
+
+## Internationalization (i18n)
+
+### Supported Languages
+- 🇬🇧 **English** (Base language)
+- 🇯🇵 **日本語** (Japanese)
+
+### Implementation
+- **Library**: react-i18next + i18next + i18next-browser-languagedetector
+- **Translation Files**: `/src/i18n/locales/{en,ja}/*.json`
+- **Namespaces**: `common`, `banner`, `editor`, `auth`, `modal`, `message`
+- **Auto-detection**: Browser language with localStorage persistence
+- **Language Switcher**: Available in header (🇬🇧/🇯🇵 dropdown)
+
+### Adding New Languages
+```bash
+# 1. Create translation files
+mkdir -p src/i18n/locales/zh
+cp src/i18n/locales/en/*.json src/i18n/locales/zh/
+
+# 2. Update i18n/index.ts resources
+# 3. Add to LanguageSwitcher.tsx LANGUAGES array
+```
+
+### Usage in Components
+```typescript
+import { useTranslation } from 'react-i18next';
+
+const MyComponent = () => {
+  const { t } = useTranslation('editor');
+  return <button>{t('download')}</button>;
+};
 ```
 
 ## Type System

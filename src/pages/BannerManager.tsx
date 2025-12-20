@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Header } from '../components/Header';
 import { UpgradeModal } from '../components/UpgradeModal';
 import {
@@ -14,6 +15,7 @@ import type { Banner } from '../types/template';
 import { useAuth } from '../contexts/AuthContext';
 
 export const BannerManager = () => {
+  const { t, i18n } = useTranslation(['banner', 'common', 'message']);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -41,7 +43,7 @@ export const BannerManager = () => {
 
   const handleCreateBanner = async () => {
     const result = await createBanner.mutateAsync({
-      name: 'Untitled Banner',
+      name: t('message:placeholder.untitledBanner'),
       template: DEFAULT_TEMPLATES[0],
     });
     if (result) {
@@ -50,7 +52,7 @@ export const BannerManager = () => {
   };
 
   const handleDeleteBanner = async (id: string) => {
-    if (window.confirm('このバナーを削除しますか？')) {
+    if (window.confirm(t('message:confirm.deleteBanner'))) {
       await deleteBanner.mutateAsync(id);
     }
   };
@@ -79,7 +81,7 @@ export const BannerManager = () => {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('ja-JP', {
+    return new Intl.DateTimeFormat(i18n.language, {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -107,14 +109,14 @@ export const BannerManager = () => {
       <main className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-gray-100">
-            マイバナー ({banners.length})
+            {t('banner:title')} ({banners.length})
           </h2>
         </div>
 
         {isLoading ? (
           <div className="text-center py-20">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-            <p className="mt-4 text-gray-600">読み込み中...</p>
+            <p className="mt-4 text-gray-600">{t('common:status.loading')}</p>
           </div>
         ) : banners.length === 0 ? (
           <div className="text-center py-20">
@@ -123,14 +125,14 @@ export const BannerManager = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">バナーがありません</h3>
-            <p className="text-gray-500 mb-6">新しいバナーを作成して始めましょう</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('banner:noBanners')}</h3>
+            <p className="text-gray-500 mb-6">{t('banner:createFirst')}</p>
             <button
               onClick={handleCreateBanner}
               disabled={createBanner.isPending}
               className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
             >
-              {createBanner.isPending ? '作成中...' : '最初のバナーを作成'}
+              {createBanner.isPending ? t('common:status.creating') : t('banner:createFirst')}
             </button>
           </div>
         ) : (
@@ -208,7 +210,7 @@ export const BannerManager = () => {
                             handleStartEdit(banner.id, banner.name);
                           }}
                           className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/20 rounded transition-all"
-                          title="名前を編集"
+                          title={t('banner:editName')}
                         >
                           <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -230,11 +232,11 @@ export const BannerManager = () => {
                       }}
                       disabled={duplicateBanner.isPending}
                       className="w-7 h-7 bg-white/90 hover:bg-white text-gray-700 rounded-md transition-colors flex items-center justify-center group/duplicate relative shadow-sm disabled:opacity-50"
-                      title="複製"
+                      title={t('banner:duplicate')}
                     >
                       <span className="material-symbols-outlined text-[16px]">content_copy</span>
                       <span className="absolute bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover/duplicate:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                        複製
+                        {t('banner:duplicate')}
                       </span>
                     </button>
                     <button
@@ -244,11 +246,11 @@ export const BannerManager = () => {
                       }}
                       disabled={deleteBanner.isPending}
                       className="w-7 h-7 bg-white/90 hover:bg-white text-red-600 rounded-md transition-colors flex items-center justify-center group/delete relative shadow-sm disabled:opacity-50"
-                      title="削除"
+                      title={t('banner:delete')}
                     >
                       <span className="material-symbols-outlined text-[16px]">delete</span>
                       <span className="absolute bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover/delete:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                        削除
+                        {t('banner:delete')}
                       </span>
                     </button>
                   </div>
@@ -269,7 +271,7 @@ export const BannerManager = () => {
                     </svg>
                   </div>
                   <p className="text-xs font-medium text-gray-700 group-hover:text-indigo-600 transition-colors">
-                    新規バナー作成
+                    {t('banner:newBanner')}
                   </p>
                 </div>
               </div>

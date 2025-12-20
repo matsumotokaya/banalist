@@ -1,0 +1,35 @@
+{
+  "button": {
+    "save": "保存",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "duplicate": "複製",
+    "add": "追加",
+    "apply": "適用",
+    "close": "閉じる",
+    "upload": "アップロード",
+    "create": "作成",
+    "back": "戻る"
+  },
+  "label": {
+    "width": "幅",
+    "height": "高さ",
+    "current": "現在",
+    "custom": "カスタム",
+    "loading": "読み込み中...",
+    "admin": "管理者",
+    "premium": "プレミアム",
+    "free": "無料",
+    "private": "非公開",
+    "public": "公開",
+    "name": "名前",
+    "untitled": "無題"
+  },
+  "status": {
+    "saving": "保存中...",
+    "saved": "保存しました",
+    "loading": "読み込み中...",
+    "uploading": "アップロード中...",
+    "creating": "作成中..."
+  }
+}

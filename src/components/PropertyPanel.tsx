@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { CanvasElement, TextElement, ShapeElement } from '../types/template';
 import { ColorSelector } from './ColorSelector';
 
@@ -44,6 +45,8 @@ const getWeightLabel = (weight: number): string => {
 };
 
 export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, onSizeChange, onWeightChange, onOpacityChange, onBringToFront, onSendToBack, isMobile = false, onClose, onFillEnabledChange, onStrokeChange, onStrokeWidthChange, onStrokeEnabledChange }: PropertyPanelProps) => {
+  const { t } = useTranslation('editor');
+
   if (!selectedElement) {
     if (isMobile) {
       return null;
@@ -51,10 +54,10 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
     return (
       <aside className="w-60 bg-[#1a1a1a] border-l border-[#2b2b2b] overflow-y-auto">
         <div className="p-4">
-          <h2 className="text-base font-semibold text-gray-100 mb-3">プロパティ</h2>
+          <h2 className="text-base font-semibold text-gray-100 mb-3">{t('properties.title')}</h2>
           <div className="text-center py-8">
             <span className="material-symbols-outlined text-gray-300 text-4xl">select_all</span>
-            <p className="text-xs text-gray-400 mt-3">オブジェクトを選択</p>
+            <p className="text-xs text-gray-400 mt-3">{t('properties.selectObject')}</p>
           </div>
         </div>
       </aside>
@@ -70,7 +73,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
   const panelContent = (
     <>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-base font-semibold text-gray-100">プロパティ</h2>
+        <h2 className="text-base font-semibold text-gray-100">{t('properties.title')}</h2>
         {isMobile && onClose && (
           <button onClick={onClose} className="p-1 hover:bg-[#333333] rounded">
             <span className="material-symbols-outlined text-gray-400 text-xl">close</span>
@@ -85,7 +88,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
             {selectedElement.type === 'text' ? 'text_fields' : selectedElement.type === 'image' ? 'image' : 'category'}
           </span>
           <span className="text-xs font-medium text-gray-300">
-            {selectedElement.type === 'text' ? 'テキスト' : selectedElement.type === 'image' ? '画像' : '図形'}
+            {selectedElement.type === 'text' ? t('object.text') : selectedElement.type === 'image' ? t('object.image') : t('object.shapes')}
           </span>
         </div>
       </div>
@@ -94,7 +97,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
       {isTextElement && textElement && onFontChange && (
         <div className="mb-3">
           <label className="block text-xs font-medium text-gray-300 mb-2">
-            フォント
+            {t('properties.font')}
           </label>
           <div className="relative">
             <select
@@ -121,7 +124,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
       {isTextElement && textElement && onSizeChange && (
         <div className="mb-3">
           <label className="block text-xs font-medium text-gray-300 mb-2">
-            テキストサイズ
+            {t('properties.textSize')}
           </label>
           <div className="flex items-center gap-2">
             <input
@@ -144,7 +147,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
       {isTextElement && textElement && onWeightChange && (
         <div className="mb-3">
           <label className="block text-xs font-medium text-gray-300 mb-2">
-            フォントウェイト
+            {t('properties.fontWeight')}
           </label>
           <div className="flex items-center gap-2">
             <input
@@ -167,7 +170,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
       {isShapeElement && shapeElement && (
         <div className="mb-4 p-3 bg-[#2b2b2b] rounded-lg">
           <div className="flex items-center justify-between mb-3">
-            <label className="text-xs font-semibold text-gray-300">塗り</label>
+            <label className="text-xs font-semibold text-gray-300">{t('properties.fill')}</label>
             {onFillEnabledChange && (
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -194,7 +197,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
       {isShapeElement && shapeElement && (
         <div className="mb-4 p-3 bg-[#2b2b2b] rounded-lg">
           <div className="flex items-center justify-between mb-3">
-            <label className="text-xs font-semibold text-gray-300">線</label>
+            <label className="text-xs font-semibold text-gray-300">{t('properties.stroke')}</label>
             {onStrokeEnabledChange && (
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -216,7 +219,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
               />
               {onStrokeWidthChange && (
                 <div className="mt-3">
-                  <label className="block text-xs font-medium text-gray-300 mb-2">線の太さ</label>
+                  <label className="block text-xs font-medium text-gray-300 mb-2">{t('properties.strokeWidth')}</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="range"
@@ -244,7 +247,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
           {/* Fill controls */}
           <div className="mb-4 p-3 bg-[#2b2b2b] rounded-lg">
             <div className="flex items-center justify-between mb-3">
-              <label className="text-xs font-semibold text-gray-300">塗り</label>
+              <label className="text-xs font-semibold text-gray-300">{t('properties.fill')}</label>
               {onFillEnabledChange && (
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -269,7 +272,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
           {/* Stroke controls */}
           <div className="mb-4 p-3 bg-[#2b2b2b] rounded-lg">
             <div className="flex items-center justify-between mb-3">
-              <label className="text-xs font-semibold text-gray-300">線</label>
+              <label className="text-xs font-semibold text-gray-300">{t('properties.stroke')}</label>
               {onStrokeEnabledChange && (
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -291,7 +294,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
                 />
                 {onStrokeWidthChange && (
                   <div className="mt-3">
-                    <label className="block text-xs font-medium text-gray-300 mb-2">線の太さ</label>
+                    <label className="block text-xs font-medium text-gray-300 mb-2">{t('properties.strokeWidth')}</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="range"
@@ -346,18 +349,18 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
           <button
             onClick={onBringToFront}
             className="px-3 py-2 text-xs font-medium text-gray-300 bg-[#333333] hover:bg-[#444444] rounded transition-colors flex items-center justify-center gap-1"
-            title="最前面へ"
+            title={t('properties.bringToFront')}
           >
             <span className="material-symbols-outlined text-[16px]">flip_to_front</span>
-            <span>最前面</span>
+            <span>{t('properties.bringToFront')}</span>
           </button>
           <button
             onClick={onSendToBack}
             className="px-3 py-2 text-xs font-medium text-gray-300 bg-[#333333] hover:bg-[#444444] rounded transition-colors flex items-center justify-center gap-1"
-            title="最背面へ"
+            title={t('properties.sendToBack')}
           >
             <span className="material-symbols-outlined text-[16px]">flip_to_back</span>
-            <span>最背面</span>
+            <span>{t('properties.sendToBack')}</span>
           </button>
         </div>
       </div>

@@ -1,0 +1,40 @@
+{
+  "upgrade": {
+    "title": "Premium-only Banner",
+    "description": "Upgrade required to view/edit this banner",
+    "features": {
+      "access": {
+        "title": "Access to all Premium banners",
+        "desc": "Unlimited use of high-quality templates"
+      },
+      "support": {
+        "title": "Priority Support",
+        "desc": "Support response within 24 hours"
+      },
+      "earlyAccess": {
+        "title": "Early access to new features",
+        "desc": "Priority use of AI features"
+      }
+    },
+    "upgradeButton": "Upgrade to Premium",
+    "cancel": "Cancel",
+    "comingSoon": "Upgrade feature coming soon"
+  },
+  "imageLibrary": {
+    "title": "Image Library",
+    "tabs": {
+      "default": "Default",
+      "myLibrary": "My Library"
+    },
+    "upload": "Upload Image",
+    "uploading": "Uploading...",
+    "adminAccess": "👑 Admin Access",
+    "noDefaultImages": "No default images yet",
+    "noUserImages": "Upload images to add to your library",
+    "onlyImages": "Please select image files only",
+    "loginRequired": "Login required",
+    "uploadSuccess": "{{count}} image(s) uploaded",
+    "uploadPartialFail": "{{success}} succeeded, {{fail}} failed",
+    "uploadFailed": "Upload failed"
+  }
+}

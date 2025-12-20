@@ -1,0 +1,58 @@
+{
+  "tabs": {
+    "page": "ページ",
+    "object": "オブジェクト",
+    "layer": "レイヤー"
+  },
+  "page": {
+    "canvasSize": "キャンバスサイズ",
+    "backgroundColor": "背景色",
+    "noLayers": "レイヤーがありません",
+    "addObjects": "オブジェクトを追加してください"
+  },
+  "object": {
+    "text": "テキスト",
+    "shapes": "図形",
+    "image": "画像",
+    "addText": "テキスト追加",
+    "templates": "テンプレート"
+  },
+  "shapes": {
+    "rectangle": "四角形",
+    "circle": "円形",
+    "triangle": "三角形",
+    "star": "星",
+    "heart": "ハート"
+  },
+  "properties": {
+    "title": "プロパティ",
+    "selectObject": "オブジェクトを選択",
+    "font": "フォント",
+    "textSize": "文字サイズ",
+    "fontWeight": "太さ",
+    "fill": "塗りつぶし",
+    "stroke": "線",
+    "strokeOnly": "線のみ",
+    "strokeWidth": "線の太さ",
+    "opacity": "不透明度",
+    "layer": "レイヤー",
+    "bringToFront": "最前面へ",
+    "sendToBack": "最背面へ",
+    "moveUp": "前面へ",
+    "moveDown": "背面へ",
+    "width": "幅",
+    "height": "高さ",
+    "delete": "削除"
+  },
+  "textInput": {
+    "placeholder": "テキストを入力...",
+    "add": "追加"
+  },
+  "download": "ダウンロード",
+  "dropImage": "画像をドロップ",
+  "zoom": "ズーム",
+  "save": "保存",
+  "dragToReorder": "ドラッグして並び替え",
+  "lock": "ロック",
+  "unlock": "ロック解除"
+}

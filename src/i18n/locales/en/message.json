@@ -1,0 +1,23 @@
+{
+  "error": {
+    "imageGenerationFailed": "Image generation failed. Please try again.",
+    "exportFailed": "Image export failed.",
+    "loginRequired": "Login required",
+    "bannerCreationFailed": "Failed to create banner",
+    "uploadFailed": "Upload failed",
+    "onlyImageFiles": "Please select image files only",
+    "upgradeComingSoon": "Upgrade feature coming soon"
+  },
+  "success": {
+    "uploadComplete": "{{count}} image(s) uploaded successfully",
+    "uploadPartial": "{{success}} succeeded, {{fail}} failed"
+  },
+  "confirm": {
+    "deleteBanner": "Are you sure you want to delete this banner?"
+  },
+  "placeholder": {
+    "defaultBannerText": "Create banners with BANALIST.",
+    "enterText": "Enter text...",
+    "untitledBanner": "Untitled Banner"
+  }
+}

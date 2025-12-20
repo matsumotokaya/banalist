@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 
 export const AuthButton = () => {
+  const { t } = useTranslation(['auth', 'common']);
   const { user, profile, loading, signInWithGoogle, signOut } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -82,7 +84,7 @@ export const AuthButton = () => {
                   <div className="flex items-center gap-2 mt-1">
                     {profile?.role === 'admin' && (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                        Admin
+                        {t('auth:admin')}
                       </span>
                     )}
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
@@ -90,7 +92,7 @@ export const AuthButton = () => {
                         ? 'bg-yellow-100 text-yellow-800'
                         : 'bg-gray-100 text-gray-800'
                     }`}>
-                      {profile?.subscriptionTier === 'premium' ? 'Premium' : 'Free'}
+                      {profile?.subscriptionTier === 'premium' ? t('auth:premium') : t('auth:free')}
                     </span>
                   </div>
                 </div>
@@ -107,7 +109,7 @@ export const AuthButton = () => {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
-              <span>ログアウト</span>
+              <span>{t('auth:logout')}</span>
             </button>
           </div>
         )}
@@ -138,7 +140,7 @@ export const AuthButton = () => {
           d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
         />
       </svg>
-      Sign in with Google
+      {t('auth:signInWithGoogle')}
     </button>
   );
 };

@@ -1,0 +1,23 @@
+{
+  "error": {
+    "imageGenerationFailed": "画像生成に失敗しました。もう一度お試しください。",
+    "exportFailed": "画像のエクスポートに失敗しました。",
+    "loginRequired": "ログインが必要です",
+    "bannerCreationFailed": "バナーの作成に失敗しました",
+    "uploadFailed": "アップロードに失敗しました",
+    "onlyImageFiles": "画像ファイルのみ選択してください",
+    "upgradeComingSoon": "アップグレード機能は準備中です"
+  },
+  "success": {
+    "uploadComplete": "{{count}}個の画像を正常にアップロードしました",
+    "uploadPartial": "{{success}}個成功、{{fail}}個失敗"
+  },
+  "confirm": {
+    "deleteBanner": "このバナーを削除してもよろしいですか？"
+  },
+  "placeholder": {
+    "defaultBannerText": "BANALISTでバナーを作成しよう。",
+    "enterText": "テキストを入力...",
+    "untitledBanner": "無題のバナー"
+  }
+}

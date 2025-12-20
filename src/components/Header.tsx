@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AuthButton } from './AuthButton';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { useAuth } from '../contexts/AuthContext';
 
 interface HeaderProps {
@@ -14,6 +16,7 @@ interface HeaderProps {
 }
 
 export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChange, isPremium = false, onPremiumChange, isPublic = false, onPublicChange }: HeaderProps) => {
+  const { t } = useTranslation(['banner', 'common', 'auth']);
   const { profile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editingName, setEditingName] = useState('');
@@ -44,7 +47,7 @@ export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChan
           <button
             onClick={onBackToManager}
             className="w-8 h-8 md:w-9 md:h-9 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition-colors flex-shrink-0"
-            title="バナーマネージャーに戻る"
+            title={t('banner:backToManager')}
           >
             <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -81,7 +84,7 @@ export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChan
                   <button
                     onClick={handleStartEdit}
                     className="opacity-0 group-hover/title:opacity-100 p-1 hover:bg-white/20 rounded transition-all flex-shrink-0"
-                    title="名前を編集"
+                    title={t('banner:editName')}
                   >
                     <svg className="w-3 h-3 md:w-4 md:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -108,7 +111,7 @@ export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChan
                   <svg className="w-4 h-4 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z" />
                   </svg>
-                  Premium
+                  {t('common:label.premium')}
                 </span>
               </label>
             )}
@@ -128,7 +131,7 @@ export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChan
                     <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z" />
                     </svg>
-                    Private
+                    {t('common:label.private')}
                   </span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
@@ -144,7 +147,7 @@ export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChan
                       <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                       <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
                     </svg>
-                    Public
+                    {t('common:label.public')}
                   </span>
                 </label>
               </div>
@@ -154,6 +157,7 @@ export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChan
       </div>
 
       <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+        <LanguageSwitcher />
         <AuthButton />
       </div>
     </header>

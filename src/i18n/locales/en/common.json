@@ -1,0 +1,35 @@
+{
+  "button": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "duplicate": "Duplicate",
+    "add": "Add",
+    "apply": "Apply",
+    "close": "Close",
+    "upload": "Upload",
+    "create": "Create",
+    "back": "Back"
+  },
+  "label": {
+    "width": "Width",
+    "height": "Height",
+    "current": "Current",
+    "custom": "Custom",
+    "loading": "Loading...",
+    "admin": "Admin",
+    "premium": "Premium",
+    "free": "Free",
+    "private": "Private",
+    "public": "Public",
+    "name": "Name",
+    "untitled": "Untitled"
+  },
+  "status": {
+    "saving": "Saving...",
+    "saved": "Saved",
+    "loading": "Loading...",
+    "uploading": "Uploading...",
+    "creating": "Creating..."
+  }
+}

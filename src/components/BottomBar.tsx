@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 interface BottomBarProps {
   zoom: number;
   onZoomChange: (zoom: number) => void;
@@ -6,6 +8,7 @@ interface BottomBarProps {
 }
 
 export const BottomBar = ({ zoom, onZoomChange, onExport, isSaving = false }: BottomBarProps) => {
+  const { t } = useTranslation(['editor', 'common']);
   return (
     <div className="h-14 md:h-16 bg-white border-t border-gray-200 overflow-x-auto overflow-y-hidden">
       <div className="flex items-center justify-between px-3 md:px-6 h-full min-w-max">
@@ -51,14 +54,14 @@ export const BottomBar = ({ zoom, onZoomChange, onExport, isSaving = false }: Bo
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <span className="text-xs md:text-sm text-gray-500 font-medium">保存中...</span>
+                <span className="text-xs md:text-sm text-gray-500 font-medium">{t('common:status.saving')}</span>
               </>
             ) : (
               <>
                 <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span className="text-xs md:text-sm text-green-600 font-medium">保存済み</span>
+                <span className="text-xs md:text-sm text-green-600 font-medium">{t('common:status.saved')}</span>
               </>
             )}
           </div>
@@ -71,8 +74,8 @@ export const BottomBar = ({ zoom, onZoomChange, onExport, isSaving = false }: Bo
           <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
-          <span className="hidden sm:inline">ダウンロード</span>
-          <span className="sm:hidden">保存</span>
+          <span className="hidden sm:inline">{t('editor:download')}</span>
+          <span className="sm:hidden">{t('editor:save')}</span>
         </button>
       </div>
     </div>
