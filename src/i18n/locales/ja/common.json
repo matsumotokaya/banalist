@@ -9,7 +9,8 @@
     "close": "閉じる",
     "upload": "アップロード",
     "create": "作成",
-    "back": "戻る"
+    "back": "戻る",
+    "backToHome": "ホームに戻る"
   },
   "label": {
     "width": "幅",

@@ -292,10 +292,10 @@ interface ShapeElement {
 - **Free**: 無料プラン（デフォルト）
   - Freeバナーのみ作成・編集可能
   - Premiumバナーは閲覧・編集不可（アップグレードモーダル表示）
-- **Premium**: 有料サブスクリプションプラン
+- **Premium**: 有料サブスクリプションプラン（**$8/月**）
   - すべてのバナー（Free/Premium）を作成・編集可能
   - 優先サポート、今後の新機能への早期アクセス
-  - **現在プラン変更画面は開発中（Stripe連携予定）**
+  - **Stripe統合完了** ✅ (2025-12-21)
 
 ##### ユーザーロール（`profiles.role`）
 - **User**: 一般ユーザー（デフォルト）
@@ -327,11 +327,61 @@ is_public: boolean DEFAULT FALSE  -- 表示範囲（Public/Private）
 plan_type: text DEFAULT 'free'    -- プランタイプ（free/premium）
 ```
 
+### Stripe Subscription Integration ✅ NEW (2025-12-21)
+
+**Status**: ✅ Fully implemented and operational
+
+#### Features
+- **Stripe Checkout**: Seamless redirect-based payment flow
+- **Subscription Price**: $8.00/month (recurring)
+- **Webhook Integration**: Automatic profile updates after successful payment
+- **Auto-Refresh**: Profile data automatically refreshes on payment success page
+
+#### Technical Implementation
+- **Frontend**:
+  - `@stripe/stripe-js` for Checkout Session creation
+  - Upgrade modal with seamless Stripe redirection
+  - Payment success page with auto-redirect
+
+- **Backend**:
+  - Supabase Edge Functions:
+    - `create-checkout-session`: Creates Stripe Checkout Session
+    - `stripe-webhook`: Handles payment events and updates database
+  - Webhook events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
+
+- **Data Flow**:
+  ```
+  User clicks "Upgrade to Premium"
+    ↓
+  Edge Function creates Stripe Checkout Session
+    ↓
+  Redirects to Stripe Checkout page
+    ↓
+  User completes payment
+    ↓
+  Stripe sends webhook to Supabase
+    ↓
+  profiles.subscription_tier updated to 'premium'
+    ↓
+  User redirected to success page
+    ↓
+  Profile automatically refreshed (React Query)
+    ↓
+  Immediate access to Premium banners
+  ```
+
+#### Configuration
+- **Test Mode**: Currently using Stripe test API keys
+- **Environment Variables**:
+  - `VITE_STRIPE_PUBLISHABLE_KEY`: Frontend Stripe key
+  - `STRIPE_SECRET_KEY`: Backend Stripe key (Edge Functions)
+  - `STRIPE_WEBHOOK_SECRET`: Webhook signature verification
+
 #### 今後の実装予定
-- [ ] Stripe統合（サブスクリプション決済）
-- [ ] プラン変更画面
+- [ ] 本番環境への移行（Live Mode API Keys）
+- [ ] サブスクリプション管理画面（キャンセル・再開）
 - [ ] Premium限定機能（AI文言生成、高度なエフェクトなど）
-- [ ] サブスクリプション有効期限管理（`subscription_expires_at`）
+- [ ] 請求履歴・領収書ダウンロード
 
 ### Image Library System ✅ NEW (2025-11-23)
 WordPress-style image library with dual storage:

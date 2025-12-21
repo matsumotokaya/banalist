@@ -71,9 +71,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (error) {
       console.error('Error signing out:', error.message);
     }
-    // Clear sessionStorage cache on sign out
-    sessionStorage.removeItem('banalist_profile_cache');
-    sessionStorage.removeItem('banalist_profile_cache_v2');
   };
 
   // Provide optimistic default profile while loading

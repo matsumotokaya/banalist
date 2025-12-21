@@ -10,7 +10,14 @@
   },
   "success": {
     "uploadComplete": "{{count}} image(s) uploaded successfully",
-    "uploadPartial": "{{success}} succeeded, {{fail}} failed"
+    "uploadPartial": "{{success}} succeeded, {{fail}} failed",
+    "upgradeComplete": "Upgrade Complete!",
+    "welcomePremium": "Welcome to BANALIST Premium! You now have access to all premium features.",
+    "premiumFeatures": "Premium Features",
+    "feature1": "Access to all Premium banners",
+    "feature2": "Unlimited use of high-quality templates",
+    "feature3": "Priority support & early access to new features",
+    "redirecting": "Redirecting to home in {{seconds}} seconds..."
   },
   "confirm": {
     "deleteBanner": "Are you sure you want to delete this banner?"

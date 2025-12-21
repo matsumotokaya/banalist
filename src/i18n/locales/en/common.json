@@ -9,7 +9,8 @@
     "close": "Close",
     "upload": "Upload",
     "create": "Create",
-    "back": "Back"
+    "back": "Back",
+    "backToHome": "Back to Home"
   },
   "label": {
     "width": "Width",
