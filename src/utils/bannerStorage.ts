@@ -110,7 +110,7 @@ export const bannerStorage = {
 
     const defaultElements: CanvasElement[] = [
       {
-        id: 'default-text',
+        id: `text-${Date.now()}`,
         type: 'text',
         text: 'BANALISTでバナーをつくろう。',
         x: template.width / 2 - 550,

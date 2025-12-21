@@ -26,13 +26,20 @@ const constrainedDragBound = (pos: { x: number; y: number }, startPos: { x: numb
 const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, nodeRef }: ShapeRendererProps) => {
   const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
 
+  // Ensure all numeric properties are valid
+  const safeX = Number.isFinite(shape.x) ? shape.x : 100;
+  const safeY = Number.isFinite(shape.y) ? shape.y : 100;
+  const safeWidth = Number.isFinite(shape.width) ? shape.width : 200;
+  const safeHeight = Number.isFinite(shape.height) ? shape.height : 150;
+  const safeRotation = Number.isFinite(shape.rotation) ? shape.rotation : 0;
+  const safeOpacity = Number.isFinite(shape.opacity) ? shape.opacity : 1;
+
   const commonProps = {
-    key: shape.id,
     fill: shape.fillEnabled ? shape.fill : undefined,
     stroke: shape.strokeEnabled ? shape.stroke : undefined,
     strokeWidth: shape.strokeEnabled ? shape.strokeWidth : 0,
-    rotation: shape.rotation || 0,
-    opacity: shape.opacity ?? 1,
+    rotation: safeRotation,
+    opacity: safeOpacity,
     draggable: !shape.locked,
     listening: !shape.locked,
     onMouseDown: (e: Konva.KonvaEventObject<MouseEvent>) => onSelect(shape.id, e),
@@ -64,12 +71,18 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, nod
     node.scaleY(1);
 
     if (onUpdate) {
+      // Ensure width and height are valid numbers
+      const safeWidth = Number.isFinite(shape.width) ? shape.width : 200;
+      const safeHeight = Number.isFinite(shape.height) ? shape.height : 150;
+      const safeScaleX = Number.isFinite(scaleX) ? scaleX : 1;
+      const safeScaleY = Number.isFinite(scaleY) ? scaleY : 1;
+
       if (isCentered) {
         // For center-positioned shapes (star, circle)
         const centerX = node.x();
         const centerY = node.y();
-        const newWidth = Math.max(5, shape.width * scaleX);
-        const newHeight = Math.max(5, shape.height * scaleY);
+        const newWidth = Math.max(5, safeWidth * safeScaleX);
+        const newHeight = Math.max(5, safeHeight * safeScaleY);
 
         onUpdate(shape.id, {
           x: centerX - newWidth / 2,
@@ -83,8 +96,8 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, nod
         onUpdate(shape.id, {
           x: node.x(),
           y: node.y(),
-          width: Math.max(5, shape.width * scaleX),
-          height: Math.max(5, shape.height * scaleY),
+          width: Math.max(5, safeWidth * safeScaleX),
+          height: Math.max(5, safeHeight * safeScaleY),
           rotation: node.rotation(),
         });
       }
@@ -94,12 +107,13 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, nod
   if (shape.shapeType === 'rectangle') {
     return (
       <Rect
+        key={shape.id}
         {...commonProps}
         ref={(node) => nodeRef(node, shape.id)}
-        x={shape.x}
-        y={shape.y}
-        width={shape.width}
-        height={shape.height}
+        x={safeX}
+        y={safeY}
+        width={safeWidth}
+        height={safeHeight}
         onTransformEnd={handleTransformEnd}
       />
     );
@@ -108,15 +122,16 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, nod
   if (shape.shapeType === 'triangle') {
     return (
       <Line
+        key={shape.id}
         {...commonProps}
         ref={(node) => nodeRef(node, shape.id)}
         points={[
-          shape.width / 2, 0,
-          shape.width, shape.height,
-          0, shape.height
+          safeWidth / 2, 0,
+          safeWidth, safeHeight,
+          0, safeHeight
         ]}
-        x={shape.x}
-        y={shape.y}
+        x={safeX}
+        y={safeY}
         closed
         onTransformEnd={handleTransformEnd}
       />
@@ -126,20 +141,21 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, nod
   if (shape.shapeType === 'star') {
     return (
       <Star
+        key={shape.id}
         {...commonProps}
         ref={(node) => nodeRef(node, shape.id)}
-        x={shape.x + shape.width / 2}
-        y={shape.y + shape.height / 2}
+        x={safeX + safeWidth / 2}
+        y={safeY + safeHeight / 2}
         numPoints={5}
-        innerRadius={Math.min(shape.width, shape.height) / 4}
-        outerRadius={Math.min(shape.width, shape.height) / 2}
+        innerRadius={Math.min(safeWidth, safeHeight) / 4}
+        outerRadius={Math.min(safeWidth, safeHeight) / 2}
         onDragEnd={(e) => {
           if (onUpdate) {
             const centerX = e.target.x();
             const centerY = e.target.y();
             onUpdate(shape.id, {
-              x: centerX - shape.width / 2,
-              y: centerY - shape.height / 2,
+              x: centerX - safeWidth / 2,
+              y: centerY - safeHeight / 2,
             });
           }
         }}
@@ -151,19 +167,27 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, nod
   if (shape.shapeType === 'circle') {
     return (
       <Circle
+        key={shape.id}
         {...commonProps}
-        ref={(node) => nodeRef(node, shape.id)}
-        x={shape.x + shape.width / 2}
-        y={shape.y + shape.height / 2}
-        radiusX={shape.width / 2}
-        radiusY={shape.height / 2}
+        ref={(node) => {
+          if (node) {
+            // Set width and height for Transformer compatibility
+            node.width(safeWidth);
+            node.height(safeHeight);
+          }
+          nodeRef(node, shape.id);
+        }}
+        x={safeX + safeWidth / 2}
+        y={safeY + safeHeight / 2}
+        radiusX={safeWidth / 2}
+        radiusY={safeHeight / 2}
         onDragEnd={(e) => {
           if (onUpdate) {
             const centerX = e.target.x();
             const centerY = e.target.y();
             onUpdate(shape.id, {
-              x: centerX - shape.width / 2,
-              y: centerY - shape.height / 2,
+              x: centerX - safeWidth / 2,
+              y: centerY - safeHeight / 2,
             });
           }
         }}
@@ -173,21 +197,22 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, nod
   }
 
   if (shape.shapeType === 'heart') {
-    const heartPath = `M ${shape.width / 2} ${shape.height * 0.3}
-      C ${shape.width / 2} ${shape.height * 0.15}, ${shape.width * 0.35} 0, ${shape.width * 0.25} 0
-      C ${shape.width * 0.1} 0, 0 ${shape.height * 0.15}, 0 ${shape.height * 0.3}
-      C 0 ${shape.height * 0.55}, ${shape.width / 2} ${shape.height * 0.8}, ${shape.width / 2} ${shape.height}
-      C ${shape.width / 2} ${shape.height * 0.8}, ${shape.width} ${shape.height * 0.55}, ${shape.width} ${shape.height * 0.3}
-      C ${shape.width} ${shape.height * 0.15}, ${shape.width * 0.9} 0, ${shape.width * 0.75} 0
-      C ${shape.width * 0.65} 0, ${shape.width / 2} ${shape.height * 0.15}, ${shape.width / 2} ${shape.height * 0.3} Z`;
+    const heartPath = `M ${safeWidth / 2} ${safeHeight * 0.3}
+      C ${safeWidth / 2} ${safeHeight * 0.15}, ${safeWidth * 0.35} 0, ${safeWidth * 0.25} 0
+      C ${safeWidth * 0.1} 0, 0 ${safeHeight * 0.15}, 0 ${safeHeight * 0.3}
+      C 0 ${safeHeight * 0.55}, ${safeWidth / 2} ${safeHeight * 0.8}, ${safeWidth / 2} ${safeHeight}
+      C ${safeWidth / 2} ${safeHeight * 0.8}, ${safeWidth} ${safeHeight * 0.55}, ${safeWidth} ${safeHeight * 0.3}
+      C ${safeWidth} ${safeHeight * 0.15}, ${safeWidth * 0.9} 0, ${safeWidth * 0.75} 0
+      C ${safeWidth * 0.65} 0, ${safeWidth / 2} ${safeHeight * 0.15}, ${safeWidth / 2} ${safeHeight * 0.3} Z`;
 
     return (
       <Path
+        key={shape.id}
         {...commonProps}
         ref={(node) => nodeRef(node, shape.id)}
         data={heartPath}
-        x={shape.x}
-        y={shape.y}
+        x={safeX}
+        y={safeY}
         onTransformEnd={handleTransformEnd}
       />
     );
