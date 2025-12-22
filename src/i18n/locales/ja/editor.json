@@ -51,7 +51,14 @@
   "download": "ダウンロード",
   "dropImage": "画像をドロップ",
   "zoom": "ズーム",
-  "save": "保存",
+  "save": {
+    "save": "保存",
+    "saving": "保存中...",
+    "saved": "保存しました",
+    "unsaved": "未保存の変更",
+    "error": "保存エラー",
+    "retry": "再試行"
+  },
   "dragToReorder": "ドラッグして並び替え",
   "lock": "ロック",
   "unlock": "ロック解除"

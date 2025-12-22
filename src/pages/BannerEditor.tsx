@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import debounce from 'lodash.debounce';
 import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
 import { PropertyPanel } from '../components/PropertyPanel';
@@ -40,6 +41,14 @@ export const BannerEditor = () => {
   const canvasRef = useRef<CanvasRef>(null);
   const mainRef = useRef<HTMLDivElement>(null);
 
+  // Track current banner ID to detect banner switches
+  const [currentBannerId, setCurrentBannerId] = useState<string | null>(null);
+
+  // Track previous values to detect actual changes
+  const prevElementsRef = useRef<string>('');
+  const prevCanvasColorRef = useRef<string>('');
+  const isMountedRef = useRef(false);
+
   // Custom hooks
   const { saveToHistory, undo, redo } = useHistory();
   const getInitialZoom = () => {
@@ -51,13 +60,14 @@ export const BannerEditor = () => {
     containerRef: mainRef,
   });
   const elementOps = useElementOperations({
-    elements,
     setElements,
     saveToHistory,
   });
 
-  // Initialize local state from React Query data
+  // Initialize local state from React Query data ONLY when banner changes
   useEffect(() => {
+    console.log('[BannerEditor] useEffect triggered. Banner:', banner?.id, 'CurrentBannerId:', currentBannerId);
+
     if (!banner) {
       if (!isLoading && !id) {
         navigate('/');
@@ -74,114 +84,205 @@ export const BannerEditor = () => {
       }
     }
 
-    // Migrate existing shapes and text to new fill/stroke structure
-    const migratedElements = banner.elements.map((el) => {
-      if (el.type === 'shape') {
-        const shape = el as ShapeElement;
-        return {
-          ...shape,
-          fillEnabled: shape.fillEnabled !== undefined ? shape.fillEnabled : true,
-          stroke: shape.stroke || '#000000',
-          strokeWidth: shape.strokeWidth || 2,
-          strokeEnabled: shape.strokeEnabled !== undefined ? shape.strokeEnabled : false,
-        } as ShapeElement;
-      }
-      if (el.type === 'text') {
-        const text = el as TextElement;
-        // Migrate old strokeOnly property to new structure
-        const strokeOnly = (text as any).strokeOnly;
-        return {
-          ...text,
-          fillEnabled: text.fillEnabled !== undefined ? text.fillEnabled : (strokeOnly === undefined ? true : !strokeOnly),
-          stroke: text.stroke || text.fill || '#000000',
-          strokeWidth: text.strokeWidth || Math.max(text.fontSize * 0.03, 2),
-          strokeEnabled: text.strokeEnabled !== undefined ? text.strokeEnabled : (strokeOnly || false),
-        } as TextElement;
-      }
-      return el;
-    });
+    // Only load from DB when opening a different banner
+    if (banner.id !== currentBannerId) {
+      console.log('[BannerEditor] Loading NEW banner from DB:', banner.id);
+      console.log('[BannerEditor] Previous bannerId:', currentBannerId);
+      console.log('[BannerEditor] Banner elements from DB:', banner.elements.length, 'elements');
+      setCurrentBannerId(banner.id);
 
-    setElements(migratedElements);
-    setCanvasColor(banner.canvasColor);
-  }, [banner, isLoading, id, navigate, profile]);
-
-  // Auto-save with React Query mutation (optimized batch save)
-  const pendingSaveRef = useRef<{
-    elements?: CanvasElement[];
-    canvasColor?: string;
-  }>({});
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const thumbnailTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const scheduleBatchSave = useCallback(() => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-
-    saveTimeoutRef.current = setTimeout(async () => {
-      if (!banner) return;
-
-      const updates: any = {};
-
-      if (pendingSaveRef.current.elements) {
-        updates.elements = pendingSaveRef.current.elements;
-      }
-      if (pendingSaveRef.current.canvasColor) {
-        updates.canvasColor = pendingSaveRef.current.canvasColor;
-      }
-
-      if (Object.keys(updates).length > 0) {
-        await batchSave.mutateAsync(updates);
-        console.log('Batch saved:', Object.keys(updates).join(', '));
-      }
-
-      pendingSaveRef.current = {};
-    }, 2000); // 2 second debounce
-  }, [banner, batchSave]);
-
-  // Trigger save for elements
-  useEffect(() => {
-    if (banner && elements.length > 0) {
-      pendingSaveRef.current.elements = elements;
-      scheduleBatchSave();
-    }
-  }, [elements, banner, scheduleBatchSave]);
-
-  // Trigger save for canvas color
-  useEffect(() => {
-    if (banner) {
-      pendingSaveRef.current.canvasColor = canvasColor;
-      scheduleBatchSave();
-    }
-  }, [canvasColor, banner, scheduleBatchSave]);
-
-  // Separate thumbnail generation (every 5 seconds)
-  useEffect(() => {
-    if (!banner || !canvasRef.current || elements.length === 0) return;
-
-    if (thumbnailTimeoutRef.current) {
-      clearTimeout(thumbnailTimeoutRef.current);
-    }
-
-    thumbnailTimeoutRef.current = setTimeout(async () => {
-      try {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        const thumbnailDataURL = canvasRef.current?.exportImage();
-        if (thumbnailDataURL && thumbnailDataURL.length > 100) {
-          await batchSave.mutateAsync({ thumbnailDataURL });
-          console.log('Thumbnail saved');
+      // Migrate existing shapes and text to new fill/stroke structure
+      const migratedElements = banner.elements.map((el) => {
+        if (el.type === 'shape') {
+          const shape = el as ShapeElement;
+          return {
+            ...shape,
+            fillEnabled: shape.fillEnabled !== undefined ? shape.fillEnabled : true,
+            stroke: shape.stroke || '#000000',
+            strokeWidth: shape.strokeWidth || 2,
+            strokeEnabled: shape.strokeEnabled !== undefined ? shape.strokeEnabled : false,
+          } as ShapeElement;
         }
-      } catch (error) {
-        console.error('Error generating thumbnail:', error);
+        if (el.type === 'text') {
+          const text = el as TextElement;
+          // Migrate old strokeOnly property to new structure
+          const strokeOnly = (text as any).strokeOnly;
+          return {
+            ...text,
+            fillEnabled: text.fillEnabled !== undefined ? text.fillEnabled : (strokeOnly === undefined ? true : !strokeOnly),
+            stroke: text.stroke || text.fill || '#000000',
+            strokeWidth: text.strokeWidth || Math.max(text.fontSize * 0.03, 2),
+            strokeEnabled: text.strokeEnabled !== undefined ? text.strokeEnabled : (strokeOnly || false),
+          } as TextElement;
+        }
+        return el;
+      });
+
+      console.log('[BannerEditor] Setting elements to:', migratedElements);
+      setElements(migratedElements);
+      setCanvasColor(banner.canvasColor);
+
+      // If new banner with no elements, add default text and save to DB immediately
+      if (migratedElements.length === 0) {
+        console.log('[BannerEditor] Banner is empty, adding default text and saving to DB');
+        const defaultText: TextElement = {
+          id: `text-${Date.now()}-${Math.random()}`, // Unique ID with random component
+          type: 'text',
+          text: 'BANALISTでバナーをつくろう。',
+          x: banner.template.width / 2 - 550,
+          y: banner.template.height / 2 - 40,
+          fontSize: 80,
+          fontFamily: 'Arial',
+          fill: '#000000',
+          fillEnabled: true,
+          stroke: '#000000',
+          strokeWidth: 2,
+          strokeEnabled: false,
+          fontWeight: 400,
+        };
+        const newElements = [defaultText];
+        setElements(newElements);
+
+        // Save default text to DB immediately to maintain consistency
+        batchSave.mutateAsync({
+          elements: newElements,
+          canvasColor: banner.canvasColor,
+        }).then(() => {
+          console.log('[BannerEditor] Default text saved to DB');
+          setHasUnsavedChanges(false); // Already saved
+        }).catch((error) => {
+          console.error('[BannerEditor] Failed to save default text to DB:', error);
+          setHasUnsavedChanges(true); // Mark as unsaved if save fails
+        });
       }
-    }, 5000);
+    } else {
+      console.log('[BannerEditor] Same banner, keeping local state. BannerID:', banner.id);
+      // Don't log elements.length here to avoid dependency issues
+    }
+    // If same banner, keep local state (don't overwrite with DB)
+    // Note: elements is NOT in dependency array to avoid loops
+  }, [banner?.id, banner?.template, isLoading, id, navigate, profile, currentBannerId]);
+
+  // Track if there are unsaved changes and save status
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved' | 'error'>('saved');
+  const [lastSaveError, setLastSaveError] = useState<string | null>(null);
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  // Core save function
+  const performSave = async (generateThumbnail = false) => {
+    if (!banner || !id) return;
+
+    console.log('[BannerEditor] Saving... Elements:', elements.length, 'Banner ID:', banner.id);
+    setSaveStatus('saving');
+    setLastSaveError(null);
+
+    try {
+      let thumbnailDataURL: string | undefined;
+
+      // Only generate thumbnail for manual saves or periodically
+      if (generateThumbnail && canvasRef.current && elements.length > 0) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        thumbnailDataURL = canvasRef.current.exportImage();
+      }
+
+      // Save to database
+      console.log('[BannerEditor] Calling batchSave with', elements.length, 'elements');
+      await batchSave.mutateAsync({
+        elements,
+        canvasColor,
+        thumbnailDataURL,
+      });
+
+      setHasUnsavedChanges(false);
+      setSaveStatus('saved');
+      console.log('[BannerEditor] Auto-save successful');
+    } catch (error) {
+      console.error('[BannerEditor] Save failed:', error);
+      setSaveStatus('error');
+      setLastSaveError(error instanceof Error ? error.message : '保存に失敗しました');
+      // Don't show alert for auto-save failures, just show in status indicator
+    }
+  };
+
+  // Debounced auto-save (3 seconds after last change for better performance)
+  const debouncedSave = useMemo(
+    () => debounce(() => {
+      performSave(false); // No thumbnail for auto-saves
+    }, 3000), // Increased from 2000ms to 3000ms
+    [elements, canvasColor, banner, id]
+  );
+
+  // Immediate save for important actions
+  const immediateSave = useCallback(async () => {
+    debouncedSave.cancel();
+    await performSave(false); // No thumbnail for immediate saves to improve performance
+  }, [elements, canvasColor, banner, id]);
+
+  // Mark as dirty and trigger auto-save when elements actually change
+  useEffect(() => {
+    const currentElementsStr = JSON.stringify(elements);
+
+    // Skip on initial mount
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      prevElementsRef.current = currentElementsStr;
+      return;
+    }
+
+    // Only save if elements actually changed
+    if (currentElementsStr !== prevElementsRef.current && banner && currentBannerId === banner.id) {
+      console.log('[BannerEditor] Elements actually changed, triggering auto-save');
+      prevElementsRef.current = currentElementsStr;
+      setHasUnsavedChanges(true);
+      setSaveStatus('unsaved');
+      debouncedSave();
+    }
 
     return () => {
-      if (thumbnailTimeoutRef.current) {
-        clearTimeout(thumbnailTimeoutRef.current);
+      debouncedSave.cancel();
+    };
+  }, [elements, banner, currentBannerId, debouncedSave]);
+
+  // Mark as dirty and trigger auto-save when canvas color actually changes
+  useEffect(() => {
+    if (!isMountedRef.current) return;
+
+    if (canvasColor !== prevCanvasColorRef.current && banner && currentBannerId === banner.id) {
+      console.log('[BannerEditor] Canvas color changed, triggering auto-save');
+      prevCanvasColorRef.current = canvasColor;
+      setHasUnsavedChanges(true);
+      setSaveStatus('unsaved');
+      debouncedSave();
+    }
+  }, [canvasColor, banner, currentBannerId, debouncedSave]);
+
+  // Save before leaving page (if there are unsaved changes)
+  useEffect(() => {
+    const handleBeforeUnload = async (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        // Cancel any pending saves
+        debouncedSave.cancel();
+
+        // Try to save synchronously (best effort)
+        // Note: Modern browsers may not allow async operations in beforeunload
+        performSave(false);
+
+        // Don't show confirmation dialog since we're auto-saving
+        // If save is critical, uncomment these lines:
+        // e.preventDefault();
+        // e.returnValue = '';
       }
     };
-  }, [elements, canvasColor, banner, batchSave]);
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  // Manual save handler (for save button)
+  const handleSave = async () => {
+    await immediateSave();
+  };
 
   // Copy (with localStorage for cross-banner support)
   const handleCopy = () => {
@@ -236,6 +337,9 @@ export const BannerEditor = () => {
     if (selectedElementIds.length > 0) {
       elementOps.deleteElements(selectedElementIds);
       setSelectedElementIds([]);
+
+      // Immediate save for element deletion
+      immediateSave();
     }
   };
 
@@ -308,6 +412,7 @@ export const BannerEditor = () => {
     onCopy: handleCopy,
     onPaste: handlePaste,
     onDelete: handleDelete,
+    onSave: handleSave,
     onMoveUp: handleMoveUp,
     onMoveDown: handleMoveDown,
     onMoveLeft: handleMoveLeft,
@@ -344,6 +449,9 @@ export const BannerEditor = () => {
     };
     elementOps.addElement(newElement);
     setSelectedElementIds([newId]);
+
+    // Immediate save for element addition
+    immediateSave();
   };
 
   const handleAddShape = (shapeType: 'rectangle' | 'triangle' | 'star' | 'circle' | 'heart') => {
@@ -364,6 +472,9 @@ export const BannerEditor = () => {
     };
     elementOps.addElement(newShape);
     setSelectedElementIds([newId]);
+
+    // Immediate save for element addition
+    immediateSave();
   };
 
   const handleAddImage = (src: string, width: number, height: number) => {
@@ -387,6 +498,9 @@ export const BannerEditor = () => {
     });
 
     setSelectedElementIds([newId]);
+
+    // Immediate save for image addition
+    immediateSave();
   };
 
   const handleImageDrop = (imageUrl: string, x: number, y: number, width: number, height: number) => {
@@ -410,6 +524,9 @@ export const BannerEditor = () => {
     });
 
     setSelectedElementIds([newId]);
+
+    // Immediate save for image drop
+    immediateSave();
   };
 
   const handleTextChange = (id: string, newText: string) => {
@@ -586,19 +703,23 @@ export const BannerEditor = () => {
   }
 
   const handleBackToManager = async () => {
-    // Generate final thumbnail before leaving
-    if (canvasRef.current && elements.length > 0) {
-      try {
-        const thumbnailDataURL = canvasRef.current.exportImage();
-        if (thumbnailDataURL && thumbnailDataURL.length > 100) {
-          await batchSave.mutateAsync({ thumbnailDataURL });
-          console.log('Final thumbnail saved before leaving');
-        }
-      } catch (error) {
-        console.error('Error generating final thumbnail:', error);
-      }
+    // Prevent multiple clicks
+    if (isNavigating) return;
+
+    setIsNavigating(true);
+
+    try {
+      // Save any pending changes with thumbnail before navigating
+      debouncedSave.cancel();
+      await performSave(true); // Always generate thumbnail when leaving editor
+      navigate('/');
+    } catch (error) {
+      console.error('[BannerEditor] Failed to save before navigating:', error);
+      // Navigate anyway to avoid being stuck
+      navigate('/');
+    } finally {
+      setIsNavigating(false);
     }
-    navigate('/');
   };
 
   return (
@@ -613,6 +734,7 @@ export const BannerEditor = () => {
         isPublic={banner.isPublic}
         onPublicChange={handlePublicChange}
       />
+
 
       {/* Desktop Layout */}
       <div className="hidden md:flex flex-1 overflow-hidden">
@@ -737,7 +859,14 @@ export const BannerEditor = () => {
         />
       </div>
 
-      <BottomBar zoom={zoom} onZoomChange={setZoom} onExport={handleExport} isSaving={batchSave.isPending} />
+      <BottomBar
+        zoom={zoom}
+        onZoomChange={setZoom}
+        onExport={handleExport}
+        saveStatus={saveStatus}
+        lastSaveError={lastSaveError}
+        onRetry={immediateSave}
+      />
 
       {/* Upgrade Modal */}
       <UpgradeModal
@@ -747,6 +876,19 @@ export const BannerEditor = () => {
           navigate('/');
         }}
       />
+
+      {/* Loading overlay when navigating */}
+      {isNavigating && (
+        <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center">
+          <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-4 shadow-2xl">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600"></div>
+            <div className="text-center">
+              <p className="text-base font-semibold text-gray-800">サムネイル生成中...</p>
+              <p className="text-sm text-gray-500 mt-1">しばらくお待ちください</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

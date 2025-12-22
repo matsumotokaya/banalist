@@ -108,31 +108,14 @@ export const bannerStorage = {
       return null;
     }
 
-    const defaultElements: CanvasElement[] = [
-      {
-        id: `text-${Date.now()}`,
-        type: 'text',
-        text: 'BANALISTでバナーをつくろう。',
-        x: template.width / 2 - 550,
-        y: template.height / 2 - 40,
-        fontSize: 80,
-        fontFamily: 'Arial',
-        fill: '#000000',
-        fillEnabled: true,
-        stroke: '#000000',
-        strokeWidth: 2,
-        strokeEnabled: false,
-        fontWeight: 400,
-      },
-    ];
-
+    // Create banner with empty elements (no default text)
     const { data, error } = await supabase
       .from('banners')
       .insert({
         user_id: user.id,
         name,
         template,
-        elements: defaultElements,
+        elements: [], // Empty array - default elements will be added on client side
         canvas_color: '#FFFFFF',
       })
       .select()

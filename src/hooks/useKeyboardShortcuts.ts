@@ -6,6 +6,7 @@ interface KeyboardShortcutsConfig {
   onCopy?: () => void;
   onPaste?: () => void;
   onDelete?: () => void;
+  onSave?: () => void;
   onMoveUp?: (distance: number) => void;
   onMoveDown?: (distance: number) => void;
   onMoveLeft?: (distance: number) => void;
@@ -18,6 +19,7 @@ export const useKeyboardShortcuts = ({
   onCopy,
   onPaste,
   onDelete,
+  onSave,
   onMoveUp,
   onMoveDown,
   onMoveLeft,
@@ -40,6 +42,13 @@ export const useKeyboardShortcuts = ({
       if ((e.metaKey || e.ctrlKey) && e.key === 'y') {
         e.preventDefault();
         onRedo?.();
+        return;
+      }
+
+      // Save (Cmd+S / Ctrl+S)
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        onSave?.();
         return;
       }
 
@@ -90,5 +99,5 @@ export const useKeyboardShortcuts = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onUndo, onRedo, onCopy, onPaste, onDelete, onMoveUp, onMoveDown, onMoveLeft, onMoveRight]);
+  }, [onUndo, onRedo, onCopy, onPaste, onDelete, onSave, onMoveUp, onMoveDown, onMoveLeft, onMoveRight]);
 };

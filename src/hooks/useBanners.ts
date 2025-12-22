@@ -28,8 +28,10 @@ export function useBanner(id: string | undefined) {
   return useQuery({
     queryKey: bannerKeys.detail(id || ''),
     queryFn: async () => {
+      console.log('[useBanner] Fetching banner from DB:', id);
       if (!id) return null;
       const banner = await bannerStorage.getById(id, false); // Disable old cache
+      console.log('[useBanner] Fetched banner with', banner?.elements.length, 'elements');
       return banner;
     },
     enabled: !!id, // Only run if id exists
@@ -95,6 +97,8 @@ export function useUpdateBanner(id: string) {
 }
 
 // Batch save (elements, canvas color, thumbnail)
+// Optimistic update DISABLED to prevent local state from being overwritten
+// Cache invalidation DISABLED to maintain local state as source of truth
 export function useBatchSaveBanner(id: string) {
   const queryClient = useQueryClient();
 
@@ -104,34 +108,23 @@ export function useBatchSaveBanner(id: string) {
       canvasColor?: string;
       thumbnailDataURL?: string;
     }) => {
+      console.log('[useBatchSaveBanner] Saving to DB...', updates);
       await bannerStorage.batchSave(id, updates);
+      console.log('[useBatchSaveBanner] Save complete');
       return updates;
     },
-    // Optimistic update
-    onMutate: async (updates) => {
-      await queryClient.cancelQueries({ queryKey: bannerKeys.detail(id) });
-      const previousBanner = queryClient.getQueryData<Banner>(bannerKeys.detail(id));
-
-      if (previousBanner) {
-        const optimisticBanner: Banner = {
-          ...previousBanner,
-          ...(updates.elements && { elements: updates.elements }),
-          ...(updates.canvasColor && { canvasColor: updates.canvasColor }),
-          ...(updates.thumbnailDataURL && { thumbnailDataURL: updates.thumbnailDataURL }),
-        };
-        queryClient.setQueryData<Banner>(bannerKeys.detail(id), optimisticBanner);
+    onSuccess: (updates) => {
+      console.log('[useBatchSaveBanner] Save successful. NOT invalidating cache to maintain local state.');
+      // Instead of invalidating, update the cache directly with new data
+      // This prevents re-fetching from DB which would overwrite local state
+      const currentBanner = queryClient.getQueryData<Banner>(bannerKeys.detail(id));
+      if (currentBanner) {
+        queryClient.setQueryData<Banner>(bannerKeys.detail(id), {
+          ...currentBanner,
+          ...updates,
+          updatedAt: new Date().toISOString(),
+        });
       }
-
-      return { previousBanner };
-    },
-    onError: (err, variables, context) => {
-      if (context?.previousBanner) {
-        queryClient.setQueryData(bannerKeys.detail(id), context.previousBanner);
-      }
-    },
-    onSettled: () => {
-      // Don't invalidate immediately to avoid refetch during editing
-      // The cache will be updated optimistically
     },
   });
 }

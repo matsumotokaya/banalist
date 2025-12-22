@@ -51,7 +51,14 @@
   "download": "Download",
   "dropImage": "Drop image here",
   "zoom": "Zoom",
-  "save": "Save",
+  "save": {
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "unsaved": "Unsaved changes",
+    "error": "Save error",
+    "retry": "Retry"
+  },
   "dragToReorder": "Drag to reorder",
   "lock": "Lock",
   "unlock": "Unlock"
