@@ -101,8 +101,9 @@ const ImageRendererComponent = ({
       height={imageElement.height}
       rotation={imageElement.rotation || 0}
       opacity={imageElement.opacity ?? 1}
-      draggable={!imageElement.locked}
-      listening={!imageElement.locked}
+      visible={imageElement.visible ?? true}
+      draggable={!imageElement.locked && (imageElement.visible ?? true)}
+      listening={!imageElement.locked && (imageElement.visible ?? true)}
       onMouseDown={(e) => onSelect(imageElement.id, e)}
       onDragStart={(e) => {
         dragStartPosRef.current = { x: e.target.x(), y: e.target.y() };
@@ -159,6 +160,7 @@ export const ImageRenderer = memo(ImageRendererComponent, (prevProps, nextProps)
     prevImage.rotation === nextImage.rotation &&
     prevImage.opacity === nextImage.opacity &&
     prevImage.locked === nextImage.locked &&
+    prevImage.visible === nextImage.visible &&
     prevProps.isShiftPressed === nextProps.isShiftPressed
   );
 });

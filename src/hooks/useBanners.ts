@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { bannerStorage } from '../utils/bannerStorage';
-import type { Banner, CanvasElement, Template } from '../types/template';
+import type { Banner, BannerListItem, CanvasElement, Template } from '../types/template';
 
 // Query keys
 export const bannerKeys = {
@@ -16,10 +16,13 @@ export function useBanners() {
   return useQuery({
     queryKey: bannerKeys.lists(),
     queryFn: async () => {
+      console.log('[useBanners] 🔍 Fetching banners from database...');
       const banners = await bannerStorage.getAll(false); // Disable old cache, use React Query cache
+      console.log('[useBanners] ✅ Fetched', banners.length, 'banners');
       return banners;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // Always fetch fresh data when component mounts or tab becomes visible
+    refetchOnMount: 'always', // Always refetch when component mounts
   });
 }
 
@@ -114,9 +117,16 @@ export function useBatchSaveBanner(id: string) {
       return updates;
     },
     onSuccess: (updates) => {
-      console.log('[useBatchSaveBanner] Save successful. NOT invalidating cache to maintain local state.');
-      // Instead of invalidating, update the cache directly with new data
-      // This prevents re-fetching from DB which would overwrite local state
+      console.log('[useBatchSaveBanner] 💾 Save successful.');
+      console.log('[useBatchSaveBanner] Updates:', {
+        hasElements: !!updates.elements,
+        elementsCount: updates.elements?.length,
+        hasCanvasColor: !!updates.canvasColor,
+        hasThumbnail: !!updates.thumbnailDataURL,
+        thumbnailPrefix: updates.thumbnailDataURL?.substring(0, 80),
+      });
+
+      // Update the detail cache directly to maintain local state
       const currentBanner = queryClient.getQueryData<Banner>(bannerKeys.detail(id));
       if (currentBanner) {
         queryClient.setQueryData<Banner>(bannerKeys.detail(id), {
@@ -125,6 +135,10 @@ export function useBatchSaveBanner(id: string) {
           updatedAt: new Date().toISOString(),
         });
       }
+
+      // Invalidate banner list to refresh thumbnails on list page
+      console.log('[useBatchSaveBanner] 🔄 Invalidating banner list cache...');
+      queryClient.invalidateQueries({ queryKey: bannerKeys.lists() });
     },
   });
 }
@@ -231,35 +245,3 @@ export function useUpdateBannerPlanType(id: string) {
 }
 
 // Update public status
-export function useUpdateBannerIsPublic(id: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (isPublic: boolean) => {
-      await bannerStorage.updateIsPublic(id, isPublic);
-      return isPublic;
-    },
-    onMutate: async (isPublic) => {
-      await queryClient.cancelQueries({ queryKey: bannerKeys.detail(id) });
-      const previousBanner = queryClient.getQueryData<Banner>(bannerKeys.detail(id));
-
-      if (previousBanner) {
-        queryClient.setQueryData<Banner>(bannerKeys.detail(id), {
-          ...previousBanner,
-          isPublic,
-        });
-      }
-
-      return { previousBanner };
-    },
-    onError: (err, variables, context) => {
-      if (context?.previousBanner) {
-        queryClient.setQueryData(bannerKeys.detail(id), context.previousBanner);
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: bannerKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: bannerKeys.lists() });
-    },
-  });
-}

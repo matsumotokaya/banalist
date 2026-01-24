@@ -30,6 +30,7 @@
     "font": "Font",
     "textSize": "Text Size",
     "fontWeight": "Font Weight",
+    "letterSpacing": "Letter Spacing",
     "fill": "Fill",
     "stroke": "Stroke",
     "strokeOnly": "Stroke Only",
@@ -60,6 +61,10 @@
     "retry": "Retry"
   },
   "dragToReorder": "Drag to reorder",
+  "layerVisibility": {
+    "show": "Show",
+    "hide": "Hide"
+  },
   "lock": "Lock",
   "unlock": "Unlock"
 }

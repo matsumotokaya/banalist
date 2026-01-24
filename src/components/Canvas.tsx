@@ -17,7 +17,7 @@ interface CanvasProps {
   selectedElementIds?: string[];
   onSelectElement?: (ids: string[]) => void;
   onElementUpdate?: (id: string, updates: Partial<CanvasElement>) => void;
-  onImageDrop?: (imageUrl: string, x: number, y: number, width: number, height: number) => void;
+  onImageDrop?: (file: File, x: number, y: number, width: number, height: number) => void;
 }
 
 export interface CanvasRef {
@@ -212,6 +212,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
     textarea.style.fontSize = `${element.fontSize * scale}px`;
     textarea.style.fontFamily = element.fontFamily;
     textarea.style.fontWeight = element.fontWeight.toString();
+    textarea.style.letterSpacing = `${(element.letterSpacing ?? 0) * scale}px`;
     textarea.style.border = '2px solid #4F46E5';
     textarea.style.padding = '2px 4px';
     textarea.style.margin = '0px';
@@ -270,29 +271,31 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
     if (!onImageDrop || !stageRef.current) return;
 
     const files = Array.from(e.dataTransfer.files);
-    const imageFile = files.find(file => file.type.startsWith('image/'));
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
 
-    if (!imageFile) return;
+    if (imageFiles.length === 0) return;
 
     // Get drop position relative to canvas
     const stage = stageRef.current;
     const stageContainer = stage.container().getBoundingClientRect();
-    const dropX = (e.clientX - stageContainer.left) / scale;
-    const dropY = (e.clientY - stageContainer.top) / scale;
+    const baseDropX = (e.clientX - stageContainer.left) / scale;
+    const baseDropY = (e.clientY - stageContainer.top) / scale;
 
-    // Read the file and create an image element
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const imageUrl = event.target?.result as string;
-
-      // Create temp image to get dimensions
+    // Process each image file
+    imageFiles.forEach((imageFile, index) => {
+      const objectUrl = URL.createObjectURL(imageFile);
       const img = new Image();
       img.onload = () => {
-        onImageDrop(imageUrl, dropX, dropY, img.width, img.height);
+        const offsetX = baseDropX + (index * 50);
+        const offsetY = baseDropY + (index * 50);
+        onImageDrop(imageFile, offsetX, offsetY, img.width, img.height);
+        URL.revokeObjectURL(objectUrl);
       };
-      img.src = imageUrl;
-    };
-    reader.readAsDataURL(imageFile);
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+      };
+      img.src = objectUrl;
+    });
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {

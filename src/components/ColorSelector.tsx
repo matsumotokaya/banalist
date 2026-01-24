@@ -6,8 +6,8 @@ interface ColorSelectorProps {
 }
 
 const PRESET_COLORS = [
-  '#000000', '#FFFFFF', '#EF4444', '#F97316', '#F59E0B', '#EAB308',
-  '#84CC16', '#22C55E', '#10B981', '#14B8A6', '#06B6D4', '#0EA5E9',
+  '#000000', '#FFFFFF', '#EF4444', '#F59E0B',
+  '#22C55E', '#0EA5E9', '#8B5CF6', '#EC4899',
 ];
 
 export const ColorSelector = ({
@@ -17,35 +17,51 @@ export const ColorSelector = ({
   showInput = true,
 }: ColorSelectorProps) => {
   return (
-    <div>
+    <div className="w-full">
       {label && (
-        <label className="block text-xs font-medium text-gray-700 mb-2">
+        <label className="block text-xs font-medium text-gray-300 mb-2">
           {label}
         </label>
       )}
       {showInput && (
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-1.5 mb-2">
           <div
-            className="w-8 h-8 rounded border-2 border-gray-300 shadow-sm flex-shrink-0"
+            className="w-7 h-7 rounded border-2 border-gray-600 shadow-sm flex-shrink-0"
             style={{ backgroundColor: selectedColor }}
           />
           <input
             type="text"
             value={selectedColor}
             onChange={(e) => onColorChange(e.target.value)}
-            className="w-full px-2 py-1 border border-gray-300 rounded text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="flex-1 min-w-0 px-2 py-1.5 bg-[#2b2b2b] border border-[#444444] rounded text-xs font-mono text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
+          <div className="relative flex-shrink-0">
+            <input
+              type="color"
+              value={selectedColor}
+              onChange={(e) => onColorChange(e.target.value)}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              title="カラーピッカーを開く"
+            />
+            <button
+              type="button"
+              className="w-7 h-7 flex items-center justify-center bg-[#333333] hover:bg-[#444444] border border-[#555555] rounded transition-colors"
+              title="カラーピッカーを開く"
+            >
+              <span className="material-symbols-outlined text-gray-300 text-[16px]">colorize</span>
+            </button>
+          </div>
         </div>
       )}
-      <div className="grid grid-cols-6 gap-1.5">
+      <div className="grid grid-cols-4 gap-1.5">
         {PRESET_COLORS.map((color) => (
           <button
             key={color}
             onClick={() => onColorChange(color)}
-            className={`w-6 h-6 rounded border transition-all hover:scale-110 ${
+            className={`w-full aspect-square rounded border transition-all hover:scale-105 ${
               selectedColor.toLowerCase() === color.toLowerCase()
-                ? 'border-2 border-indigo-600'
-                : 'border border-gray-200'
+                ? 'border-2 border-indigo-500'
+                : 'border border-gray-600'
             }`}
             style={{ backgroundColor: color }}
             title={color}

@@ -37,6 +37,7 @@ interface SidebarProps {
   onSelectElement?: (ids: string[]) => void;
   onReorderElements?: (newOrder: CanvasElement[]) => void;
   onToggleLock?: (id: string) => void;
+  onToggleVisibility?: (id: string) => void;
   isMobile?: boolean;
 }
 
@@ -85,10 +86,11 @@ interface SortableLayerItemProps {
   isSelected: boolean;
   onSelect: (shiftKey: boolean) => void;
   onToggleLock: (id: string) => void;
+  onToggleVisibility: (id: string) => void;
   t: (key: string) => string;
 }
 
-const SortableLayerItem = ({ element, isSelected, onSelect, onToggleLock, t }: SortableLayerItemProps) => {
+const SortableLayerItem = ({ element, isSelected, onSelect, onToggleLock, onToggleVisibility, t }: SortableLayerItemProps) => {
   const {
     attributes,
     listeners,
@@ -97,6 +99,7 @@ const SortableLayerItem = ({ element, isSelected, onSelect, onToggleLock, t }: S
     transition,
     isDragging,
   } = useSortable({ id: element.id });
+  const isVisible = element.visible ?? true;
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -129,7 +132,7 @@ const SortableLayerItem = ({ element, isSelected, onSelect, onToggleLock, t }: S
             isSelected
               ? 'bg-indigo-100 text-indigo-900'
               : 'hover:bg-[#333333] text-gray-300'
-          }`}
+          } ${isVisible ? '' : 'opacity-60'}`}
         >
           <span className="material-symbols-outlined text-[18px] flex-shrink-0">
             {getLayerIcon(element)}
@@ -139,6 +142,20 @@ const SortableLayerItem = ({ element, isSelected, onSelect, onToggleLock, t }: S
           </span>
           <span className="text-xs text-gray-400 flex-shrink-0">
             {element.type === 'text' ? 'T' : element.type === 'image' ? 'I' : 'S'}
+          </span>
+        </button>
+
+        {/* Visibility button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleVisibility(element.id);
+          }}
+          className="p-2 hover:bg-[#444444] rounded transition-colors flex-shrink-0"
+          title={isVisible ? t('layerVisibility.hide') : t('layerVisibility.show')}
+        >
+          <span className="material-symbols-outlined text-[18px] text-gray-400">
+            {isVisible ? 'visibility' : 'visibility_off'}
           </span>
         </button>
 
@@ -174,6 +191,7 @@ export const Sidebar = ({
   onSelectElement,
   onReorderElements,
   onToggleLock,
+  onToggleVisibility,
   isMobile = false,
 }: SidebarProps) => {
   const { t } = useTranslation('editor');
@@ -249,7 +267,7 @@ export const Sidebar = ({
           </div>
 
           {/* Background section */}
-          <div className="flex flex-col items-center gap-2 min-w-[200px]">
+          <div className="flex flex-col items-center gap-2 min-w-[240px] max-w-[240px] px-3">
             <h3 className="text-[10px] font-semibold text-gray-400 uppercase">背景</h3>
             <ColorSelector selectedColor={canvasColor} onColorChange={onSelectColor} showInput={true} />
           </div>
@@ -432,6 +450,7 @@ export const Sidebar = ({
                             }
                           }}
                           onToggleLock={(id) => onToggleLock?.(id)}
+                          onToggleVisibility={(id) => onToggleVisibility?.(id)}
                           t={t}
                         />
                       );

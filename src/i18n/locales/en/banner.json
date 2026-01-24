@@ -1,5 +1,10 @@
 {
   "title": "My Banners",
+  "myBannersTab": "My Banners",
+  "templatesTitle": "Templates",
+  "templatesTab": "Templates",
+  "noTemplates": "No templates available",
+  "createFromTemplate": "Create with this design",
   "count": "{{count}} banner",
   "count_plural": "{{count}} banners",
   "noBanners": "No banners",

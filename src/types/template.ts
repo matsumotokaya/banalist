@@ -7,6 +7,17 @@ export interface Template {
   thumbnail?: string;
 }
 
+export interface TemplateRecord {
+  id: string;
+  name: string;
+  elements?: CanvasElement[];
+  canvasColor: string;
+  thumbnailUrl?: string;
+  planType: 'free' | 'premium';
+  width?: number;
+  height?: number;
+}
+
 export interface BaseElement {
   id: string;
   type: 'text' | 'shape' | 'image';
@@ -15,6 +26,7 @@ export interface BaseElement {
   rotation?: number;
   opacity?: number;
   locked?: boolean;
+  visible?: boolean;
 }
 
 export interface TextElement extends BaseElement {
@@ -22,6 +34,7 @@ export interface TextElement extends BaseElement {
   text: string;
   fontSize: number;
   fontFamily: string;
+  letterSpacing: number;
 
   // Fill properties
   fill: string;
@@ -68,7 +81,14 @@ export interface Banner {
   template: Template;
   elements: CanvasElement[];
   canvasColor: string;
-  thumbnailDataURL?: string;
+  thumbnailUrl?: string;
   planType: 'free' | 'premium';
-  isPublic: boolean;
+}
+
+export interface BannerListItem {
+  id: string;
+  name: string;
+  updatedAt: string;
+  thumbnailUrl?: string;
+  planType: 'free' | 'premium';
 }

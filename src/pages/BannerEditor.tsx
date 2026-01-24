@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import debounce from 'lodash.debounce';
 import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
@@ -7,27 +7,31 @@ import { PropertyPanel } from '../components/PropertyPanel';
 import { BottomBar } from '../components/BottomBar';
 import { Canvas, type CanvasRef } from '../components/Canvas';
 import { UpgradeModal } from '../components/UpgradeModal';
-import { useBanner, useBatchSaveBanner, useUpdateBanner, useUpdateBannerName, useUpdateBannerPlanType, useUpdateBannerIsPublic } from '../hooks/useBanners';
-import type { Template, CanvasElement, TextElement, ShapeElement, ImageElement } from '../types/template';
+import { useBanner, useBatchSaveBanner, useUpdateBanner, useUpdateBannerName, useUpdateBannerPlanType } from '../hooks/useBanners';
+import type { Banner, Template, CanvasElement, TextElement, ShapeElement, ImageElement } from '../types/template';
 import { useHistory } from '../hooks/useHistory';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useZoomControl } from '../hooks/useZoomControl';
 import { useElementOperations } from '../hooks/useElementOperations';
 import { useAuth } from '../contexts/AuthContext';
+import { isDataUrlImage, uploadDataUrlToBucket, uploadFileToBucket } from '../utils/storage';
 
 export const BannerEditor = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const location = useLocation();
+  const { profile, user } = useAuth();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const isGuest = !id;
+
+  const [guestTemplate, setGuestTemplate] = useState<Template | null>(null);
 
   // React Query hooks
-  const { data: banner, isLoading } = useBanner(id);
+  const { data: bannerData, isLoading } = useBanner(id);
   const batchSave = useBatchSaveBanner(id || '');
   const updateBanner = useUpdateBanner(id || '');
   const updateName = useUpdateBannerName(id || '');
   const updatePlanType = useUpdateBannerPlanType(id || '');
-  const updateIsPublic = useUpdateBannerIsPublic(id || '');
 
   // Local state for editing (not persisted immediately)
   const [elements, setElements] = useState<CanvasElement[]>([]);
@@ -35,11 +39,13 @@ export const BannerEditor = () => {
   const [selectedFont, setSelectedFont] = useState<string>('Arial');
   const [selectedSize, setSelectedSize] = useState<number>(80);
   const [selectedWeight, setSelectedWeight] = useState<number>(400);
+  const [selectedLetterSpacing, setSelectedLetterSpacing] = useState<number>(0);
   const [selectedTextColor, setSelectedTextColor] = useState<string>('#000000');
   const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]);
   const [copiedElement, setCopiedElement] = useState<CanvasElement | null>(null);
   const canvasRef = useRef<CanvasRef>(null);
   const mainRef = useRef<HTMLDivElement>(null);
+  const guestCreatedAtRef = useRef<string>(new Date().toISOString());
 
   // Track current banner ID to detect banner switches
   const [currentBannerId, setCurrentBannerId] = useState<string | null>(null);
@@ -64,8 +70,42 @@ export const BannerEditor = () => {
     saveToHistory,
   });
 
+  const guestState = location.state as {
+    template: Template;
+    elements: CanvasElement[];
+    canvasColor: string;
+    name: string;
+    planType: 'free' | 'premium';
+    templateId?: string;
+  } | null;
+
+  const guestBanner: Banner | null = guestState ? {
+    id: 'guest',
+    name: guestState.name,
+    createdAt: guestCreatedAtRef.current,
+    updatedAt: guestCreatedAtRef.current,
+    template: guestTemplate || guestState.template,
+    elements: guestState.elements,
+    canvasColor: guestState.canvasColor,
+    planType: guestState.planType || 'free',
+  } : null;
+
+  const banner = isGuest ? guestBanner : bannerData;
+
+  useEffect(() => {
+    if (!isGuest) return;
+    if (!guestState) {
+      navigate('/');
+      return;
+    }
+    setGuestTemplate(guestState.template);
+    setElements(guestState.elements || []);
+    setCanvasColor(guestState.canvasColor || '#FFFFFF');
+  }, [isGuest, guestState, navigate]);
+
   // Initialize local state from React Query data ONLY when banner changes
   useEffect(() => {
+    if (isGuest) return;
     console.log('[BannerEditor] useEffect triggered. Banner:', banner?.id, 'CurrentBannerId:', currentBannerId);
 
     if (!banner) {
@@ -101,6 +141,7 @@ export const BannerEditor = () => {
             stroke: shape.stroke || '#000000',
             strokeWidth: shape.strokeWidth || 2,
             strokeEnabled: shape.strokeEnabled !== undefined ? shape.strokeEnabled : false,
+            visible: shape.visible ?? true,
           } as ShapeElement;
         }
         if (el.type === 'text') {
@@ -113,7 +154,16 @@ export const BannerEditor = () => {
             stroke: text.stroke || text.fill || '#000000',
             strokeWidth: text.strokeWidth || Math.max(text.fontSize * 0.03, 2),
             strokeEnabled: text.strokeEnabled !== undefined ? text.strokeEnabled : (strokeOnly || false),
+            letterSpacing: text.letterSpacing ?? 0,
+            visible: text.visible ?? true,
           } as TextElement;
+        }
+        if (el.type === 'image') {
+          const image = el as ImageElement;
+          return {
+            ...image,
+            visible: image.visible ?? true,
+          } as ImageElement;
         }
         return el;
       });
@@ -133,12 +183,14 @@ export const BannerEditor = () => {
           y: banner.template.height / 2 - 40,
           fontSize: 80,
           fontFamily: 'Arial',
+          letterSpacing: 0,
           fill: '#000000',
           fillEnabled: true,
           stroke: '#000000',
           strokeWidth: 2,
           strokeEnabled: false,
           fontWeight: 400,
+          visible: true,
         };
         const newElements = [defaultText];
         setElements(newElements);
@@ -161,7 +213,7 @@ export const BannerEditor = () => {
     }
     // If same banner, keep local state (don't overwrite with DB)
     // Note: elements is NOT in dependency array to avoid loops
-  }, [banner?.id, banner?.template, isLoading, id, navigate, profile, currentBannerId]);
+  }, [banner?.id, banner?.template, isLoading, id, navigate, profile, currentBannerId, isGuest]);
 
   // Track if there are unsaved changes and save status
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -171,7 +223,7 @@ export const BannerEditor = () => {
 
   // Core save function
   const performSave = async (generateThumbnail = false) => {
-    if (!banner || !id) return;
+    if (isGuest || !banner || !id) return;
 
     console.log('[BannerEditor] Saving... Elements:', elements.length, 'Banner ID:', banner.id);
     setSaveStatus('saving');
@@ -182,12 +234,16 @@ export const BannerEditor = () => {
 
       // Only generate thumbnail for manual saves or periodically
       if (generateThumbnail && canvasRef.current && elements.length > 0) {
+        console.log('[BannerEditor] 🎨 GENERATING THUMBNAIL...');
         await new Promise(resolve => setTimeout(resolve, 100));
         thumbnailDataURL = canvasRef.current.exportImage();
+        console.log('[BannerEditor] 🎨 Thumbnail generated (first 80 chars):', thumbnailDataURL.substring(0, 80));
+      } else {
+        console.log('[BannerEditor] ⏭️  SKIPPING thumbnail generation (generateThumbnail:', generateThumbnail, ', hasCanvas:', !!canvasRef.current, ', elementsCount:', elements.length, ')');
       }
 
       // Save to database
-      console.log('[BannerEditor] Calling batchSave with', elements.length, 'elements');
+      console.log('[BannerEditor] Calling batchSave with', elements.length, 'elements, hasThumbnail:', !!thumbnailDataURL);
       await batchSave.mutateAsync({
         elements,
         canvasColor,
@@ -196,7 +252,7 @@ export const BannerEditor = () => {
 
       setHasUnsavedChanges(false);
       setSaveStatus('saved');
-      console.log('[BannerEditor] Auto-save successful');
+      console.log('[BannerEditor] ✅ Save successful (with thumbnail:', !!thumbnailDataURL, ')');
     } catch (error) {
       console.error('[BannerEditor] Save failed:', error);
       setSaveStatus('error');
@@ -210,17 +266,19 @@ export const BannerEditor = () => {
     () => debounce(() => {
       performSave(false); // No thumbnail for auto-saves
     }, 3000), // Increased from 2000ms to 3000ms
-    [elements, canvasColor, banner, id]
+    [elements, canvasColor, banner, id, isGuest]
   );
 
   // Immediate save for important actions
   const immediateSave = useCallback(async () => {
+    if (isGuest) return;
     debouncedSave.cancel();
     await performSave(false); // No thumbnail for immediate saves to improve performance
-  }, [elements, canvasColor, banner, id]);
+  }, [elements, canvasColor, banner, id, isGuest]);
 
   // Mark as dirty and trigger auto-save when elements actually change
   useEffect(() => {
+    if (isGuest) return;
     const currentElementsStr = JSON.stringify(elements);
 
     // Skip on initial mount
@@ -242,10 +300,11 @@ export const BannerEditor = () => {
     return () => {
       debouncedSave.cancel();
     };
-  }, [elements, banner, currentBannerId, debouncedSave]);
+  }, [elements, banner, currentBannerId, debouncedSave, isGuest]);
 
   // Mark as dirty and trigger auto-save when canvas color actually changes
   useEffect(() => {
+    if (isGuest) return;
     if (!isMountedRef.current) return;
 
     if (canvasColor !== prevCanvasColorRef.current && banner && currentBannerId === banner.id) {
@@ -255,10 +314,11 @@ export const BannerEditor = () => {
       setSaveStatus('unsaved');
       debouncedSave();
     }
-  }, [canvasColor, banner, currentBannerId, debouncedSave]);
+  }, [canvasColor, banner, currentBannerId, debouncedSave, isGuest]);
 
   // Save before leaving page (if there are unsaved changes)
   useEffect(() => {
+    if (isGuest) return;
     const handleBeforeUnload = async (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
         // Cancel any pending saves
@@ -277,7 +337,7 @@ export const BannerEditor = () => {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [hasUnsavedChanges]);
+  }, [hasUnsavedChanges, isGuest]);
 
   // Manual save handler (for save button)
   const handleSave = async () => {
@@ -400,6 +460,7 @@ export const BannerEditor = () => {
         setSelectedFont(element.fontFamily);
         setSelectedSize(element.fontSize);
         setSelectedWeight(element.fontWeight);
+        setSelectedLetterSpacing(element.letterSpacing ?? 0);
         setSelectedTextColor(element.fill);
       }
     }
@@ -440,12 +501,14 @@ export const BannerEditor = () => {
       y: 50,
       fontSize: selectedSize,
       fontFamily: selectedFont,
+      letterSpacing: selectedLetterSpacing,
       fill: selectedTextColor,
       fillEnabled: true,
       stroke: '#000000',
       strokeWidth: 2,
       strokeEnabled: false,
       fontWeight: selectedWeight,
+      visible: true,
     };
     elementOps.addElement(newElement);
     setSelectedElementIds([newId]);
@@ -469,6 +532,7 @@ export const BannerEditor = () => {
       strokeWidth: 2,
       strokeEnabled: false,
       shapeType,
+      visible: true,
     };
     elementOps.addElement(newShape);
     setSelectedElementIds([newId]);
@@ -477,8 +541,24 @@ export const BannerEditor = () => {
     immediateSave();
   };
 
-  const handleAddImage = (src: string, width: number, height: number) => {
+  const handleAddImage = async (src: string, width: number, height: number) => {
     const newId = `image-${Date.now()}-${Math.random()}`;
+    let finalSrc = src;
+
+    if (isDataUrlImage(src)) {
+      if (!user) {
+        alert('画像を追加するにはログインが必要です。');
+        return;
+      }
+      try {
+        const fileBase = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        finalSrc = await uploadDataUrlToBucket(src, 'user-images', fileBase);
+      } catch (error) {
+        console.error('Image upload failed:', error);
+        alert('画像のアップロードに失敗しました。');
+        return;
+      }
+    }
 
     setElements(prevElements => {
       const newImage: ImageElement = {
@@ -486,9 +566,10 @@ export const BannerEditor = () => {
         type: 'image',
         x: 0,
         y: 0,
-        src,
+        src: finalSrc,
         width,
         height,
+        visible: true,
       };
 
       const newElements = [...prevElements, newImage];
@@ -503,8 +584,22 @@ export const BannerEditor = () => {
     immediateSave();
   };
 
-  const handleImageDrop = (imageUrl: string, x: number, y: number, width: number, height: number) => {
+  const handleImageDrop = async (file: File, x: number, y: number, width: number, height: number) => {
     const newId = `image-${Date.now()}-${Math.random()}`;
+    if (!user) {
+      alert('画像を追加するにはログインが必要です。');
+      return;
+    }
+
+    let publicUrl = '';
+    try {
+      const fileBase = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      publicUrl = await uploadFileToBucket(file, 'user-images', fileBase);
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      alert('画像のアップロードに失敗しました。');
+      return;
+    }
 
     setElements(prevElements => {
       const newImage: ImageElement = {
@@ -512,9 +607,10 @@ export const BannerEditor = () => {
         type: 'image',
         x,
         y,
-        src: imageUrl,
+        src: publicUrl,
         width,
         height,
+        visible: true,
       };
 
       const newElements = [...prevElements, newImage];
@@ -556,6 +652,15 @@ export const BannerEditor = () => {
     if (selectedElementIds.length > 0) {
       elementOps.updateElements(selectedElementIds, (el) =>
         el.type === 'text' ? { fontWeight: weight } : {}
+      );
+    }
+  };
+
+  const handleLetterSpacingChange = (letterSpacing: number) => {
+    setSelectedLetterSpacing(letterSpacing);
+    if (selectedElementIds.length > 0) {
+      elementOps.updateElements(selectedElementIds, (el) =>
+        el.type === 'text' ? { letterSpacing } : {}
       );
     }
   };
@@ -602,6 +707,16 @@ export const BannerEditor = () => {
     }
   };
 
+  const handleToggleVisibility = (id: string) => {
+    const element = elements.find(el => el.id === id);
+    if (!element) return;
+    const nextVisible = !(element.visible ?? true);
+    elementOps.updateElement(id, { visible: nextVisible });
+    if (!nextVisible) {
+      setSelectedElementIds((prev) => prev.filter((selectedId) => selectedId !== id));
+    }
+  };
+
   // Shape fill/stroke handlers
   const handleFillEnabledChange = (enabled: boolean) => {
     if (selectedElementIds.length > 0) {
@@ -636,23 +751,33 @@ export const BannerEditor = () => {
   };
 
   const handleBannerNameChange = async (newName: string) => {
+    if (isGuest) return;
     await updateName.mutateAsync(newName);
   };
 
   const handlePremiumChange = async (isPremium: boolean) => {
+    if (isGuest) return;
     const newPlanType = isPremium ? 'premium' : 'free';
     await updatePlanType.mutateAsync(newPlanType);
   };
 
-  const handlePublicChange = async (isPublic: boolean) => {
-    await updateIsPublic.mutateAsync(isPublic);
-  };
 
   const handleReorderElements = (newOrder: CanvasElement[]) => {
     elementOps.reorderElements(newOrder);
   };
 
   const handleCanvasSizeChange = async (width: number, height: number) => {
+    if (isGuest) {
+      const baseTemplate = guestTemplate || banner?.template;
+      if (baseTemplate) {
+        setGuestTemplate({
+          ...baseTemplate,
+          width,
+          height,
+        });
+      }
+      return;
+    }
     if (banner) {
       const updatedTemplate: Template = {
         ...banner.template,
@@ -690,8 +815,8 @@ export const BannerEditor = () => {
     }
   };
 
-  // Loading state
-  if (isLoading || !banner) {
+  const isBannerLoading = !isGuest && (isLoading || !banner);
+  if (isBannerLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-[#212526]">
         <div className="text-center">
@@ -701,6 +826,9 @@ export const BannerEditor = () => {
       </div>
     );
   }
+  if (!banner) {
+    return null;
+  }
 
   const handleBackToManager = async () => {
     // Prevent multiple clicks
@@ -709,6 +837,10 @@ export const BannerEditor = () => {
     setIsNavigating(true);
 
     try {
+      if (isGuest) {
+        navigate('/');
+        return;
+      }
       // Save any pending changes with thumbnail before navigating
       debouncedSave.cancel();
       await performSave(true); // Always generate thumbnail when leaving editor
@@ -727,12 +859,10 @@ export const BannerEditor = () => {
       <Header
         onBackToManager={handleBackToManager}
         bannerName={banner.name}
-        bannerId={banner.id}
-        onBannerNameChange={handleBannerNameChange}
+        bannerId={isGuest ? undefined : banner.id}
+        onBannerNameChange={isGuest ? undefined : handleBannerNameChange}
         isPremium={banner.planType === 'premium'}
-        onPremiumChange={handlePremiumChange}
-        isPublic={banner.isPublic}
-        onPublicChange={handlePublicChange}
+        onPremiumChange={isGuest ? undefined : handlePremiumChange}
       />
 
 
@@ -752,6 +882,7 @@ export const BannerEditor = () => {
           onSelectElement={handleSelectElement}
           onReorderElements={handleReorderElements}
           onToggleLock={handleToggleLock}
+          onToggleVisibility={handleToggleVisibility}
         />
 
         <main
@@ -785,6 +916,7 @@ export const BannerEditor = () => {
           onFontChange={handleFontChange}
           onSizeChange={handleSizeChange}
           onWeightChange={handleWeightChange}
+          onLetterSpacingChange={handleLetterSpacingChange}
           onOpacityChange={handleOpacityChange}
           onBringToFront={handleBringToFront}
           onSendToBack={handleSendToBack}
@@ -837,6 +969,7 @@ export const BannerEditor = () => {
           onSelectElement={handleSelectElement}
           onReorderElements={handleReorderElements}
           onToggleLock={handleToggleLock}
+          onToggleVisibility={handleToggleVisibility}
           isMobile={true}
         />
 
@@ -847,6 +980,7 @@ export const BannerEditor = () => {
           onFontChange={handleFontChange}
           onSizeChange={handleSizeChange}
           onWeightChange={handleWeightChange}
+          onLetterSpacingChange={handleLetterSpacingChange}
           onOpacityChange={handleOpacityChange}
           onBringToFront={handleBringToFront}
           onSendToBack={handleSendToBack}
@@ -892,4 +1026,3 @@ export const BannerEditor = () => {
     </div>
   );
 }
-

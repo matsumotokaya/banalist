@@ -40,8 +40,9 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, nod
     strokeWidth: shape.strokeEnabled ? shape.strokeWidth : 0,
     rotation: safeRotation,
     opacity: safeOpacity,
-    draggable: !shape.locked,
-    listening: !shape.locked,
+    visible: shape.visible ?? true,
+    draggable: !shape.locked && (shape.visible ?? true),
+    listening: !shape.locked && (shape.visible ?? true),
     onMouseDown: (e: Konva.KonvaEventObject<MouseEvent>) => onSelect(shape.id, e),
     onDragStart: (e: Konva.KonvaEventObject<DragEvent>) => {
       dragStartPosRef.current = { x: e.target.x(), y: e.target.y() };
@@ -240,6 +241,7 @@ export const ShapeRenderer = memo(ShapeRendererComponent, (prevProps, nextProps)
     prevShape.rotation === nextShape.rotation &&
     prevShape.opacity === nextShape.opacity &&
     prevShape.locked === nextShape.locked &&
+    prevShape.visible === nextShape.visible &&
     prevShape.shapeType === nextShape.shapeType &&
     prevProps.isShiftPressed === nextProps.isShiftPressed
   );

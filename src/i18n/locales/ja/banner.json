@@ -1,5 +1,10 @@
 {
   "title": "マイバナー",
+  "myBannersTab": "マイバナー",
+  "templatesTitle": "テンプレート",
+  "templatesTab": "テンプレート",
+  "noTemplates": "テンプレートがありません",
+  "createFromTemplate": "このデザインで作成",
   "count": "{{count}} 個のバナー",
   "count_plural": "{{count}} 個のバナー",
   "noBanners": "バナーがありません",

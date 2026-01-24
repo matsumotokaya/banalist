@@ -1,12 +1,33 @@
 const AVAILABLE_FONTS = [
-  { name: 'Arial', value: 'Arial' },
-  { name: 'Noto Sans JP', value: '"Noto Sans JP", sans-serif' },
-  { name: 'Noto Serif JP', value: '"Noto Serif JP", serif' },
-  { name: '游ゴシック', value: '"Yu Gothic", "游ゴシック", YuGothic, sans-serif' },
-  { name: 'Georgia', value: 'Georgia' },
-  { name: 'Times New Roman', value: 'Times New Roman' },
-  { name: 'Courier New', value: 'Courier New' },
-  { name: 'Verdana', value: 'Verdana' },
+  {
+    category: '🔤 欧文サンセリフ',
+    fonts: [
+      { name: 'Arial', value: 'Arial' },
+      { name: 'Bebas Neue', value: '"Bebas Neue", sans-serif' },
+      { name: 'Anton SC', value: '"Anton SC", sans-serif' },
+    ]
+  },
+  {
+    category: '🔤 欧文セリフ',
+    fonts: [
+      { name: 'Georgia', value: 'Georgia' },
+    ]
+  },
+  {
+    category: '📝 和文サンセリフ',
+    fonts: [
+      { name: 'Noto Sans JP', value: '"Noto Sans JP", sans-serif' },
+      { name: '游ゴシック', value: '"Yu Gothic", "游ゴシック", YuGothic, sans-serif' },
+      { name: 'WDXL Lubrifont JP N', value: '"WDXL Lubrifont JP N", sans-serif' },
+      { name: 'DotGothic16', value: '"DotGothic16", sans-serif' },
+    ]
+  },
+  {
+    category: '📝 和文セリフ',
+    fonts: [
+      { name: 'Noto Serif JP', value: '"Noto Serif JP", serif' },
+    ]
+  },
 ];
 
 interface FontSelectorProps {
@@ -26,10 +47,14 @@ export const FontSelector = ({ selectedFont, onSelect }: FontSelectorProps) => {
           onChange={(e) => onSelect(e.target.value)}
           className="w-full appearance-none px-4 py-2.5 pr-10 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer hover:bg-gray-100"
         >
-          {AVAILABLE_FONTS.map((font) => (
-            <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
-              {font.name}
-            </option>
+          {AVAILABLE_FONTS.map((group) => (
+            <optgroup key={group.category} label={group.category}>
+              {group.fonts.map((font) => (
+                <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
+                  {font.name}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </select>
         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">

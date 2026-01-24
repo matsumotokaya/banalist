@@ -123,9 +123,11 @@ src/
 │   └── ...
 ├── pages/            # Page components
 │   ├── BannerManager.tsx    # Banner list page
+│   ├── TemplateGallery.tsx  # Template gallery page
 │   └── BannerEditor.tsx     # Banner editor page
 ├── hooks/            # Custom React hooks
 │   ├── useBanners.ts        # React Query hooks for banners
+│   ├── useTemplates.ts      # React Query hooks for templates
 │   ├── useProfile.ts        # React Query hook for user profile
 │   ├── useHistory.ts        # Undo/redo functionality
 │   ├── useElementOperations.ts
@@ -140,8 +142,13 @@ src/
 │   └── defaultTemplates.ts
 ├── utils/            # Utility functions
 │   ├── bannerStorage.ts     # Supabase CRUD operations
+│   ├── templateStorage.ts   # Supabase template queries
+│   ├── storage.ts           # Supabase Storage helpers
 │   ├── cacheManager.ts      # In-memory cache (legacy, being replaced by React Query)
 │   └── supabase.ts          # Supabase client
+├── scripts/           # One-off migration scripts
+│   ├── migrate-base64-images.js
+│   └── migrate-thumbnail-data-url.js
 └── App.tsx           # Main app component
 ```
 
@@ -180,35 +187,7 @@ const MyComponent = () => {
 
 ## Type System
 
-All canvas elements are managed as a unified `CanvasElement` union type:
-
-```typescript
-type CanvasElement = TextElement | ShapeElement | ImageElement;
-
-interface TextElement {
-  id: string;
-  type: 'text';
-  x: number;
-  y: number;
-  text: string;
-  fontSize: number;
-  fontFamily: string;
-  fill: string;
-  fontWeight: number;
-  strokeOnly: boolean;
-}
-
-interface ShapeElement {
-  id: string;
-  type: 'shape';
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  fill: string;
-  shapeType: 'rectangle' | 'triangle' | 'star';
-}
-```
+Canvas element types and properties are defined in `src/types/template.ts`.
 
 ## Features
 
@@ -255,77 +234,6 @@ interface ShapeElement {
   - Manage default templates (future)
 - **Free Users**: Basic banner creation & personal image library
 - **Premium Users**: Advanced features (planned)
-
-### Banner Visibility & Access Control ✅ (2025-12-17)
-
-#### 概念の整理
-
-本サービスには **2つの独立した概念** があります：
-
-##### 1. バナーの表示範囲（Public / Private）
-- **Public**: すべてのユーザー（ログイン不要）が一覧・詳細を閲覧可能
-- **Private**: 作成者のみが閲覧可能
-- **設定方法**: エディターヘッダーのラジオボタン（Public / Private）
-- **保存先**: `banners.is_public` カラム（boolean）
-
-##### 2. バナーのプランタイプ（Free / Premium）
-- **Free Banner**: すべてのユーザーが編集・閲覧可能
-- **Premium Banner**: Premiumプランユーザーのみ編集・閲覧可能
-- **設定方法**: エディターヘッダーのチェックボックス（**Adminのみ表示**）
-- **保存先**: `banners.plan_type` カラム（`free` | `premium`）
-
-#### アクセス制限マトリックス
-
-| バナー設定 | 未ログインユーザー | Free User | Premium User | Admin |
-|-----------|------------------|-----------|--------------|-------|
-| **Public + Free** | ✅ 閲覧可 | ✅ 編集可 | ✅ 編集可 | ✅ 編集可 |
-| **Public + Premium** | ❌ ロック<sup>*1</sup> | ❌ ロック<sup>*1</sup> | ✅ 編集可 | ✅ 編集可 |
-| **Private + Free** | ❌ 非表示 | ✅ 編集可<sup>*2</sup> | ✅ 編集可<sup>*2</sup> | ✅ 編集可<sup>*2</sup> |
-| **Private + Premium** | ❌ 非表示 | ❌ 非表示 | ✅ 編集可<sup>*2</sup> | ✅ 編集可<sup>*2</sup> |
-
-<sup>*1</sup> アップグレードモーダルを表示
-<sup>*2</sup> 自分のバナーのみ（他人のバナーは非表示）
-
-#### ユーザータイプとサブスクリプション
-
-##### サブスクリプションプラン（`profiles.subscription_tier`）
-- **Free**: 無料プラン（デフォルト）
-  - Freeバナーのみ作成・編集可能
-  - Premiumバナーは閲覧・編集不可（アップグレードモーダル表示）
-- **Premium**: 有料サブスクリプションプラン（**$8/月**）
-  - すべてのバナー（Free/Premium）を作成・編集可能
-  - 優先サポート、今後の新機能への早期アクセス
-  - **Stripe統合完了** ✅ (2025-12-21)
-
-##### ユーザーロール（`profiles.role`）
-- **User**: 一般ユーザー（デフォルト）
-- **Admin**: 管理者
-  - デフォルト画像ライブラリへのアップロード権限
-  - バナーをPremiumに設定する権限（チェックボックス表示）
-  - テンプレート管理権限（今後実装予定）
-
-#### 実装詳細
-
-##### バナー一覧（BannerManager）
-- **RLS Policy**: `is_public = TRUE OR auth.uid() = user_id`
-- **フロントエンド**: `.eq('user_id')` フィルターを削除し、RLSに委譲
-- **Premiumバナークリック時**: `!profile || profile.subscriptionTier === 'free'` → UpgradeModal表示
-
-##### バナーエディター（BannerEditor）
-- **直URL アクセス時**: `useEffect`内でPremiumチェック → モーダル表示 → ホームへリダイレクト
-- **編集制限**: Premiumユーザー・Adminのみ編集可能
-
-##### バッジ表示
-- **Premium Badge**: ゴールドグラデーション + ロックアイコン（バナーカード左上）
-- **Public Badge**: グリーングラデーション + 目アイコン（バナーカード左上）
-
-#### データベーススキーマ
-
-```sql
--- banners table
-is_public: boolean DEFAULT FALSE  -- 表示範囲（Public/Private）
-plan_type: text DEFAULT 'free'    -- プランタイプ（free/premium）
-```
 
 ### Stripe Subscription Integration ✅ NEW (2025-12-21)
 
@@ -412,11 +320,13 @@ WordPress-style image library with dual storage:
 ### Data Persistence ✅ (2025-11-23, Updated 2025-12-16)
 - **Storage**: Migrated from localStorage to Supabase PostgreSQL
 - **Tables**:
-  - `banners`: User banner data with JSONB elements and `plan_type`
+  - `templates`: Public template definitions
+  - `banners`: User banner data with JSONB elements and `template_id`
   - `profiles`: User metadata (role, subscription tier)
   - `default_images`: Default library metadata
   - `user_images`: User library metadata
-- **Auto-save**: Elements (800ms debounce), canvas color, thumbnails (3s interval)
+- **Auto-save**: Elements, canvas color, thumbnails
+- **Thumbnails**: Stored in Supabase Storage (`thumbnail_url`), Base64 is deprecated
 - **Save Status Indicator** ✨ NEW (2025-12-16): Real-time "Saving..." / "Saved" indicator in bottom-left corner
 - **RLS Policies**: Row-level security ensures users only access their own data
 
@@ -488,9 +398,21 @@ WordPress-style image library with dual storage:
 - template: jsonb
 - elements: jsonb
 - canvas_color: text
-- thumbnail_data_url: text
+- thumbnail_data_url: text -- legacy (deprecated)
+- thumbnail_url: text       -- Storage public URL
 - plan_type: text (free | premium) DEFAULT 'free' -- プランタイプ (2025-12-16)
-- is_public: boolean DEFAULT FALSE -- 表示範囲 (2025-12-17)
+- created_at: timestamp
+- updated_at: timestamp
+```
+
+#### `templates`
+```sql
+- id: uuid (PK)
+- name: text
+- elements: jsonb
+- canvas_color: text
+- thumbnail_url: text
+- plan_type: text (free | premium)
 - created_at: timestamp
 - updated_at: timestamp
 ```

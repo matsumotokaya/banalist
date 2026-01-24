@@ -43,14 +43,16 @@ const TextRendererComponent = ({
       y={textElement.y}
       fontSize={textElement.fontSize}
       fontFamily={textElement.fontFamily}
+      letterSpacing={textElement.letterSpacing ?? 0}
       fontStyle={textElement.fontWeight >= 700 ? 'bold' : textElement.fontWeight <= 300 ? 'lighter' : 'normal'}
       fill={textElement.fillEnabled ? textElement.fill : 'transparent'}
       stroke={textElement.strokeEnabled ? textElement.stroke : undefined}
       strokeWidth={textElement.strokeEnabled ? textElement.strokeWidth : 0}
       rotation={textElement.rotation || 0}
       opacity={textElement.opacity ?? 1}
-      draggable={!textElement.locked}
-      listening={!textElement.locked}
+      visible={textElement.visible ?? true}
+      draggable={!textElement.locked && (textElement.visible ?? true)}
+      listening={!textElement.locked && (textElement.visible ?? true)}
       onMouseDown={(e) => onSelect(textElement.id, e)}
       onDblClick={(e) => {
         const textNode = e.target as Konva.Text;
@@ -102,6 +104,7 @@ export const TextRenderer = memo(TextRendererComponent, (prevProps, nextProps) =
     prevProps.textElement.y === nextProps.textElement.y &&
     prevProps.textElement.fontSize === nextProps.textElement.fontSize &&
     prevProps.textElement.fontFamily === nextProps.textElement.fontFamily &&
+    prevProps.textElement.letterSpacing === nextProps.textElement.letterSpacing &&
     prevProps.textElement.fontWeight === nextProps.textElement.fontWeight &&
     prevProps.textElement.fill === nextProps.textElement.fill &&
     prevProps.textElement.fillEnabled === nextProps.textElement.fillEnabled &&
@@ -109,6 +112,7 @@ export const TextRenderer = memo(TextRendererComponent, (prevProps, nextProps) =
     prevProps.textElement.strokeEnabled === nextProps.textElement.strokeEnabled &&
     prevProps.textElement.strokeWidth === nextProps.textElement.strokeWidth &&
     prevProps.textElement.rotation === nextProps.textElement.rotation &&
+    prevProps.textElement.visible === nextProps.textElement.visible &&
     prevProps.isShiftPressed === nextProps.isShiftPressed
   );
 });

@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { cacheManager } from './cacheManager';
-import type { Banner, CanvasElement, Template } from '../types/template';
+import type { Banner, BannerListItem, CanvasElement, Template, TemplateRecord } from '../types/template';
+import { uploadDataUrlToBucket } from './storage';
 
 interface DbBanner {
   id: string;
@@ -9,10 +10,19 @@ interface DbBanner {
   template: Template;
   elements: CanvasElement[];
   canvas_color: string;
-  thumbnail_data_url: string | null;
+  thumbnail_data_url?: string | null;
+  thumbnail_url?: string | null;
   plan_type?: 'free' | 'premium' | null;
-  is_public?: boolean | null;
   created_at: string;
+  updated_at: string;
+}
+
+interface DbBannerListItem {
+  id: string;
+  name: string;
+  thumbnail_data_url?: string | null;
+  thumbnail_url?: string | null;
+  plan_type?: 'free' | 'premium' | null;
   updated_at: string;
 }
 
@@ -23,17 +33,81 @@ const dbToBanner = (db: DbBanner): Banner => ({
   template: db.template,
   elements: db.elements,
   canvasColor: db.canvas_color,
-  thumbnailDataURL: db.thumbnail_data_url || undefined,
+  thumbnailUrl: db.thumbnail_url || db.thumbnail_data_url || undefined,
   planType: db.plan_type || 'free',
-  isPublic: db.is_public || false,
   createdAt: db.created_at,
   updatedAt: db.updated_at,
 });
 
+const dbToBannerListItem = (db: DbBannerListItem): BannerListItem => ({
+  id: db.id,
+  name: db.name,
+  thumbnailUrl: db.thumbnail_url || db.thumbnail_data_url || undefined,
+  planType: db.plan_type || 'free',
+  updatedAt: db.updated_at,
+});
+
 export const bannerStorage = {
-  // Get all banners (public + own private)
-  async getAll(useCache = true): Promise<Banner[]> {
+  async getByTemplateId(templateId: string): Promise<Banner | null> {
     const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    const { data, error } = await supabase
+      .from('banners')
+      .select('*')
+      .eq('template_id', templateId)
+      .eq('user_id', user.id)
+      .limit(1);
+
+    if (error) {
+      console.error('Error fetching banner by template:', error);
+      return null;
+    }
+
+    const banner = data && data.length > 0 ? data[0] : null;
+    return banner ? dbToBanner(banner) : null;
+  },
+
+  async createFromTemplate(template: TemplateRecord, editorTemplate: Template): Promise<Banner | null> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert('ログインが必要です');
+      return null;
+    }
+
+    const elements = JSON.parse(JSON.stringify(template.elements || []));
+
+    const { data, error } = await supabase
+      .from('banners')
+      .insert({
+        user_id: user.id,
+        template_id: template.id,
+        name: template.name,
+        template: editorTemplate,
+        elements,
+        canvas_color: template.canvasColor,
+        plan_type: template.planType || 'free',
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating banner from template:', error);
+      alert('バナーの作成に失敗しました');
+      return null;
+    }
+
+    cacheManager.invalidate(`banners:all:${user.id}`);
+
+    return data ? dbToBanner(data) : null;
+  },
+
+  // Get all banners (public + own private)
+  async getAll(useCache = true): Promise<BannerListItem[]> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return [];
+    }
 
     const cacheKey = user ? `banners:all:${user.id}` : 'banners:public';
 
@@ -49,7 +123,7 @@ export const bannerStorage = {
     // RLS policy handles access control: public banners OR own banners
     const { data, error } = await supabase
       .from('banners')
-      .select('*')
+      .select('id, name, thumbnail_url, plan_type, updated_at')
       .order('updated_at', { ascending: false });
 
     if (error) {
@@ -57,7 +131,7 @@ export const bannerStorage = {
       return [];
     }
 
-    const banners = (data || []).map(dbToBanner);
+    const banners = (data || []).map(dbToBannerListItem);
 
     // Cache for 5 minutes
     cacheManager.set(cacheKey, banners, 5 * 60 * 1000);
@@ -143,9 +217,8 @@ export const bannerStorage = {
     if (updates.template !== undefined) dbUpdates.template = updates.template;
     if (updates.elements !== undefined) dbUpdates.elements = updates.elements;
     if (updates.canvasColor !== undefined) dbUpdates.canvas_color = updates.canvasColor;
-    if (updates.thumbnailDataURL !== undefined) dbUpdates.thumbnail_data_url = updates.thumbnailDataURL;
+    if (updates.thumbnailUrl !== undefined) dbUpdates.thumbnail_url = updates.thumbnailUrl;
     if (updates.planType !== undefined) dbUpdates.plan_type = updates.planType;
-    if (updates.isPublic !== undefined) dbUpdates.is_public = updates.isPublic;
 
     const { error } = await supabase
       .from('banners')
@@ -198,6 +271,7 @@ export const bannerStorage = {
         template: original.template,
         elements: JSON.parse(JSON.stringify(original.elements)),
         canvas_color: original.canvasColor,
+        thumbnail_url: original.thumbnailUrl || null,
       })
       .select()
       .single();
@@ -225,7 +299,11 @@ export const bannerStorage = {
 
   // Save thumbnail
   async saveThumbnail(id: string, thumbnailDataURL: string): Promise<void> {
-    await this.update(id, { thumbnailDataURL });
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const fileBase = `${user.id}/thumbnails/${id}-${Date.now()}`;
+    const publicUrl = await uploadDataUrlToBucket(thumbnailDataURL, 'user-images', fileBase);
+    await this.update(id, { thumbnailUrl: publicUrl });
   },
 
   // Batch save multiple properties at once (optimized for auto-save)
@@ -239,8 +317,24 @@ export const bannerStorage = {
   ): Promise<void> {
     // Only update if there are actual changes
     if (Object.keys(updates).length === 0) return;
+    if (updates.thumbnailDataURL) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const fileBase = `${user.id}/thumbnails/${id}-${Date.now()}`;
+        const publicUrl = await uploadDataUrlToBucket(updates.thumbnailDataURL, 'user-images', fileBase);
+        await this.update(id, {
+          elements: updates.elements,
+          canvasColor: updates.canvasColor,
+          thumbnailUrl: publicUrl,
+        });
+        return;
+      }
+    }
 
-    await this.update(id, updates);
+    await this.update(id, {
+      elements: updates.elements,
+      canvasColor: updates.canvasColor,
+    });
   },
 
   // Update banner name
@@ -254,7 +348,5 @@ export const bannerStorage = {
   },
 
   // Update public status
-  async updateIsPublic(id: string, isPublic: boolean): Promise<void> {
-    await this.update(id, { isPublic });
-  },
+  // Public/private is deprecated; no-op placeholder removed
 };

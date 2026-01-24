@@ -8,6 +8,7 @@ interface PropertyPanelProps {
   onFontChange?: (font: string) => void;
   onSizeChange?: (size: number) => void;
   onWeightChange?: (weight: number) => void;
+  onLetterSpacingChange?: (letterSpacing: number) => void;
   onOpacityChange?: (opacity: number) => void;
   onBringToFront?: () => void;
   onSendToBack?: () => void;
@@ -22,14 +23,35 @@ interface PropertyPanelProps {
 }
 
 const AVAILABLE_FONTS = [
-  { name: 'Arial', value: 'Arial' },
-  { name: 'Noto Sans JP', value: '"Noto Sans JP", sans-serif' },
-  { name: 'Noto Serif JP', value: '"Noto Serif JP", serif' },
-  { name: '游ゴシック', value: '"Yu Gothic", "游ゴシック", YuGothic, sans-serif' },
-  { name: 'Georgia', value: 'Georgia' },
-  { name: 'Times New Roman', value: 'Times New Roman' },
-  { name: 'Courier New', value: 'Courier New' },
-  { name: 'Verdana', value: 'Verdana' },
+  {
+    category: '🔤 欧文サンセリフ',
+    fonts: [
+      { name: 'Arial', value: 'Arial' },
+      { name: 'Bebas Neue', value: '"Bebas Neue", sans-serif' },
+      { name: 'Anton SC', value: '"Anton SC", sans-serif' },
+    ]
+  },
+  {
+    category: '🔤 欧文セリフ',
+    fonts: [
+      { name: 'Georgia', value: 'Georgia' },
+    ]
+  },
+  {
+    category: '📝 和文サンセリフ',
+    fonts: [
+      { name: 'Noto Sans JP', value: '"Noto Sans JP", sans-serif' },
+      { name: '游ゴシック', value: '"Yu Gothic", "游ゴシック", YuGothic, sans-serif' },
+      { name: 'WDXL Lubrifont JP N', value: '"WDXL Lubrifont JP N", sans-serif' },
+      { name: 'DotGothic16', value: '"DotGothic16", sans-serif' },
+    ]
+  },
+  {
+    category: '📝 和文セリフ',
+    fonts: [
+      { name: 'Noto Serif JP', value: '"Noto Serif JP", serif' },
+    ]
+  },
 ];
 
 const getWeightLabel = (weight: number): string => {
@@ -44,7 +66,7 @@ const getWeightLabel = (weight: number): string => {
   return 'Black';
 };
 
-export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, onSizeChange, onWeightChange, onOpacityChange, onBringToFront, onSendToBack, isMobile = false, onClose, onFillEnabledChange, onStrokeChange, onStrokeWidthChange, onStrokeEnabledChange }: PropertyPanelProps) => {
+export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, onSizeChange, onWeightChange, onLetterSpacingChange, onOpacityChange, onBringToFront, onSendToBack, isMobile = false, onClose, onFillEnabledChange, onStrokeChange, onStrokeWidthChange, onStrokeEnabledChange }: PropertyPanelProps) => {
   const { t } = useTranslation('editor');
 
   if (!selectedElement) {
@@ -105,10 +127,14 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
               onChange={(e) => onFontChange(e.target.value)}
               className="w-full appearance-none px-3 py-2 pr-8 bg-[#2b2b2b] border border-[#444444] rounded-lg text-xs text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer hover:bg-[#333333]"
             >
-              {AVAILABLE_FONTS.map((font) => (
-                <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
-                  {font.name}
-                </option>
+              {AVAILABLE_FONTS.map((group) => (
+                <optgroup key={group.category} label={group.category}>
+                  {group.fonts.map((font) => (
+                    <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
+                      {font.name}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
@@ -130,7 +156,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
             <input
               type="range"
               min="12"
-              max="200"
+              max="1000"
               step="1"
               value={textElement.fontSize}
               onChange={(e) => onSizeChange(Number(e.target.value))}
@@ -161,6 +187,29 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
             />
             <span className="text-xs font-medium text-gray-300 w-20 text-right">
               {getWeightLabel(textElement.fontWeight)}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Letter spacing slider - only for text */}
+      {isTextElement && textElement && onLetterSpacingChange && (
+        <div className="mb-3">
+          <label className="block text-xs font-medium text-gray-300 mb-2">
+            {t('properties.letterSpacing')}
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min="-50"
+              max="200"
+              step="1"
+              value={textElement.letterSpacing ?? 0}
+              onChange={(e) => onLetterSpacingChange(Number(e.target.value))}
+              className="flex-1 h-1.5 bg-[#444444] rounded-lg appearance-none cursor-pointer accent-indigo-500"
+            />
+            <span className="text-xs font-medium text-gray-300 w-12 text-right">
+              {(textElement.letterSpacing ?? 0)}px
             </span>
           </div>
         </div>

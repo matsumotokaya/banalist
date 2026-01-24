@@ -30,6 +30,7 @@
     "font": "フォント",
     "textSize": "文字サイズ",
     "fontWeight": "太さ",
+    "letterSpacing": "カーニング",
     "fill": "塗りつぶし",
     "stroke": "線",
     "strokeOnly": "線のみ",
@@ -60,6 +61,10 @@
     "retry": "再試行"
   },
   "dragToReorder": "ドラッグして並び替え",
+  "layerVisibility": {
+    "show": "表示",
+    "hide": "非表示"
+  },
   "lock": "ロック",
   "unlock": "ロック解除"
 }

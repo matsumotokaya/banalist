@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Header } from '../components/Header';
 import { UpgradeModal } from '../components/UpgradeModal';
+import { GalleryTabs } from '../components/GalleryTabs';
 import {
   useBanners,
   useCreateBanner,
@@ -11,8 +12,9 @@ import {
   useUpdateBannerName,
 } from '../hooks/useBanners';
 import { DEFAULT_TEMPLATES } from '../templates/defaultTemplates';
-import type { Banner } from '../types/template';
+import type { BannerListItem } from '../types/template';
 import { useAuth } from '../contexts/AuthContext';
+import { templateStorage } from '../utils/templateStorage';
 
 export const BannerManager = () => {
   const { t, i18n } = useTranslation(['banner', 'common', 'message']);
@@ -34,7 +36,9 @@ export const BannerManager = () => {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        refetch();
+        console.log('[BannerManager] 👁️  Page became visible, forcing refetch...');
+        // Force refetch even if cache is fresh
+        refetch({ cancelRefetch: false });
       }
     };
 
@@ -91,7 +95,7 @@ export const BannerManager = () => {
     }).format(date);
   };
 
-  const handleBannerClick = (banner: Banner) => {
+  const handleBannerClick = (banner: BannerListItem) => {
     // Check if premium banner and user is not premium
     if (banner.planType === 'premium') {
       // Not logged in OR free tier -> show upgrade modal
@@ -108,6 +112,8 @@ export const BannerManager = () => {
       <Header />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
+        <GalleryTabs />
+
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-gray-100">
             {t('banner:title')} ({banners.length})
@@ -147,7 +153,7 @@ export const BannerManager = () => {
                   className="aspect-[9/16] bg-gray-100 cursor-pointer relative overflow-hidden"
                   onClick={() => handleBannerClick(banner)}
                 >
-                  {banner.thumbnailDataURL ? (
+                  {banner.thumbnailUrl ? (
                     <>
                       {imageLoadingStates[banner.id] && (
                         <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
@@ -158,7 +164,7 @@ export const BannerManager = () => {
                         </div>
                       )}
                       <img
-                        src={banner.thumbnailDataURL}
+                        src={banner.thumbnailUrl}
                         alt={banner.name}
                         className="w-full h-full object-cover"
                         onLoadStart={() => {
@@ -192,16 +198,6 @@ export const BannerManager = () => {
                           <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z" />
                         </svg>
                         <span className="text-xs font-bold">PREMIUM</span>
-                      </div>
-                    )}
-                    {/* Public badge */}
-                    {banner.isPublic && (
-                      <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-2 py-1 rounded-md shadow-lg flex items-center gap-1">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                          <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                        </svg>
-                        <span className="text-xs font-bold">PUBLIC</span>
                       </div>
                     )}
                   </div>
