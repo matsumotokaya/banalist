@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Header } from '../components/Header';
 import { GalleryTabs } from '../components/GalleryTabs';
+import { UpgradeModal } from '../components/UpgradeModal';
 import { useTemplates } from '../hooks/useTemplates';
 import { DEFAULT_TEMPLATES } from '../templates/defaultTemplates';
 import type { Template, TemplateRecord } from '../types/template';
@@ -14,6 +15,7 @@ export const TemplateGallery = () => {
   const { t } = useTranslation(['banner', 'common', 'message']);
   const [templateImageLoadingStates, setTemplateImageLoadingStates] = useState<Record<string, boolean>>({});
   const [templateActionId, setTemplateActionId] = useState<string | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const navigate = useNavigate();
   const { user, profile, signInWithGoogle } = useAuth();
   const isGuest = !user;
@@ -49,7 +51,7 @@ export const TemplateGallery = () => {
 
     if (!isGuestAllowed && resolvedTemplate.planType === 'premium') {
       if (!user || !profile || profile.subscriptionTier === 'free') {
-        alert('プレミアムテンプレートを使うにはアップグレードが必要です。');
+        setShowUpgradeModal(true);
         return;
       }
     }
@@ -216,6 +218,8 @@ export const TemplateGallery = () => {
           </div>
         )}
       </main>
+
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </div>
   );
 };
