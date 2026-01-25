@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { bannerStorage } from '../utils/bannerStorage';
-import type { Banner, BannerListItem, CanvasElement, Template } from '../types/template';
+import type { Banner, CanvasElement, Template } from '../types/template';
 
 // Query keys
 export const bannerKeys = {
@@ -86,7 +86,7 @@ export function useUpdateBanner(id: string) {
       return { previousBanner };
     },
     // On error, rollback to previous value
-    onError: (err, variables, context) => {
+    onError: (_err, _variables, context) => {
       if (context?.previousBanner) {
         queryClient.setQueryData(bannerKeys.detail(id), context.previousBanner);
       }
@@ -198,7 +198,7 @@ export function useUpdateBannerName(id: string) {
 
       return { previousBanner };
     },
-    onError: (err, variables, context) => {
+    onError: (_err, _variables, context) => {
       if (context?.previousBanner) {
         queryClient.setQueryData(bannerKeys.detail(id), context.previousBanner);
       }

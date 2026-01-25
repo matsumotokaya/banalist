@@ -8,6 +8,9 @@ interface ShapeRendererProps {
   isShiftPressed: boolean;
   onSelect: (id: string, event: Konva.KonvaEventObject<MouseEvent>) => void;
   onUpdate?: (id: string, updates: Partial<ShapeElement>) => void;
+  onDragStart?: (id: string, event: Konva.KonvaEventObject<DragEvent>) => void;
+  onDragMove?: (id: string, event: Konva.KonvaEventObject<DragEvent>) => void;
+  onDragEnd?: (id: string, event: Konva.KonvaEventObject<DragEvent>) => boolean;
   nodeRef: (node: Konva.Node | null, id: string) => void;
 }
 
@@ -23,7 +26,7 @@ const constrainedDragBound = (pos: { x: number; y: number }, startPos: { x: numb
   }
 };
 
-const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, nodeRef }: ShapeRendererProps) => {
+const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, onDragStart, onDragMove, onDragEnd, nodeRef }: ShapeRendererProps) => {
   const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
 
   // Ensure all numeric properties are valid
@@ -46,6 +49,7 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, nod
     onMouseDown: (e: Konva.KonvaEventObject<MouseEvent>) => onSelect(shape.id, e),
     onDragStart: (e: Konva.KonvaEventObject<DragEvent>) => {
       dragStartPosRef.current = { x: e.target.x(), y: e.target.y() };
+      onDragStart?.(shape.id, e);
     },
     dragBoundFunc: (pos: { x: number; y: number }) => {
       if (dragStartPosRef.current && isShiftPressed) {
@@ -53,8 +57,12 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, nod
       }
       return pos;
     },
+    onDragMove: (e: Konva.KonvaEventObject<DragEvent>) => {
+      onDragMove?.(shape.id, e);
+    },
     onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => {
-      if (onUpdate) {
+      const handled = onDragEnd?.(shape.id, e);
+      if (!handled && onUpdate) {
         onUpdate(shape.id, {
           x: e.target.x(),
           y: e.target.y(),

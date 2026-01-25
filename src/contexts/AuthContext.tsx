@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     subscriptionTier: 'free',
   } : null);
 
-  const loading = authLoading || (user && profileLoading);
+  const loading = authLoading || (user ? profileLoading : false);
 
   const value = {
     user,

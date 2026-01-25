@@ -9,6 +9,9 @@ interface TextRendererProps {
   onSelect: (id: string, event: Konva.KonvaEventObject<MouseEvent>) => void;
   onDoubleClick: (element: TextElement, textNode: Konva.Text) => void;
   onUpdate?: (id: string, updates: Partial<TextElement>) => void;
+  onDragStart?: (id: string, event: Konva.KonvaEventObject<DragEvent>) => void;
+  onDragMove?: (id: string, event: Konva.KonvaEventObject<DragEvent>) => void;
+  onDragEnd?: (id: string, event: Konva.KonvaEventObject<DragEvent>) => boolean;
   nodeRef: (node: Konva.Text | null, id: string) => void;
 }
 
@@ -30,6 +33,9 @@ const TextRendererComponent = ({
   onSelect,
   onDoubleClick,
   onUpdate,
+  onDragStart,
+  onDragMove,
+  onDragEnd,
   nodeRef,
 }: TextRendererProps) => {
   const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
@@ -60,6 +66,7 @@ const TextRendererComponent = ({
       }}
       onDragStart={(e) => {
         dragStartPosRef.current = { x: e.target.x(), y: e.target.y() };
+        onDragStart?.(textElement.id, e);
       }}
       dragBoundFunc={(pos) => {
         if (dragStartPosRef.current && isShiftPressed) {
@@ -67,8 +74,12 @@ const TextRendererComponent = ({
         }
         return pos;
       }}
+      onDragMove={(e) => {
+        onDragMove?.(textElement.id, e);
+      }}
       onDragEnd={(e) => {
-        if (onUpdate) {
+        const handled = onDragEnd?.(textElement.id, e);
+        if (!handled && onUpdate) {
           onUpdate(textElement.id, {
             x: e.target.x(),
             y: e.target.y(),

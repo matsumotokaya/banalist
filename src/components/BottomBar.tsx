@@ -14,7 +14,6 @@ export const BottomBar = ({
   onZoomChange,
   onExport,
   saveStatus = 'saved',
-  lastSaveError,
   onRetry
 }: BottomBarProps) => {
   const { t } = useTranslation(['editor', 'common']);

@@ -8,6 +8,9 @@ interface ImageRendererProps {
   isShiftPressed: boolean;
   onSelect: (id: string, event: Konva.KonvaEventObject<MouseEvent>) => void;
   onUpdate?: (id: string, updates: Partial<ImageElement>) => void;
+  onDragStart?: (id: string, event: Konva.KonvaEventObject<DragEvent>) => void;
+  onDragMove?: (id: string, event: Konva.KonvaEventObject<DragEvent>) => void;
+  onDragEnd?: (id: string, event: Konva.KonvaEventObject<DragEvent>) => boolean;
   nodeRef: (node: Konva.Image | null, id: string) => void;
 }
 
@@ -28,6 +31,9 @@ const ImageRendererComponent = ({
   isShiftPressed,
   onSelect,
   onUpdate,
+  onDragStart,
+  onDragMove,
+  onDragEnd,
   nodeRef,
 }: ImageRendererProps) => {
   const [image, setImage] = useState<HTMLImageElement | null>(null);
@@ -107,6 +113,7 @@ const ImageRendererComponent = ({
       onMouseDown={(e) => onSelect(imageElement.id, e)}
       onDragStart={(e) => {
         dragStartPosRef.current = { x: e.target.x(), y: e.target.y() };
+        onDragStart?.(imageElement.id, e);
       }}
       dragBoundFunc={(pos) => {
         if (dragStartPosRef.current && isShiftPressed) {
@@ -114,8 +121,12 @@ const ImageRendererComponent = ({
         }
         return pos;
       }}
+      onDragMove={(e) => {
+        onDragMove?.(imageElement.id, e);
+      }}
       onDragEnd={(e) => {
-        if (onUpdate) {
+        const handled = onDragEnd?.(imageElement.id, e);
+        if (!handled && onUpdate) {
           onUpdate(imageElement.id, {
             x: e.target.x(),
             y: e.target.y(),

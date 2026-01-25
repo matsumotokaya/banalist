@@ -3,7 +3,7 @@ import type { CanvasElement } from '../types/template';
 
 const MAX_HISTORY = 50;
 
-export const useHistory = (initialElements: CanvasElement[] = []) => {
+export const useHistory = () => {
   const [history, setHistory] = useState<CanvasElement[][]>([]);
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
 

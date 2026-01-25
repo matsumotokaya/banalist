@@ -420,7 +420,7 @@ export const BannerEditor = () => {
 
   // Save before leaving page (if there are unsaved changes)
   useEffect(() => {
-    const handleBeforeUnload = async (e: BeforeUnloadEvent) => {
+    const handleBeforeUnload = async (_e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
         // Cancel any pending saves
         debouncedSave.cancel();
@@ -802,6 +802,10 @@ export const BannerEditor = () => {
     elementOps.updateElement(id, updates);
   };
 
+  const handleElementsUpdate = (ids: string[], updateFn: (element: CanvasElement) => Partial<CanvasElement>) => {
+    elementOps.updateElements(ids, updateFn);
+  };
+
   const handleToggleLock = (id: string) => {
     const element = elements.find(el => el.id === id);
     if (element) {
@@ -1011,6 +1015,7 @@ export const BannerEditor = () => {
               selectedElementIds={selectedElementIds}
               onSelectElement={handleSelectElement}
               onElementUpdate={handleElementUpdate}
+              onElementsUpdate={handleElementsUpdate}
               onImageDrop={handleImageDrop}
             />
         </main>
@@ -1055,6 +1060,7 @@ export const BannerEditor = () => {
               selectedElementIds={selectedElementIds}
               onSelectElement={handleSelectElement}
               onElementUpdate={handleElementUpdate}
+              onElementsUpdate={handleElementsUpdate}
               onImageDrop={handleImageDrop}
             />
         </main>

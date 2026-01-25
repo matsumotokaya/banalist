@@ -22,7 +22,7 @@ export const BannerManager = () => {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [imageLoadingStates, setImageLoadingStates] = useState<Record<string, boolean>>({});
   const navigate = useNavigate();
-  const { profile, user } = useAuth();
+  const { user } = useAuth();
   const isGuest = !user;
   const guestStorageKey = 'banalist_guest_banner';
   const [guestBanner, setGuestBanner] = useState<BannerListItem | null>(null);
@@ -107,7 +107,7 @@ export const BannerManager = () => {
     setEditingName(currentName);
   };
 
-  const handleSaveName = async (id: string) => {
+  const handleSaveName = async () => {
     if (editingName.trim()) {
       await updateName.mutateAsync(editingName.trim());
     }
@@ -257,10 +257,10 @@ export const BannerManager = () => {
                         value={editingName}
                         onChange={(e) => setEditingName(e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleSaveName(banner.id);
+                          if (e.key === 'Enter') handleSaveName();
                           if (e.key === 'Escape') handleCancelEdit();
                         }}
-                        onBlur={() => handleSaveName(banner.id)}
+                        onBlur={() => handleSaveName()}
                         onClick={(e) => e.stopPropagation()}
                         className="w-full px-2 py-1 text-sm font-medium bg-white/90 border border-indigo-500 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         autoFocus

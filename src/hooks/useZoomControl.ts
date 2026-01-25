@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef, RefObject } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import type { RefObject } from 'react';
 
 interface UseZoomControlProps {
   initialZoom?: number;
   minZoom?: number;
   maxZoom?: number;
-  containerRef: RefObject<HTMLDivElement>;
+  containerRef: RefObject<HTMLDivElement | null>;
 }
 
 export const useZoomControl = ({
