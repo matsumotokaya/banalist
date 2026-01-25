@@ -2,8 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 
 const LANGUAGES = [
-  { code: 'en', label: 'English', flag: '🇬🇧' },
-  { code: 'ja', label: '日本語', flag: '🇯🇵' },
+  { code: 'en', label: 'English' },
+  { code: 'ja', label: '日本語' },
 ];
 
 export const LanguageSwitcher = () => {
@@ -27,7 +27,6 @@ export const LanguageSwitcher = () => {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
       >
-        <span>{currentLang.flag}</span>
         <span className="text-sm text-white hidden md:inline">{currentLang.label}</span>
         <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -44,7 +43,6 @@ export const LanguageSwitcher = () => {
                 currentLangCode === lang.code ? 'bg-indigo-50' : ''
               }`}
             >
-              <span>{lang.flag}</span>
               <span className="text-sm">{lang.label}</span>
             </button>
           ))}

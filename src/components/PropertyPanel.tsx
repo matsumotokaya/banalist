@@ -24,7 +24,7 @@ interface PropertyPanelProps {
 
 const AVAILABLE_FONTS = [
   {
-    category: '🔤 欧文サンセリフ',
+    categoryKey: 'latinSans',
     fonts: [
       { name: 'Arial', value: 'Arial' },
       { name: 'Bebas Neue', value: '"Bebas Neue", sans-serif' },
@@ -32,13 +32,13 @@ const AVAILABLE_FONTS = [
     ]
   },
   {
-    category: '🔤 欧文セリフ',
+    categoryKey: 'latinSerif',
     fonts: [
       { name: 'Georgia', value: 'Georgia' },
     ]
   },
   {
-    category: '📝 和文サンセリフ',
+    categoryKey: 'japaneseSans',
     fonts: [
       { name: 'Noto Sans JP', value: '"Noto Sans JP", sans-serif' },
       { name: '游ゴシック', value: '"Yu Gothic", "游ゴシック", YuGothic, sans-serif' },
@@ -47,27 +47,26 @@ const AVAILABLE_FONTS = [
     ]
   },
   {
-    category: '📝 和文セリフ',
+    categoryKey: 'japaneseSerif',
     fonts: [
       { name: 'Noto Serif JP', value: '"Noto Serif JP", serif' },
     ]
   },
 ];
 
-const getWeightLabel = (weight: number): string => {
-  if (weight <= 100) return 'Thin';
-  if (weight <= 200) return 'Extra Light';
-  if (weight <= 300) return 'Light';
-  if (weight <= 400) return 'Regular';
-  if (weight <= 500) return 'Medium';
-  if (weight <= 600) return 'Semi Bold';
-  if (weight <= 700) return 'Bold';
-  if (weight <= 800) return 'Extra Bold';
-  return 'Black';
-};
-
 export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, onSizeChange, onWeightChange, onLetterSpacingChange, onOpacityChange, onBringToFront, onSendToBack, isMobile = false, onClose, onFillEnabledChange, onStrokeChange, onStrokeWidthChange, onStrokeEnabledChange }: PropertyPanelProps) => {
   const { t } = useTranslation('editor');
+  const getWeightLabel = (weight: number): string => {
+    if (weight <= 100) return t('properties.fontWeights.thin');
+    if (weight <= 200) return t('properties.fontWeights.extraLight');
+    if (weight <= 300) return t('properties.fontWeights.light');
+    if (weight <= 400) return t('properties.fontWeights.regular');
+    if (weight <= 500) return t('properties.fontWeights.medium');
+    if (weight <= 600) return t('properties.fontWeights.semiBold');
+    if (weight <= 700) return t('properties.fontWeights.bold');
+    if (weight <= 800) return t('properties.fontWeights.extraBold');
+    return t('properties.fontWeights.black');
+  };
 
   if (!selectedElement) {
     if (isMobile) {
@@ -128,7 +127,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
               className="w-full appearance-none px-3 py-2 pr-8 bg-[#2b2b2b] border border-[#444444] rounded-lg text-xs text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer hover:bg-[#333333]"
             >
               {AVAILABLE_FONTS.map((group) => (
-                <optgroup key={group.category} label={group.category}>
+                <optgroup key={group.categoryKey} label={t(`properties.fontCategories.${group.categoryKey}`)}>
                   {group.fonts.map((font) => (
                     <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
                       {font.name}
@@ -370,7 +369,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
       {onOpacityChange && (
         <div className="mb-4">
           <label className="block text-xs font-medium text-gray-300 mb-2">
-            透明度
+            {t('properties.opacity')}
           </label>
           <div className="flex items-center gap-2">
             <input
@@ -392,7 +391,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
       {/* Layer controls */}
       <div>
         <label className="block text-xs font-medium text-gray-300 mb-2">
-          レイヤー
+          {t('properties.layer')}
         </label>
         <div className="grid grid-cols-2 gap-2">
           <button

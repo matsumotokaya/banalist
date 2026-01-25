@@ -10,6 +10,29 @@
     "noLayers": "レイヤーがありません",
     "addObjects": "オブジェクトを追加してください"
   },
+  "canvasSizeSelector": {
+    "customSize": "カスタムサイズ",
+    "closeCustomSize": "カスタムサイズを閉じる",
+    "width": "幅",
+    "height": "高さ",
+    "apply": "適用",
+    "currentSize": "現在",
+    "presets": {
+      "hdLandscape": "HD 横",
+      "hdPortrait": "HD 縦",
+      "youtube": "YouTube",
+      "ogp": "OGP Image",
+      "note": "note",
+      "instagramSquare": "Instagram 正方形",
+      "instagramFeed": "Instagram フィード",
+      "twitterHeader": "X ヘッダー"
+    }
+  },
+  "imageUploader": {
+    "uploadImage": "画像をアップロード",
+    "chooseFromLibrary": "ライブラリから選ぶ",
+    "supportedFormats": "JPG, PNG, GIF対応"
+  },
   "object": {
     "text": "テキスト",
     "shapes": "図形",
@@ -43,7 +66,24 @@
     "moveDown": "背面へ",
     "width": "幅",
     "height": "高さ",
-    "delete": "削除"
+    "delete": "削除",
+    "fontCategories": {
+      "latinSans": "🔤 欧文サンセリフ",
+      "latinSerif": "🔤 欧文セリフ",
+      "japaneseSans": "📝 和文サンセリフ",
+      "japaneseSerif": "📝 和文セリフ"
+    },
+    "fontWeights": {
+      "thin": "Thin",
+      "extraLight": "Extra Light",
+      "light": "Light",
+      "regular": "Regular",
+      "medium": "Medium",
+      "semiBold": "Semi Bold",
+      "bold": "Bold",
+      "extraBold": "Extra Bold",
+      "black": "Black"
+    }
   },
   "textInput": {
     "placeholder": "テキストを入力...",

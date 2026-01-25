@@ -268,7 +268,7 @@ export const Sidebar = ({
 
           {/* Background section */}
           <div className="flex flex-col items-center gap-2 min-w-[240px] max-w-[240px] px-3">
-            <h3 className="text-[10px] font-semibold text-gray-400 uppercase">背景</h3>
+            <h3 className="text-[10px] font-semibold text-gray-400 uppercase">{t('page.backgroundColor')}</h3>
             <ColorSelector selectedColor={canvasColor} onColorChange={onSelectColor} showInput={true} />
           </div>
         </div>

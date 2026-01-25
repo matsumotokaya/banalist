@@ -61,7 +61,7 @@ export const BannerEditor = () => {
   const isMountedRef = useRef(false);
 
   // Custom hooks
-  const { saveToHistory, undo, redo } = useHistory();
+  const { resetHistory, saveToHistory, undo, redo } = useHistory();
   const getInitialZoom = () => {
     const isMobile = window.innerWidth < 768;
     return isMobile ? 30 : 40;
@@ -103,6 +103,7 @@ export const BannerEditor = () => {
       setGuestName(guestState.name);
       setElements(guestState.elements || []);
       setCanvasColor(guestState.canvasColor || '#FFFFFF');
+      resetHistory(guestState.elements || []);
       return;
     }
 
@@ -121,6 +122,7 @@ export const BannerEditor = () => {
         setGuestName(parsed.name);
         setElements(parsed.elements || []);
         setCanvasColor(parsed.canvasColor || '#FFFFFF');
+        resetHistory(parsed.elements || []);
         if (parsed.createdAt) {
           guestCreatedAtRef.current = parsed.createdAt;
         }
@@ -203,6 +205,7 @@ export const BannerEditor = () => {
       console.log('[BannerEditor] Setting elements to:', migratedElements);
       setElements(migratedElements);
       setCanvasColor(banner.canvasColor);
+      resetHistory(migratedElements);
 
       // If new banner with no elements, add default text and save to DB immediately
       if (migratedElements.length === 0) {
@@ -226,6 +229,7 @@ export const BannerEditor = () => {
         };
         const newElements = [defaultText];
         setElements(newElements);
+        resetHistory(newElements);
 
         // Save default text to DB immediately to maintain consistency
         batchSave.mutateAsync({
@@ -861,15 +865,6 @@ export const BannerEditor = () => {
     await updateName.mutateAsync(newName);
   };
 
-  const handlePremiumChange = async (isPremium: boolean) => {
-    if (isGuest || !banner) return;
-    const updatedTemplate: Template = {
-      ...banner.template,
-      planType: isPremium ? 'premium' : 'free',
-    };
-    await updateBanner.mutateAsync({ template: updatedTemplate });
-  };
-
 
   const handleReorderElements = (newOrder: CanvasElement[]) => {
     elementOps.reorderElements(newOrder);
@@ -970,8 +965,6 @@ export const BannerEditor = () => {
         bannerName={banner.name}
         bannerId={isGuest ? undefined : banner.id}
         onBannerNameChange={isGuest ? undefined : handleBannerNameChange}
-        isPremium={(banner.template?.planType || 'free') === 'premium'}
-        onPremiumChange={isGuest ? undefined : handlePremiumChange}
       />
 
 

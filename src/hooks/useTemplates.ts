@@ -15,7 +15,8 @@ export function useTemplates() {
       console.log('[useTemplates] ✅ Fetched', templates.length, 'templates');
       return templates;
     },
-    staleTime: 0,
-    refetchOnMount: 'always',
+    staleTime: 5 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 }

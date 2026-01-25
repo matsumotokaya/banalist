@@ -32,5 +32,8 @@
     "loading": "Loading...",
     "uploading": "Uploading...",
     "creating": "Creating..."
+  },
+  "colorPicker": {
+    "open": "Open color picker"
   }
 }

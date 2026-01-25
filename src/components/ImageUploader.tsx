@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ImageLibraryModal } from './ImageLibraryModal';
 
 interface ImageUploaderProps {
@@ -6,6 +7,7 @@ interface ImageUploaderProps {
 }
 
 export const ImageUploader = ({ onAddImage }: ImageUploaderProps) => {
+  const { t } = useTranslation('editor');
   const [showLibrary, setShowLibrary] = useState(false);
   const [initialTab, setInitialTab] = useState<'default' | 'user'>('user');
 
@@ -27,7 +29,7 @@ export const ImageUploader = ({ onAddImage }: ImageUploaderProps) => {
       >
         <div className="flex items-center justify-center gap-2">
           <span className="material-symbols-outlined text-[20px]">upload</span>
-          <span>画像をアップロード</span>
+          <span>{t('imageUploader.uploadImage')}</span>
         </div>
       </button>
 
@@ -37,12 +39,12 @@ export const ImageUploader = ({ onAddImage }: ImageUploaderProps) => {
       >
         <div className="flex items-center justify-center gap-2">
           <span className="material-symbols-outlined text-[20px]">photo_library</span>
-          <span>ライブラリから選ぶ</span>
+          <span>{t('imageUploader.chooseFromLibrary')}</span>
         </div>
       </button>
 
       <p className="text-xs text-gray-500 mt-2">
-        JPG, PNG, GIF対応
+        {t('imageUploader.supportedFormats')}
       </p>
 
       <ImageLibraryModal

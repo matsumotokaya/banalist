@@ -120,7 +120,7 @@ export const AuthButton = () => {
   return (
     <button
       onClick={signInWithGoogle}
-      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-black border border-white/20 rounded-lg hover:bg-white hover:text-black transition-colors"
     >
       <svg className="w-5 h-5" viewBox="0 0 24 24">
         <path

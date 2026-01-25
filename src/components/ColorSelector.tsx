@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 interface ColorSelectorProps {
   label?: string;
   selectedColor: string;
@@ -16,6 +18,8 @@ export const ColorSelector = ({
   onColorChange,
   showInput = true,
 }: ColorSelectorProps) => {
+  const { t } = useTranslation('common');
+  const colorPickerTitle = t('colorPicker.open');
   return (
     <div className="w-full">
       {label && (
@@ -41,12 +45,12 @@ export const ColorSelector = ({
               value={selectedColor}
               onChange={(e) => onColorChange(e.target.value)}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              title="カラーピッカーを開く"
+              title={colorPickerTitle}
             />
             <button
               type="button"
               className="w-7 h-7 flex items-center justify-center bg-[#333333] hover:bg-[#444444] border border-[#555555] rounded transition-colors"
-              title="カラーピッカーを開く"
+              title={colorPickerTitle}
             >
               <span className="material-symbols-outlined text-gray-300 text-[16px]">colorize</span>
             </button>
