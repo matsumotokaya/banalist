@@ -15,7 +15,9 @@ export const TemplateGallery = () => {
   const [templateImageLoadingStates, setTemplateImageLoadingStates] = useState<Record<string, boolean>>({});
   const [templateActionId, setTemplateActionId] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile, signInWithGoogle } = useAuth();
+  const isGuest = !user;
+  const guestTemplateId = 'd9c4fee2-8e9c-4703-a507-57f3bde5d2b3';
 
   const { data: templates = [], isLoading: templatesLoading } = useTemplates();
 
@@ -28,16 +30,28 @@ export const TemplateGallery = () => {
       height: template.height ?? fallbackTemplate.height,
       backgroundColor: template.canvasColor,
       thumbnail: template.thumbnailUrl,
+      planType: template.planType,
     };
   };
 
   const handleTemplateClick = async (template: TemplateRecord) => {
+    const isGuestAllowed = isGuest && template.id === guestTemplateId;
+    if (isGuest && !isGuestAllowed) {
+      return;
+    }
     const resolvedTemplate = template.elements
       ? template
       : await templateStorage.getById(template.id);
     if (!resolvedTemplate?.elements) {
       alert('テンプレートの読み込みに失敗しました');
       return;
+    }
+
+    if (!isGuestAllowed && resolvedTemplate.planType === 'premium') {
+      if (!user || !profile || profile.subscriptionTier === 'free') {
+        alert('プレミアムテンプレートを使うにはアップグレードが必要です。');
+        return;
+      }
     }
 
     const editorTemplate = buildEditorTemplate(resolvedTemplate);
@@ -50,7 +64,6 @@ export const TemplateGallery = () => {
           elements: templateElements,
           canvasColor: resolvedTemplate.canvasColor,
           name: resolvedTemplate.name,
-          planType: resolvedTemplate.planType,
           templateId: resolvedTemplate.id,
         },
       });
@@ -104,7 +117,9 @@ export const TemplateGallery = () => {
                 className="group bg-white rounded-lg border border-gray-200 hover:border-indigo-400 hover:shadow-lg transition-all overflow-hidden"
               >
                 <div
-                  className="aspect-[9/16] bg-gray-100 cursor-pointer relative overflow-hidden"
+                  className={`aspect-[9/16] bg-gray-100 relative overflow-hidden ${
+                    isGuest ? 'cursor-default' : 'cursor-pointer'
+                  }`}
                   onClick={() => handleTemplateClick(template)}
                 >
                   {template.thumbnailUrl ? (
@@ -143,13 +158,51 @@ export const TemplateGallery = () => {
                     </div>
                   )}
 
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <button
-                      className="px-4 py-2 bg-white/95 text-gray-900 text-xs font-semibold rounded shadow-sm"
-                      disabled={templateActionId === template.id}
+                  <div className="absolute top-2 left-2 flex flex-col gap-1">
+                    <div
+                      className={`h-6 px-2 rounded-md shadow text-white inline-flex items-center ${
+                        template.planType === 'premium'
+                          ? 'bg-gradient-to-r from-yellow-400 to-amber-500'
+                          : 'bg-emerald-500/90'
+                      }`}
                     >
-                      {templateActionId === template.id ? t('common:status.creating') : t('banner:createFromTemplate')}
-                    </button>
+                      <span className="text-xs font-bold">
+                        {template.planType === 'premium' ? 'PREMIUM' : 'FREE'}
+                      </span>
+                    </div>
+                  </div>
+                  {isGuest && template.id !== guestTemplateId && (
+                    <div className="absolute top-2 right-2">
+                      <div className="bg-black/70 text-white h-6 w-6 rounded-md shadow flex items-center justify-center">
+                        <span className="material-symbols-outlined text-[14px]">lock</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    {isGuest && template.id !== guestTemplateId ? (
+                      <div className="flex flex-col items-center gap-3 text-center">
+                        <p className="text-white text-xs font-semibold">
+                          アンロックするにはログインしてください
+                        </p>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            signInWithGoogle();
+                          }}
+                          className="px-4 py-2 bg-white/95 text-gray-900 text-xs font-semibold rounded shadow-sm"
+                        >
+                          ログイン
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        className="px-4 py-2 bg-white/95 text-gray-900 text-xs font-semibold rounded shadow-sm"
+                        disabled={templateActionId === template.id}
+                      >
+                        {templateActionId === template.id ? t('common:status.creating') : t('banner:createFromTemplate')}
+                      </button>
+                    )}
                   </div>
 
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-3 pt-8">

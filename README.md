@@ -223,11 +223,12 @@ Canvas element types and properties are defined in `src/types/template.ts`.
 - **Google OAuth**: Login/Logout via Supabase
 - **UI**: Canva-style avatar dropdown menu
 - **Status**: ✅ Fully implemented with database integration
+- **Profile Source of Truth**: `profiles` table is used by the app; `auth.users` is only for authentication
 
 ### User Roles & Permissions ✅ (2025-11-23, Updated 2025-12-16)
 - **Role Types**: `admin` | `user`
 - **Subscription Tiers**: `free` | `premium`
-- **Storage**: `profiles` table with `role` and `subscription_tier` columns
+- **Storage**: `profiles` table (`role`, `subscription_tier`, `full_name`, `avatar_url`)
 - **Admin Privileges**:
   - Upload to default image library
   - Mark banners as Premium (via checkbox in header)
@@ -318,17 +319,25 @@ WordPress-style image library with dual storage:
 - **One-Click Insert**: Click to add image to canvas at original size
 
 ### Data Persistence ✅ (2025-11-23, Updated 2025-12-16)
-- **Storage**: Migrated from localStorage to Supabase PostgreSQL
+- **Storage**: Migrated from localStorage to Supabase PostgreSQL (logged-in users)
 - **Tables**:
   - `templates`: Public template definitions
   - `banners`: User banner data with JSONB elements and `template_id`
-  - `profiles`: User metadata (role, subscription tier)
+  - `profiles`: User metadata (role, subscription tier, full name, avatar)
   - `default_images`: Default library metadata
   - `user_images`: User library metadata
 - **Auto-save**: Elements, canvas color, thumbnails
 - **Thumbnails**: Stored in Supabase Storage (`thumbnail_url`), Base64 is deprecated
 - **Save Status Indicator** ✨ NEW (2025-12-16): Real-time "Saving..." / "Saved" indicator in bottom-left corner
 - **RLS Policies**: Row-level security ensures users only access their own data
+- **Guest Mode**: One trial banner stored in `localStorage` (`banalist_guest_banner`)
+
+### Template Gallery ✅ (2025-12-18)
+- **Tabs**: "My Banners" and "Templates" are separate pages
+- **Ordering**: `templates.display_order` asc (NULLs last), fallback to `updated_at` desc
+- **Access**:
+  - Guests: all templates locked except a single trial template (hardcoded ID)
+  - Logged-in: `plan_type = premium` is gated by `profiles.subscription_tier`
 
 ### Export
 - PNG export functionality
@@ -383,6 +392,8 @@ WordPress-style image library with dual storage:
 ```sql
 - id: uuid (FK to auth.users)
 - email: text
+- full_name: text
+- avatar_url: text
 - role: text (admin | user)
 - subscription_tier: text (free | premium)
 - subscription_expires_at: timestamp
@@ -400,7 +411,6 @@ WordPress-style image library with dual storage:
 - canvas_color: text
 - thumbnail_data_url: text -- legacy (deprecated)
 - thumbnail_url: text       -- Storage public URL
-- plan_type: text (free | premium) DEFAULT 'free' -- プランタイプ (2025-12-16)
 - created_at: timestamp
 - updated_at: timestamp
 ```
@@ -413,6 +423,9 @@ WordPress-style image library with dual storage:
 - canvas_color: text
 - thumbnail_url: text
 - plan_type: text (free | premium)
+- display_order: integer (nullable)
+- width: integer
+- height: integer
 - created_at: timestamp
 - updated_at: timestamp
 ```

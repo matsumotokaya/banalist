@@ -5,6 +5,7 @@ export interface Template {
   height: number;
   backgroundColor: string;
   thumbnail?: string;
+  planType?: 'free' | 'premium';
 }
 
 export interface TemplateRecord {
@@ -13,7 +14,8 @@ export interface TemplateRecord {
   elements?: CanvasElement[];
   canvasColor: string;
   thumbnailUrl?: string;
-  planType: 'free' | 'premium';
+  planType?: 'free' | 'premium';
+  displayOrder?: number;
   width?: number;
   height?: number;
 }
@@ -82,7 +84,6 @@ export interface Banner {
   elements: CanvasElement[];
   canvasColor: string;
   thumbnailUrl?: string;
-  planType: 'free' | 'premium';
 }
 
 export interface BannerListItem {
@@ -90,5 +91,4 @@ export interface BannerListItem {
   name: string;
   updatedAt: string;
   thumbnailUrl?: string;
-  planType: 'free' | 'premium';
 }

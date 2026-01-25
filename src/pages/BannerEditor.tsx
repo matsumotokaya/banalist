@@ -7,7 +7,7 @@ import { PropertyPanel } from '../components/PropertyPanel';
 import { BottomBar } from '../components/BottomBar';
 import { Canvas, type CanvasRef } from '../components/Canvas';
 import { UpgradeModal } from '../components/UpgradeModal';
-import { useBanner, useBatchSaveBanner, useUpdateBanner, useUpdateBannerName, useUpdateBannerPlanType } from '../hooks/useBanners';
+import { useBanner, useBatchSaveBanner, useUpdateBanner, useUpdateBannerName } from '../hooks/useBanners';
 import type { Banner, Template, CanvasElement, TextElement, ShapeElement, ImageElement } from '../types/template';
 import { useHistory } from '../hooks/useHistory';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
@@ -23,15 +23,17 @@ export const BannerEditor = () => {
   const { profile, user } = useAuth();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const isGuest = !id;
+  const guestStorageKey = 'banalist_guest_banner';
 
   const [guestTemplate, setGuestTemplate] = useState<Template | null>(null);
+  const [guestName, setGuestName] = useState<string>('');
+  const [guestUpdatedAt, setGuestUpdatedAt] = useState<string>(new Date().toISOString());
 
   // React Query hooks
   const { data: bannerData, isLoading } = useBanner(id);
   const batchSave = useBatchSaveBanner(id || '');
   const updateBanner = useUpdateBanner(id || '');
   const updateName = useUpdateBannerName(id || '');
-  const updatePlanType = useUpdateBannerPlanType(id || '');
 
   // Local state for editing (not persisted immediately)
   const [elements, setElements] = useState<CanvasElement[]>([]);
@@ -46,6 +48,9 @@ export const BannerEditor = () => {
   const canvasRef = useRef<CanvasRef>(null);
   const mainRef = useRef<HTMLDivElement>(null);
   const guestCreatedAtRef = useRef<string>(new Date().toISOString());
+  const guestMountedRef = useRef(false);
+  const prevGuestElementsRef = useRef<string>('');
+  const prevGuestCanvasColorRef = useRef<string>('');
 
   // Track current banner ID to detect banner switches
   const [currentBannerId, setCurrentBannerId] = useState<string | null>(null);
@@ -75,32 +80,60 @@ export const BannerEditor = () => {
     elements: CanvasElement[];
     canvasColor: string;
     name: string;
-    planType: 'free' | 'premium';
     templateId?: string;
   } | null;
 
-  const guestBanner: Banner | null = guestState ? {
+  const guestBanner: Banner | null = isGuest && (guestTemplate || guestState?.template) ? {
     id: 'guest',
-    name: guestState.name,
+    name: guestName || guestState?.name || 'Guest Banner',
     createdAt: guestCreatedAtRef.current,
-    updatedAt: guestCreatedAtRef.current,
-    template: guestTemplate || guestState.template,
-    elements: guestState.elements,
-    canvasColor: guestState.canvasColor,
-    planType: guestState.planType || 'free',
+    updatedAt: guestUpdatedAt,
+    template: guestTemplate || guestState?.template!,
+    elements,
+    canvasColor,
   } : null;
 
   const banner = isGuest ? guestBanner : bannerData;
 
   useEffect(() => {
     if (!isGuest) return;
-    if (!guestState) {
-      navigate('/');
+
+    if (guestState) {
+      setGuestTemplate(guestState.template);
+      setGuestName(guestState.name);
+      setElements(guestState.elements || []);
+      setCanvasColor(guestState.canvasColor || '#FFFFFF');
       return;
     }
-    setGuestTemplate(guestState.template);
-    setElements(guestState.elements || []);
-    setCanvasColor(guestState.canvasColor || '#FFFFFF');
+
+    try {
+      const stored = localStorage.getItem(guestStorageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored) as {
+          name: string;
+          template: Template;
+          elements: CanvasElement[];
+          canvasColor: string;
+          updatedAt?: string;
+          createdAt?: string;
+        };
+        setGuestTemplate(parsed.template);
+        setGuestName(parsed.name);
+        setElements(parsed.elements || []);
+        setCanvasColor(parsed.canvasColor || '#FFFFFF');
+        if (parsed.createdAt) {
+          guestCreatedAtRef.current = parsed.createdAt;
+        }
+        if (parsed.updatedAt) {
+          setGuestUpdatedAt(parsed.updatedAt);
+        }
+        return;
+      }
+    } catch (error) {
+      console.warn('[BannerEditor] Failed to load guest banner from localStorage:', error);
+    }
+
+    navigate('/');
   }, [isGuest, guestState, navigate]);
 
   // Initialize local state from React Query data ONLY when banner changes
@@ -115,9 +148,8 @@ export const BannerEditor = () => {
       return;
     }
 
-    // Check if premium banner and user is not premium
-    if (banner.planType === 'premium') {
-      // Not logged in OR free tier -> show upgrade modal
+    const templatePlanType = banner.template?.planType || 'free';
+    if (templatePlanType === 'premium') {
       if (!profile || profile.subscriptionTier === 'free') {
         setShowUpgradeModal(true);
         return;
@@ -223,7 +255,39 @@ export const BannerEditor = () => {
 
   // Core save function
   const performSave = async (generateThumbnail = false) => {
-    if (isGuest || !banner || !id) return;
+    if (isGuest) {
+      if (!guestTemplate && !guestState?.template) return;
+      setSaveStatus('saving');
+      setLastSaveError(null);
+      try {
+        let thumbnailDataURL: string | undefined;
+        if (generateThumbnail && canvasRef.current && elements.length > 0) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          thumbnailDataURL = canvasRef.current.exportImage();
+        }
+
+        const updatedAt = new Date().toISOString();
+        const snapshot = {
+          name: guestName || guestState?.name || 'Guest Banner',
+          template: guestTemplate || guestState?.template,
+          elements,
+          canvasColor,
+          updatedAt,
+          createdAt: guestCreatedAtRef.current,
+          thumbnailUrl: thumbnailDataURL,
+        };
+        localStorage.setItem(guestStorageKey, JSON.stringify(snapshot));
+        setGuestUpdatedAt(updatedAt);
+        setHasUnsavedChanges(false);
+        setSaveStatus('saved');
+      } catch (error) {
+        console.error('[BannerEditor] Guest save failed:', error);
+        setSaveStatus('error');
+        setLastSaveError(error instanceof Error ? error.message : '保存に失敗しました');
+      }
+      return;
+    }
+    if (!banner || !id) return;
 
     console.log('[BannerEditor] Saving... Elements:', elements.length, 'Banner ID:', banner.id);
     setSaveStatus('saving');
@@ -269,12 +333,19 @@ export const BannerEditor = () => {
     [elements, canvasColor, banner, id, isGuest]
   );
 
+  const debouncedGuestSave = useMemo(
+    () => debounce(() => {
+      performSave(false);
+    }, 1000),
+    [elements, canvasColor, guestName, guestTemplate, isGuest]
+  );
+
   // Immediate save for important actions
   const immediateSave = useCallback(async () => {
-    if (isGuest) return;
     debouncedSave.cancel();
+    debouncedGuestSave.cancel();
     await performSave(false); // No thumbnail for immediate saves to improve performance
-  }, [elements, canvasColor, banner, id, isGuest]);
+  }, [elements, canvasColor, banner, id, isGuest, debouncedGuestSave, performSave]);
 
   // Mark as dirty and trigger auto-save when elements actually change
   useEffect(() => {
@@ -302,6 +373,25 @@ export const BannerEditor = () => {
     };
   }, [elements, banner, currentBannerId, debouncedSave, isGuest]);
 
+  useEffect(() => {
+    if (!isGuest) return;
+    const currentElementsStr = JSON.stringify(elements);
+
+    if (!guestMountedRef.current) {
+      guestMountedRef.current = true;
+      prevGuestElementsRef.current = currentElementsStr;
+      prevGuestCanvasColorRef.current = canvasColor;
+      return;
+    }
+
+    if (currentElementsStr !== prevGuestElementsRef.current) {
+      prevGuestElementsRef.current = currentElementsStr;
+      setHasUnsavedChanges(true);
+      setSaveStatus('unsaved');
+      debouncedGuestSave();
+    }
+  }, [elements, canvasColor, debouncedGuestSave, isGuest]);
+
   // Mark as dirty and trigger auto-save when canvas color actually changes
   useEffect(() => {
     if (isGuest) return;
@@ -316,13 +406,25 @@ export const BannerEditor = () => {
     }
   }, [canvasColor, banner, currentBannerId, debouncedSave, isGuest]);
 
+  useEffect(() => {
+    if (!isGuest) return;
+    if (!guestMountedRef.current) return;
+
+    if (canvasColor !== prevGuestCanvasColorRef.current) {
+      prevGuestCanvasColorRef.current = canvasColor;
+      setHasUnsavedChanges(true);
+      setSaveStatus('unsaved');
+      debouncedGuestSave();
+    }
+  }, [canvasColor, debouncedGuestSave, isGuest]);
+
   // Save before leaving page (if there are unsaved changes)
   useEffect(() => {
-    if (isGuest) return;
     const handleBeforeUnload = async (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
         // Cancel any pending saves
         debouncedSave.cancel();
+        debouncedGuestSave.cancel();
 
         // Try to save synchronously (best effort)
         // Note: Modern browsers may not allow async operations in beforeunload
@@ -337,7 +439,7 @@ export const BannerEditor = () => {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [hasUnsavedChanges, isGuest]);
+  }, [hasUnsavedChanges, isGuest, debouncedGuestSave, debouncedSave, performSave]);
 
   // Manual save handler (for save button)
   const handleSave = async () => {
@@ -756,9 +858,12 @@ export const BannerEditor = () => {
   };
 
   const handlePremiumChange = async (isPremium: boolean) => {
-    if (isGuest) return;
-    const newPlanType = isPremium ? 'premium' : 'free';
-    await updatePlanType.mutateAsync(newPlanType);
+    if (isGuest || !banner) return;
+    const updatedTemplate: Template = {
+      ...banner.template,
+      planType: isPremium ? 'premium' : 'free',
+    };
+    await updateBanner.mutateAsync({ template: updatedTemplate });
   };
 
 
@@ -861,7 +966,7 @@ export const BannerEditor = () => {
         bannerName={banner.name}
         bannerId={isGuest ? undefined : banner.id}
         onBannerNameChange={isGuest ? undefined : handleBannerNameChange}
-        isPremium={banner.planType === 'premium'}
+        isPremium={(banner.template?.planType || 'free') === 'premium'}
         onPremiumChange={isGuest ? undefined : handlePremiumChange}
       />
 

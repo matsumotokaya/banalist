@@ -6,6 +6,8 @@ import { useProfile } from '../hooks/useProfile';
 interface UserProfile {
   id: string;
   email: string;
+  fullName?: string;
+  avatarUrl?: string;
   role: 'admin' | 'user';
   subscriptionTier: 'free' | 'premium';
 }
@@ -77,6 +79,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const profile: UserProfile | null = profileData || (user ? {
     id: user.id,
     email: user.email || '',
+    fullName: undefined,
+    avatarUrl: undefined,
     role: 'user',
     subscriptionTier: 'free',
   } : null);

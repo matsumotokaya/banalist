@@ -210,38 +210,5 @@ export function useUpdateBannerName(id: string) {
   });
 }
 
-// Update plan type (admin only)
-export function useUpdateBannerPlanType(id: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (planType: 'free' | 'premium') => {
-      await bannerStorage.updatePlanType(id, planType);
-      return planType;
-    },
-    onMutate: async (planType) => {
-      await queryClient.cancelQueries({ queryKey: bannerKeys.detail(id) });
-      const previousBanner = queryClient.getQueryData<Banner>(bannerKeys.detail(id));
-
-      if (previousBanner) {
-        queryClient.setQueryData<Banner>(bannerKeys.detail(id), {
-          ...previousBanner,
-          planType,
-        });
-      }
-
-      return { previousBanner };
-    },
-    onError: (err, variables, context) => {
-      if (context?.previousBanner) {
-        queryClient.setQueryData(bannerKeys.detail(id), context.previousBanner);
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: bannerKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: bannerKeys.lists() });
-    },
-  });
-}
 
 // Update public status

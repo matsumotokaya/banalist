@@ -46,15 +46,15 @@ export const AuthButton = () => {
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="w-9 h-9 rounded-full overflow-hidden hover:ring-2 hover:ring-white/50 transition-all"
         >
-          {user.user_metadata?.avatar_url ? (
+          {profile?.avatarUrl ? (
             <img
-              src={user.user_metadata.avatar_url}
+              src={profile.avatarUrl}
               alt="User avatar"
               className="w-full h-full object-cover"
             />
           ) : (
             <div className="w-full h-full bg-white/20 flex items-center justify-center text-white font-medium">
-              {user.email?.[0].toUpperCase()}
+              {(profile?.email || user.email || 'U')[0].toUpperCase()}
             </div>
           )}
         </button>
@@ -63,23 +63,23 @@ export const AuthButton = () => {
           <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50">
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center gap-3">
-                {user.user_metadata?.avatar_url ? (
+                {profile?.avatarUrl ? (
                   <img
-                    src={user.user_metadata.avatar_url}
+                    src={profile.avatarUrl}
                     alt="User avatar"
                     className="w-12 h-12 rounded-full"
                   />
                 ) : (
                   <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 font-medium text-xl">
-                    {user.email?.[0].toUpperCase()}
+                    {(profile?.email || user.email || 'U')[0].toUpperCase()}
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-gray-900 truncate">
-                    {user.user_metadata?.full_name || 'User'}
+                    {profile?.fullName || 'User'}
                   </div>
                   <div className="text-sm text-gray-500 truncate">
-                    {user.email}
+                    {profile?.email || user.email}
                   </div>
                   <div className="flex items-center gap-2 mt-1">
                     {profile?.role === 'admin' && (

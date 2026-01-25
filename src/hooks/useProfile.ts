@@ -4,6 +4,8 @@ import { supabase } from '../utils/supabase';
 interface UserProfile {
   id: string;
   email: string;
+  fullName?: string;
+  avatarUrl?: string;
   role: 'admin' | 'user';
   subscriptionTier: 'free' | 'premium';
 }
@@ -21,7 +23,7 @@ async function fetchProfile(userId: string): Promise<UserProfile> {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, email, role, subscription_tier')
+      .select('id, email, full_name, avatar_url, role, subscription_tier')
       .eq('id', userId)
       .single();
 
@@ -40,6 +42,8 @@ async function fetchProfile(userId: string): Promise<UserProfile> {
     const userProfile: UserProfile = {
       id: data.id,
       email: data.email || '',
+      fullName: data.full_name || undefined,
+      avatarUrl: data.avatar_url || undefined,
       role: (data.role || 'user') as 'admin' | 'user',
       subscriptionTier: (data.subscription_tier || 'free') as 'free' | 'premium',
     };

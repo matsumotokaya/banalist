@@ -12,7 +12,6 @@ interface DbBanner {
   canvas_color: string;
   thumbnail_data_url?: string | null;
   thumbnail_url?: string | null;
-  plan_type?: 'free' | 'premium' | null;
   created_at: string;
   updated_at: string;
 }
@@ -22,7 +21,6 @@ interface DbBannerListItem {
   name: string;
   thumbnail_data_url?: string | null;
   thumbnail_url?: string | null;
-  plan_type?: 'free' | 'premium' | null;
   updated_at: string;
 }
 
@@ -34,7 +32,6 @@ const dbToBanner = (db: DbBanner): Banner => ({
   elements: db.elements,
   canvasColor: db.canvas_color,
   thumbnailUrl: db.thumbnail_url || db.thumbnail_data_url || undefined,
-  planType: db.plan_type || 'free',
   createdAt: db.created_at,
   updatedAt: db.updated_at,
 });
@@ -43,7 +40,6 @@ const dbToBannerListItem = (db: DbBannerListItem): BannerListItem => ({
   id: db.id,
   name: db.name,
   thumbnailUrl: db.thumbnail_url || db.thumbnail_data_url || undefined,
-  planType: db.plan_type || 'free',
   updatedAt: db.updated_at,
 });
 
@@ -86,7 +82,6 @@ export const bannerStorage = {
         template: editorTemplate,
         elements,
         canvas_color: template.canvasColor,
-        plan_type: template.planType || 'free',
       })
       .select()
       .single();
@@ -123,7 +118,7 @@ export const bannerStorage = {
     // RLS policy handles access control: public banners OR own banners
     const { data, error } = await supabase
       .from('banners')
-      .select('id, name, thumbnail_url, plan_type, updated_at')
+      .select('id, name, thumbnail_url, updated_at')
       .order('updated_at', { ascending: false });
 
     if (error) {
@@ -218,7 +213,6 @@ export const bannerStorage = {
     if (updates.elements !== undefined) dbUpdates.elements = updates.elements;
     if (updates.canvasColor !== undefined) dbUpdates.canvas_color = updates.canvasColor;
     if (updates.thumbnailUrl !== undefined) dbUpdates.thumbnail_url = updates.thumbnailUrl;
-    if (updates.planType !== undefined) dbUpdates.plan_type = updates.planType;
 
     const { error } = await supabase
       .from('banners')
@@ -342,10 +336,6 @@ export const bannerStorage = {
     await this.update(id, { name });
   },
 
-  // Update plan type (admin only)
-  async updatePlanType(id: string, planType: 'free' | 'premium'): Promise<void> {
-    await this.update(id, { planType });
-  },
 
   // Update public status
   // Public/private is deprecated; no-op placeholder removed
