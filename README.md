@@ -4,89 +4,6 @@ Browser-based banner design tool with template and rule-based image generation.
 
 ---
 
-## 🚧 TODO - 未解決の課題
-
-### Shift + Drag 制約機能（直線移動）の修正が必要
-
-**現在の問題:**
-- Shiftキーを押してドラッグすると、オブジェクトがワープする
-- 水平・垂直移動が正しく機能しない
-
-**期待される仕様（Illustrator/Figma方式）:**
-1. ドラッグ開始位置のX座標とY座標を保存
-2. Shiftキーを押した状態でドラッグすると：
-   - **水平移動**: Y軸をドラッグ開始位置に固定、X軸のみ移動可能
-   - **垂直移動**: X軸をドラッグ開始位置に固定、Y軸のみ移動可能
-3. 移動方向（水平/垂直）は、ドラッグ開始位置からの距離で動的に切り替え
-   - `dx > dy` → 水平移動（Y軸固定）
-   - `dy > dx` → 垂直移動（X軸固定）
-
-**技術的課題:**
-- Konvaの`dragBoundFunc`内で正確なドラッグ開始位置を保持する必要がある
-- 現在の実装では`onDragStart`で保存した位置がShift押下時にずれている可能性
-
-**Status**: 🔴 未解決（現在は誤動作するが、実害は少ないためそのまま）
-
-### ピンチイン/ピンチアウトでのキャンバスズーム制御
-
-**目的:**
-トラックパッド/タッチデバイスでピンチ操作により、キャンバスの表示倍率（左下の25%〜200%）を変更したい
-
-**現在の問題:**
-- ブラウザ全体がズームされてしまう（ネイティブのピンチズーム動作）
-- キャンバスの表示倍率だけを変更できない
-
-**試行した対策:**
-- `touch-action: none` の追加
-- `viewport` に `user-scalable=no` を設定
-- `wheel` / `touch` / `gesture` イベントの `preventDefault()`
-- Safari用 `gesturestart/gesturechange/gestureend` イベント処理
-
-**技術的課題:**
-- ブラウザ（特にMac Safari/Chrome）のネイティブピンチズーム動作を完全に無効化するのは技術的に困難
-- セキュリティ・アクセシビリティの観点から、ブラウザが意図的に無効化を制限している可能性
-
-**Status**: 🔴 未解決（実装試行したが、現時点では実現不可能の可能性あり）
-
-### テキスト・図形のエフェクト機能
-
-**目的:**
-Illustratorのような高度な視覚効果を実現する
-
-**実装したいエフェクト:**
-- **外側線**: 線が塗りに重ならない（複数レイヤーを内部的に生成）
-- **グロー効果**: 発光するような光彩
-- **ドロップシャドウ**: 影をつける
-- **アウトライン効果**: 線を外側に配置
-- **グラデーション**: 塗りにグラデーションを適用
-
-**技術的アプローチ:**
-1. 単一の要素を内部的に複数のKonvaノードで構成
-2. エフェクトをプリセットとして提供（ユーザーは選択するだけ）
-3. 編集は単一オブジェクトとして、レンダリング時に複数レイヤーに展開
-
-**課題:**
-- Konva.jsの制約（strokeは常に中央配置）
-- 複数ノードの同期管理
-- パフォーマンス
-
-**Status**: 📋 TODO（将来実装予定）
-
-### Google OAuth後のアバター画像表示遅延
-
-**現在の問題:**
-- 初回ログイン時、アバター画像が約2分間表示されない
-- リロードしても改善されない
-- ユーザーが戸惑う可能性がある
-
-**原因:**
-- Supabase側でGoogle OAuthのコールバック処理後、`user_metadata.avatar_url`の保存に時間がかかる
-- `onAuthStateChange`イベントが先に発火し、メタデータの保存が遅れる
-
-**Status**: 🔴 未解決（Supabase仕様による制約、将来的に対応が必要）
-
----
-
 ## Tech Stack
 
 - **Frontend**: React 19.2.0 + Vite + TypeScript
@@ -109,6 +26,27 @@ npm run dev
 # Build for production
 npm run build
 ```
+
+## Deployment (Vercel + Domain)
+
+### Vercel build
+- Build command: `npm run build`
+- Output directory: `dist`
+
+### Required environment variables (Vercel)
+Set these in Project Settings -> Environment Variables:
+- `VITE_SUPABASE_URL` (Supabase -> Settings -> API -> Project URL)
+- `VITE_SUPABASE_ANON_KEY` (Supabase -> Settings -> API -> anon public key)
+- `VITE_STRIPE_PUBLISHABLE_KEY` (if Stripe is enabled)
+
+Missing Supabase env vars will cause a blank screen at runtime.
+
+### Domain setup example (`app.whatif-ep.xyz`)
+1) Vercel -> Project -> Settings -> Domains -> add `app.whatif-ep.xyz`
+2) At the registrar DNS, add/update a `CNAME` record:
+   - Host/Name: `app`
+   - Value/Target: use the value shown by Vercel (for example, `cname.vercel-dns.com` or a `vercel-dns-xxx.com` target)
+3) Wait for DNS propagation, then confirm the domain is `Ready` in Vercel
 
 ## Project Structure
 
@@ -518,16 +456,3 @@ const mutation = useMutation(updateFn, {
 5. **No Request Deduplication**: Multiple components fetching same data simultaneously
 
 ---
-
-## Future Enhancements
-- **Lasso Selection**: Complete coordinate system fix
-- **Multi-element resize**: Proportional resize of multiple selected elements
-- **Copy/Paste multiple elements**: Extend clipboard to support multi-selection
-- **Premium Features**: Define feature set for paid tier
-- **Template System**: Pre-designed banner templates
-- **LLM Integration**: AI-powered text generation
-- **Color Palette Presets**: Curated color schemes
-- **Alignment Tools**: Align left/center/right, distribute evenly
-- **Snap-to-grid / Smart Guides**: Design assistance
-- **Image Search**: Tag-based filtering in image library
-- **Stripe Integration**: Payment processing for premium subscriptions
