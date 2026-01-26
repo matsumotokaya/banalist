@@ -28,7 +28,7 @@ export const BannerManager = () => {
   const [guestBanner, setGuestBanner] = useState<BannerListItem | null>(null);
 
   // React Query hooks
-  const { data: banners = [], isLoading, refetch } = useBanners();
+  const { data: banners = [], isLoading } = useBanners();
   const createBanner = useCreateBanner();
   const deleteBanner = useDeleteBanner();
   const duplicateBanner = useDuplicateBanner();
@@ -63,20 +63,6 @@ export const BannerManager = () => {
       setGuestBanner(null);
     }
   }, [isGuest]);
-
-  // Reload banners when page becomes visible (to refresh thumbnails)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        console.log('[BannerManager] 👁️  Page became visible, forcing refetch...');
-        // Force refetch even if cache is fresh
-        refetch({ cancelRefetch: false });
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [refetch]);
 
   const handleCreateBanner = async () => {
     if (isGuest) {

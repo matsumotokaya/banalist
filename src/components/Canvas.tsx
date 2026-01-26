@@ -23,6 +23,7 @@ interface CanvasProps {
 
 export interface CanvasRef {
   exportImage: () => string;
+  exportThumbnail: () => string;
 }
 
 export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
@@ -124,7 +125,54 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
         return '';
       }
     },
-  }), [scale, selectedElementIds, isEditing]);
+    exportThumbnail: () => {
+      if (!stageRef.current) {
+        console.error('Thumbnail export failed: stageRef is null');
+        return '';
+      }
+
+      const stage = stageRef.current;
+
+      // Hide transformer before export
+      if (transformerRef.current) {
+        transformerRef.current.nodes([]);
+      }
+
+      const layers = stage.getLayers();
+      if (layers.length > 0) {
+        layers[0].batchDraw();
+      } else {
+        console.error('Thumbnail export failed: no layers found');
+        return '';
+      }
+
+      try {
+        // Calculate thumbnail size (max 400px width, maintain aspect ratio)
+        const originalWidth = template.width;
+        const maxThumbnailWidth = 400;
+        const thumbnailScale = maxThumbnailWidth / originalWidth;
+
+        // pixelRatio to get thumbnail size from scaled canvas
+        // Current display: originalWidth * scale
+        // Target: maxThumbnailWidth = originalWidth * thumbnailScale
+        // So pixelRatio = thumbnailScale / scale
+        const pixelRatio = thumbnailScale / scale;
+
+        const dataURL = stage.toDataURL({
+          pixelRatio,
+          mimeType: 'image/jpeg',
+          quality: 0.7
+        });
+
+        console.log('Thumbnail dataURL length:', dataURL?.length || 0, 'pixelRatio:', pixelRatio);
+
+        return dataURL;
+      } catch (error) {
+        console.error('Thumbnail export failed with error:', error);
+        return '';
+      }
+    },
+  }), [scale, selectedElementIds, isEditing, template.width, template.height]);
 
   // Update transformer when selection changes
   useEffect(() => {

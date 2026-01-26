@@ -21,8 +21,8 @@ export function useBanners() {
       console.log('[useBanners] ✅ Fetched', banners.length, 'banners');
       return banners;
     },
-    staleTime: 0, // Always fetch fresh data when component mounts or tab becomes visible
-    refetchOnMount: 'always', // Always refetch when component mounts
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    refetchOnMount: true, // Refetch if stale
   });
 }
 

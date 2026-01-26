@@ -267,7 +267,7 @@ export const BannerEditor = () => {
         let thumbnailDataURL: string | undefined;
         if (generateThumbnail && canvasRef.current && elements.length > 0) {
           await new Promise(resolve => setTimeout(resolve, 100));
-          thumbnailDataURL = canvasRef.current.exportImage();
+          thumbnailDataURL = canvasRef.current.exportThumbnail();
         }
 
         const updatedAt = new Date().toISOString();
@@ -302,10 +302,10 @@ export const BannerEditor = () => {
 
       // Only generate thumbnail for manual saves or periodically
       if (generateThumbnail && canvasRef.current && elements.length > 0) {
-        console.log('[BannerEditor] 🎨 GENERATING THUMBNAIL...');
+        console.log('[BannerEditor] 🎨 GENERATING THUMBNAIL (JPEG 400px)...');
         await new Promise(resolve => setTimeout(resolve, 100));
-        thumbnailDataURL = canvasRef.current.exportImage();
-        console.log('[BannerEditor] 🎨 Thumbnail generated (first 80 chars):', thumbnailDataURL.substring(0, 80));
+        thumbnailDataURL = canvasRef.current.exportThumbnail();
+        console.log('[BannerEditor] 🎨 Thumbnail generated, length:', thumbnailDataURL?.length || 0);
       } else {
         console.log('[BannerEditor] ⏭️  SKIPPING thumbnail generation (generateThumbnail:', generateThumbnail, ', hasCanvas:', !!canvasRef.current, ', elementsCount:', elements.length, ')');
       }
