@@ -414,6 +414,27 @@ WordPress-style image library with dual storage:
 - ✅ **Cache hit rate**: Expected 80%+ for subsequent loads
 - ✅ **React Query DevTools**: Available for debugging (press button in bottom-right corner)
 
+#### Egress Optimization (2026-01-26)
+- ✅ **Thumbnail compression**: PNG 2-4MB → JPEG 400px 70% quality (~30-50KB, 95% reduction)
+- ✅ **staleTime optimization**: 0 → 5 minutes (reduces refetch frequency)
+- ✅ **Tab switch refetch removed**: No longer refetches on visibility change
+
+### React Query Cache Settings
+
+| Hook | staleTime | refetchOnMount | Description |
+|------|-----------|----------------|-------------|
+| `useBanners` | 5 min | true | Banner list (refetch if stale) |
+| `useBanner` | 5 min | - | Single banner detail |
+| `useTemplates` | 5 min | false | Template list (no auto-refetch) |
+| `useProfile` | - | - | User profile |
+
+**staleTime**: Duration that cached data is considered "fresh". Within this period, React Query returns cached data without server request.
+
+**Tuning Notes**:
+- Increase staleTime to reduce server requests (better for Egress)
+- Decrease staleTime for more real-time data (better for collaboration)
+- Current setting (5 min) balances Egress reduction with reasonable freshness
+
 ### Performance Metrics
 
 | Metric | Before | After | Improvement |
