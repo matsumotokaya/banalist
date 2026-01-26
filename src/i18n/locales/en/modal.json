@@ -1,22 +1,22 @@
 {
   "upgrade": {
-    "title": "Premium-only Banner",
-    "description": "Upgrade required to view/edit this banner",
+    "title": "Premium-only Design",
+    "description": "Upgrade required to view/edit this design",
     "features": {
       "access": {
-        "title": "Access to all Premium banners",
+        "title": "Access to all Premium designs",
         "desc": "Unlimited use of high-quality templates"
       },
       "support": {
-        "title": "Priority Support",
-        "desc": "Support response within 24 hours"
+        "title": "Unlimited Design Files",
+        "desc": "Create unlimited design files"
       },
       "earlyAccess": {
         "title": "Early access to new features",
         "desc": "Priority use of AI features"
       }
     },
-    "upgradeButton": "Upgrade to Premium",
+    "upgradeButton": "Premium Plan ($8 / month)",
     "cancel": "Cancel",
     "comingSoon": "Upgrade feature coming soon"
   },

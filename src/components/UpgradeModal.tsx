@@ -8,7 +8,7 @@ interface UpgradeModalProps {
   onClose: () => void;
 }
 
-const STRIPE_PRICE_ID = 'price_1SgTcWLhSi3I8k5ljpx47yjl';
+const STRIPE_PRICE_ID = import.meta.env.VITE_STRIPE_PRICE_ID;
 
 export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
   const { t } = useTranslation(['modal', 'message', 'common']);
@@ -20,6 +20,12 @@ export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
   const handleUpgrade = async () => {
     if (!user) {
       alert(t('message:error.loginRequired'));
+      return;
+    }
+
+    if (!STRIPE_PRICE_ID) {
+      console.error('VITE_STRIPE_PRICE_ID is not configured');
+      alert(t('message:error.upgradeError'));
       return;
     }
 
