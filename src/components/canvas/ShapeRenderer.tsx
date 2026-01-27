@@ -6,6 +6,7 @@ import type { ShapeElement } from '../../types/template';
 interface ShapeRendererProps {
   shape: ShapeElement;
   isShiftPressed: boolean;
+  isMultiDragging: boolean;
   onSelect: (id: string, event: Konva.KonvaEventObject<MouseEvent>) => void;
   onUpdate?: (id: string, updates: Partial<ShapeElement>) => void;
   onDragStart?: (id: string, event: Konva.KonvaEventObject<DragEvent>) => void;
@@ -14,20 +15,10 @@ interface ShapeRendererProps {
   nodeRef: (node: Konva.Node | null, id: string) => void;
 }
 
-// Constrain drag to horizontal or vertical when Shift is pressed
-const constrainedDragBound = (pos: { x: number; y: number }, startPos: { x: number; y: number }): { x: number; y: number } => {
-  const dx = Math.abs(pos.x - startPos.x);
-  const dy = Math.abs(pos.y - startPos.y);
-
-  if (dx > dy) {
-    return { x: pos.x, y: startPos.y };
-  } else {
-    return { x: startPos.x, y: pos.y };
-  }
-};
-
-const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, onDragStart, onDragMove, onDragEnd, nodeRef }: ShapeRendererProps) => {
+const ShapeRendererComponent = ({ shape, isShiftPressed, isMultiDragging, onSelect, onUpdate, onDragStart, onDragMove, onDragEnd, nodeRef }: ShapeRendererProps) => {
   const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
+  const lockAxisRef = useRef<'x' | 'y' | null>(null);
+  const localNodeRef = useRef<Konva.Node | null>(null);
 
   // Ensure all numeric properties are valid
   const safeX = Number.isFinite(shape.x) ? shape.x : 100;
@@ -36,6 +27,35 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, onD
   const safeHeight = Number.isFinite(shape.height) ? shape.height : 150;
   const safeRotation = Number.isFinite(shape.rotation) ? shape.rotation : 0;
   const safeOpacity = Number.isFinite(shape.opacity) ? shape.opacity : 1;
+
+  const isCenterBasedShape = shape.shapeType === 'star' || shape.shapeType === 'circle';
+
+  const toLogicalPos = (nodePos: { x: number; y: number }) => {
+    if (isCenterBasedShape) {
+      return { x: nodePos.x - safeWidth / 2, y: nodePos.y - safeHeight / 2 };
+    }
+    return nodePos;
+  };
+
+  const toNodePos = (logicalPos: { x: number; y: number }) => {
+    if (isCenterBasedShape) {
+      return { x: logicalPos.x + safeWidth / 2, y: logicalPos.y + safeHeight / 2 };
+    }
+    return logicalPos;
+  };
+
+  const resolveLockAxis = (currentPos: { x: number; y: number }, startPos: { x: number; y: number }) => {
+    const dx = Math.abs(currentPos.x - startPos.x);
+    const dy = Math.abs(currentPos.y - startPos.y);
+    if (dx === dy) return null;
+    // dx >= dy means horizontal movement, so lock Y (fixed Y-axis)
+    return dx >= dy ? 'y' : 'x';
+  };
+
+  const resetDragState = () => {
+    dragStartPosRef.current = null;
+    lockAxisRef.current = null;
+  };
 
   const commonProps = {
     fill: shape.fillEnabled ? shape.fill : undefined,
@@ -48,20 +68,54 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, onD
     listening: !shape.locked && (shape.visible ?? true),
     onMouseDown: (e: Konva.KonvaEventObject<MouseEvent>) => onSelect(shape.id, e),
     onDragStart: (e: Konva.KonvaEventObject<DragEvent>) => {
-      dragStartPosRef.current = { x: e.target.x(), y: e.target.y() };
+      dragStartPosRef.current = toLogicalPos({ x: e.target.x(), y: e.target.y() });
+      lockAxisRef.current = null;
       onDragStart?.(shape.id, e);
     },
     dragBoundFunc: (pos: { x: number; y: number }) => {
-      if (dragStartPosRef.current && isShiftPressed) {
-        return constrainedDragBound(pos, dragStartPosRef.current);
+      if (isMultiDragging || !dragStartPosRef.current) {
+        return pos;
       }
-      return pos;
+
+      if (!isShiftPressed) {
+        lockAxisRef.current = null;
+        return pos;
+      }
+
+      const node = localNodeRef.current;
+      const stage = node?.getStage();
+      const scaleX = stage?.scaleX() ?? 1;
+      const scaleY = stage?.scaleY() ?? 1;
+
+      const unscaledPos = {
+        x: pos.x / scaleX,
+        y: pos.y / scaleY,
+      };
+
+      const startPos = dragStartPosRef.current;
+      const logicalPos = toLogicalPos(unscaledPos);
+
+      if (!lockAxisRef.current) {
+        lockAxisRef.current = resolveLockAxis(logicalPos, startPos);
+      }
+
+      if (!lockAxisRef.current) {
+        return pos;
+      }
+
+      const lockedPos = lockAxisRef.current === 'x'
+        ? { x: startPos.x, y: logicalPos.y }
+        : { x: logicalPos.x, y: startPos.y };
+
+      const nodePos = toNodePos(lockedPos);
+      return { x: nodePos.x * scaleX, y: nodePos.y * scaleY };
     },
     onDragMove: (e: Konva.KonvaEventObject<DragEvent>) => {
       onDragMove?.(shape.id, e);
     },
     onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => {
       const handled = onDragEnd?.(shape.id, e);
+      resetDragState();
       if (!handled && onUpdate) {
         onUpdate(shape.id, {
           x: e.target.x(),
@@ -118,7 +172,10 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, onD
       <Rect
         key={shape.id}
         {...commonProps}
-        ref={(node) => nodeRef(node, shape.id)}
+        ref={(node) => {
+          localNodeRef.current = node;
+          nodeRef(node, shape.id);
+        }}
         x={safeX}
         y={safeY}
         width={safeWidth}
@@ -133,7 +190,10 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, onD
       <Line
         key={shape.id}
         {...commonProps}
-        ref={(node) => nodeRef(node, shape.id)}
+        ref={(node) => {
+          localNodeRef.current = node;
+          nodeRef(node, shape.id);
+        }}
         points={[
           safeWidth / 2, 0,
           safeWidth, safeHeight,
@@ -152,13 +212,24 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, onD
       <Star
         key={shape.id}
         {...commonProps}
-        ref={(node) => nodeRef(node, shape.id)}
+        ref={(node) => {
+          localNodeRef.current = node;
+          nodeRef(node, shape.id);
+        }}
         x={safeX + safeWidth / 2}
         y={safeY + safeHeight / 2}
         numPoints={5}
         innerRadius={Math.min(safeWidth, safeHeight) / 4}
         outerRadius={Math.min(safeWidth, safeHeight) / 2}
         onDragEnd={(e) => {
+          // First call Canvas's multi-drag handler
+          const handled = onDragEnd?.(shape.id, e);
+          resetDragState();
+
+          // If handled by multi-drag, don't update individually
+          if (handled) return;
+
+          // Single drag: convert center coordinate and update
           if (onUpdate) {
             const centerX = e.target.x();
             const centerY = e.target.y();
@@ -179,6 +250,7 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, onD
         key={shape.id}
         {...commonProps}
         ref={(node) => {
+          localNodeRef.current = node;
           if (node) {
             // Set width and height for Transformer compatibility
             node.width(safeWidth);
@@ -191,6 +263,14 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, onD
         radiusX={safeWidth / 2}
         radiusY={safeHeight / 2}
         onDragEnd={(e) => {
+          // First call Canvas's multi-drag handler
+          const handled = onDragEnd?.(shape.id, e);
+          resetDragState();
+
+          // If handled by multi-drag, don't update individually
+          if (handled) return;
+
+          // Single drag: convert center coordinate and update
           if (onUpdate) {
             const centerX = e.target.x();
             const centerY = e.target.y();
@@ -218,7 +298,10 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, onSelect, onUpdate, onD
       <Path
         key={shape.id}
         {...commonProps}
-        ref={(node) => nodeRef(node, shape.id)}
+        ref={(node) => {
+          localNodeRef.current = node;
+          nodeRef(node, shape.id);
+        }}
         data={heartPath}
         x={safeX}
         y={safeY}
@@ -251,6 +334,7 @@ export const ShapeRenderer = memo(ShapeRendererComponent, (prevProps, nextProps)
     prevShape.locked === nextShape.locked &&
     prevShape.visible === nextShape.visible &&
     prevShape.shapeType === nextShape.shapeType &&
-    prevProps.isShiftPressed === nextProps.isShiftPressed
+    prevProps.isShiftPressed === nextProps.isShiftPressed &&
+    prevProps.isMultiDragging === nextProps.isMultiDragging
   );
 });

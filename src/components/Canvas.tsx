@@ -40,11 +40,14 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   const selectionStartRef = useRef<{ x: number; y: number } | null>(null);
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [isMultiDragging, setIsMultiDragging] = useState(false);
   const multiDragRef = useRef<{
     active: boolean;
     draggedId: string | null;
     startPositions: Map<string, { x: number; y: number }>;
-  }>({ active: false, draggedId: null, startPositions: new Map() });
+    elementMap: Map<string, CanvasElement>;
+  }>({ active: false, draggedId: null, startPositions: new Map(), elementMap: new Map() });
+  const multiDragLockAxisRef = useRef<'x' | 'y' | null>(null);
 
   // Track Shift key state
   useEffect(() => {
@@ -231,15 +234,22 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
 
   const handleElementDragStart = (id: string, _event: Konva.KonvaEventObject<DragEvent>) => {
     if (selectedElementIds.length <= 1 || !selectedElementIds.includes(id)) {
-      multiDragRef.current = { active: false, draggedId: null, startPositions: new Map() };
+      multiDragRef.current = { active: false, draggedId: null, startPositions: new Map(), elementMap: new Map() };
+      setIsMultiDragging(false);
+      multiDragLockAxisRef.current = null;
       return;
     }
 
     const startPositions = new Map<string, { x: number; y: number }>();
+    const elementMap = new Map<string, CanvasElement>();
     selectedElementIds.forEach((selectedId) => {
-      const node = nodesRef.current.get(selectedId);
-      if (node) {
-        startPositions.set(selectedId, { x: node.x(), y: node.y() });
+      // Use element's logical coordinates instead of node.x()/y()
+      // This ensures consistent coordinate system for all element types
+      // (Star/Circle use center coordinates in Konva, but element.x/y is top-left)
+      const element = elements.find(el => el.id === selectedId);
+      if (element) {
+        startPositions.set(selectedId, { x: element.x, y: element.y });
+        elementMap.set(selectedId, element);
       }
     });
 
@@ -247,38 +257,128 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
       active: true,
       draggedId: id,
       startPositions,
+      elementMap,
     };
+    multiDragLockAxisRef.current = null;
+    setIsMultiDragging(true);
   };
 
   const handleElementDragMove = (id: string, event: Konva.KonvaEventObject<DragEvent>) => {
-    const { active, draggedId, startPositions } = multiDragRef.current;
+    const { active, draggedId, startPositions, elementMap } = multiDragRef.current;
     if (!active || draggedId !== id) return;
 
+    const draggedElement = elementMap.get(id);
     const draggedStart = startPositions.get(id);
-    if (!draggedStart) return;
+    if (!draggedStart || !draggedElement) return;
 
-    const dx = event.target.x() - draggedStart.x;
-    const dy = event.target.y() - draggedStart.y;
+    // Calculate delta using logical coordinates
+    // For Star/Circle, node.x() is center coordinate, so convert to top-left
+    let currentX = event.target.x();
+    let currentY = event.target.y();
 
+    if (draggedElement.type === 'shape') {
+      const shapeEl = draggedElement as ShapeElement;
+      if (shapeEl.shapeType === 'star' || shapeEl.shapeType === 'circle') {
+        // Convert center coordinate to top-left coordinate
+        currentX = currentX - shapeEl.width / 2;
+        currentY = currentY - shapeEl.height / 2;
+      }
+    }
+
+    const dx = currentX - draggedStart.x;
+    const dy = currentY - draggedStart.y;
+    let constrainedDx = dx;
+    let constrainedDy = dy;
+
+    if (isShiftPressed) {
+      if (!multiDragLockAxisRef.current) {
+        const absDx = Math.abs(dx);
+        const absDy = Math.abs(dy);
+        if (absDx !== absDy) {
+          multiDragLockAxisRef.current = absDx >= absDy ? 'y' : 'x';
+        }
+      }
+
+      if (multiDragLockAxisRef.current === 'x') {
+        constrainedDx = 0;
+      } else if (multiDragLockAxisRef.current === 'y') {
+        constrainedDy = 0;
+      }
+    } else {
+      multiDragLockAxisRef.current = null;
+    }
+
+    const constrainedX = draggedStart.x + constrainedDx;
+    const constrainedY = draggedStart.y + constrainedDy;
+
+    // Ensure dragged node follows the constrained path
+    let draggedNodeX = constrainedX;
+    let draggedNodeY = constrainedY;
+    if (draggedElement.type === 'shape') {
+      const shapeEl = draggedElement as ShapeElement;
+      if (shapeEl.shapeType === 'star' || shapeEl.shapeType === 'circle') {
+        draggedNodeX = constrainedX + shapeEl.width / 2;
+        draggedNodeY = constrainedY + shapeEl.height / 2;
+      }
+    }
+    event.target.position({ x: draggedNodeX, y: draggedNodeY });
+
+    // Move other selected elements (visual update)
     startPositions.forEach((startPos, elementId) => {
       if (elementId === id) return;
       const node = nodesRef.current.get(elementId);
-      if (!node) return;
-      node.position({ x: startPos.x + dx, y: startPos.y + dy });
+      const element = elementMap.get(elementId);
+      if (!node || !element) return;
+
+      // Set node position based on element type
+      let nodeX = startPos.x + constrainedDx;
+      let nodeY = startPos.y + constrainedDy;
+
+      if (element.type === 'shape') {
+        const shapeEl = element as ShapeElement;
+        if (shapeEl.shapeType === 'star' || shapeEl.shapeType === 'circle') {
+          // Convert top-left coordinate to center coordinate for rendering
+          nodeX = nodeX + shapeEl.width / 2;
+          nodeY = nodeY + shapeEl.height / 2;
+        }
+      }
+
+      node.position({ x: nodeX, y: nodeY });
     });
 
     event.target.getStage()?.batchDraw();
   };
 
   const handleElementDragEnd = (id: string, event: Konva.KonvaEventObject<DragEvent>) => {
-    const { active, draggedId, startPositions } = multiDragRef.current;
+    const { active, draggedId, startPositions, elementMap } = multiDragRef.current;
     if (!active || draggedId !== id) return false;
 
+    const draggedElement = elementMap.get(id);
     const draggedStart = startPositions.get(id);
-    if (!draggedStart) return false;
+    if (!draggedStart || !draggedElement) return false;
 
-    const dx = event.target.x() - draggedStart.x;
-    const dy = event.target.y() - draggedStart.y;
+    // Calculate delta using logical coordinates
+    // For Star/Circle, node.x() is center coordinate, so convert to top-left
+    let currentX = event.target.x();
+    let currentY = event.target.y();
+
+    if (draggedElement.type === 'shape') {
+      const shapeEl = draggedElement as ShapeElement;
+      if (shapeEl.shapeType === 'star' || shapeEl.shapeType === 'circle') {
+        // Convert center coordinate to top-left coordinate
+        currentX = currentX - shapeEl.width / 2;
+        currentY = currentY - shapeEl.height / 2;
+      }
+    }
+
+    let dx = currentX - draggedStart.x;
+    let dy = currentY - draggedStart.y;
+
+    if (multiDragLockAxisRef.current === 'x') {
+      dx = 0;
+    } else if (multiDragLockAxisRef.current === 'y') {
+      dy = 0;
+    }
 
     if (onElementsUpdate) {
       const ids = selectedElementIds.length > 0 ? selectedElementIds : Array.from(startPositions.keys());
@@ -295,7 +395,9 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
       });
     }
 
-    multiDragRef.current = { active: false, draggedId: null, startPositions: new Map() };
+    multiDragRef.current = { active: false, draggedId: null, startPositions: new Map(), elementMap: new Map() };
+    setIsMultiDragging(false);
+    multiDragLockAxisRef.current = null;
     return true;
   };
 
@@ -599,6 +701,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                       key={element.id}
                       shape={element as ShapeElement}
                       isShiftPressed={isShiftPressed}
+                      isMultiDragging={isMultiDragging}
                       onSelect={handleElementClick}
                       onUpdate={onElementUpdate}
                       onDragStart={handleElementDragStart}
@@ -613,6 +716,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                       key={element.id}
                       textElement={element as TextElement}
                       isShiftPressed={isShiftPressed}
+                      isMultiDragging={isMultiDragging}
                       onSelect={handleElementClick}
                       onDoubleClick={handleTextDoubleClick}
                       onUpdate={onElementUpdate}
@@ -628,6 +732,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                       key={element.id}
                       imageElement={element as ImageElement}
                       isShiftPressed={isShiftPressed}
+                      isMultiDragging={isMultiDragging}
                       onSelect={handleElementClick}
                       onUpdate={onElementUpdate}
                       onDragStart={handleElementDragStart}

@@ -6,6 +6,7 @@ import type { TextElement } from '../../types/template';
 interface TextRendererProps {
   textElement: TextElement;
   isShiftPressed: boolean;
+  isMultiDragging: boolean;
   onSelect: (id: string, event: Konva.KonvaEventObject<MouseEvent>) => void;
   onDoubleClick: (element: TextElement, textNode: Konva.Text) => void;
   onUpdate?: (id: string, updates: Partial<TextElement>) => void;
@@ -15,21 +16,10 @@ interface TextRendererProps {
   nodeRef: (node: Konva.Text | null, id: string) => void;
 }
 
-// Constrain drag to horizontal or vertical when Shift is pressed
-const constrainedDragBound = (pos: { x: number; y: number }, startPos: { x: number; y: number }): { x: number; y: number } => {
-  const dx = Math.abs(pos.x - startPos.x);
-  const dy = Math.abs(pos.y - startPos.y);
-
-  if (dx > dy) {
-    return { x: pos.x, y: startPos.y };
-  } else {
-    return { x: startPos.x, y: pos.y };
-  }
-};
-
 const TextRendererComponent = ({
   textElement,
   isShiftPressed,
+  isMultiDragging,
   onSelect,
   onDoubleClick,
   onUpdate,
@@ -39,11 +29,29 @@ const TextRendererComponent = ({
   nodeRef,
 }: TextRendererProps) => {
   const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
+  const lockAxisRef = useRef<'x' | 'y' | null>(null);
+  const localNodeRef = useRef<Konva.Text | null>(null);
+
+  const resolveLockAxis = (currentPos: { x: number; y: number }, startPos: { x: number; y: number }) => {
+    const dx = Math.abs(currentPos.x - startPos.x);
+    const dy = Math.abs(currentPos.y - startPos.y);
+    if (dx === dy) return null;
+    // dx >= dy means horizontal movement, so lock Y (fixed Y-axis)
+    return dx >= dy ? 'y' : 'x';
+  };
+
+  const resetDragState = () => {
+    dragStartPosRef.current = null;
+    lockAxisRef.current = null;
+  };
 
   return (
     <Text
       key={textElement.id}
-      ref={(node) => nodeRef(node, textElement.id)}
+      ref={(node) => {
+        localNodeRef.current = node;
+        nodeRef(node, textElement.id);
+      }}
       text={textElement.text}
       x={textElement.x}
       y={textElement.y}
@@ -66,19 +74,45 @@ const TextRendererComponent = ({
       }}
       onDragStart={(e) => {
         dragStartPosRef.current = { x: e.target.x(), y: e.target.y() };
+        lockAxisRef.current = null;
         onDragStart?.(textElement.id, e);
       }}
       dragBoundFunc={(pos) => {
-        if (dragStartPosRef.current && isShiftPressed) {
-          return constrainedDragBound(pos, dragStartPosRef.current);
+        if (isMultiDragging || !dragStartPosRef.current) {
+          return pos;
         }
-        return pos;
+
+        if (!isShiftPressed) {
+          lockAxisRef.current = null;
+          return pos;
+        }
+
+        const node = localNodeRef.current;
+        const stage = node?.getStage();
+        const scaleX = stage?.scaleX() ?? 1;
+        const scaleY = stage?.scaleY() ?? 1;
+        const unscaledPos = { x: pos.x / scaleX, y: pos.y / scaleY };
+        const startPos = dragStartPosRef.current;
+
+        if (!lockAxisRef.current) {
+          lockAxisRef.current = resolveLockAxis(unscaledPos, startPos);
+        }
+
+        if (!lockAxisRef.current) {
+          return pos;
+        }
+
+        const lockedPos = lockAxisRef.current === 'x'
+          ? { x: startPos.x, y: unscaledPos.y }
+          : { x: unscaledPos.x, y: startPos.y };
+        return { x: lockedPos.x * scaleX, y: lockedPos.y * scaleY };
       }}
       onDragMove={(e) => {
         onDragMove?.(textElement.id, e);
       }}
       onDragEnd={(e) => {
         const handled = onDragEnd?.(textElement.id, e);
+        resetDragState();
         if (!handled && onUpdate) {
           onUpdate(textElement.id, {
             x: e.target.x(),
@@ -124,6 +158,7 @@ export const TextRenderer = memo(TextRendererComponent, (prevProps, nextProps) =
     prevProps.textElement.strokeWidth === nextProps.textElement.strokeWidth &&
     prevProps.textElement.rotation === nextProps.textElement.rotation &&
     prevProps.textElement.visible === nextProps.textElement.visible &&
-    prevProps.isShiftPressed === nextProps.isShiftPressed
+    prevProps.isShiftPressed === nextProps.isShiftPressed &&
+    prevProps.isMultiDragging === nextProps.isMultiDragging
   );
 });
