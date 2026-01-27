@@ -186,9 +186,10 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
         .map(id => nodesRef.current.get(id))
         .filter((node): node is Konva.Node => node !== undefined);
 
-      if (selectedNodes.length > 0) {
-        transformerRef.current.nodes(selectedNodes);
+      // Always update transformer nodes (even if empty, to clear stale state)
+      transformerRef.current.nodes(selectedNodes);
 
+      if (selectedNodes.length > 0) {
         // Determine node type (only if single selection)
         if (selectedElementIds.length === 1) {
           const element = elements.find((el) => el.id === selectedElementIds[0]);
@@ -198,6 +199,8 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
         } else {
           setSelectedNodeType('shape'); // Multi-selection: use shape-like behavior
         }
+      } else {
+        setSelectedNodeType(null);
       }
     } else {
       transformerRef.current.nodes([]);

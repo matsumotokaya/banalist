@@ -44,7 +44,7 @@ export const BannerEditor = () => {
   const [selectedLetterSpacing, setSelectedLetterSpacing] = useState<number>(0);
   const [selectedTextColor, setSelectedTextColor] = useState<string>('#000000');
   const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]);
-  const [copiedElement, setCopiedElement] = useState<CanvasElement | null>(null);
+  const [copiedElements, setCopiedElements] = useState<CanvasElement[]>([]);
   const canvasRef = useRef<CanvasRef>(null);
   const mainRef = useRef<HTMLDivElement>(null);
   const guestCreatedAtRef = useRef<string>(new Date().toISOString());
@@ -452,49 +452,56 @@ export const BannerEditor = () => {
 
   // Copy (with localStorage for cross-banner support)
   const handleCopy = () => {
-    if (selectedElementIds.length === 1) {
-      const element = elements.find((el) => el.id === selectedElementIds[0]);
-      if (element) {
-        const clonedElement = JSON.parse(JSON.stringify(element));
-        setCopiedElement(clonedElement);
-        // Save to localStorage for cross-banner paste
-        try {
-          localStorage.setItem('whathif_clipboard', JSON.stringify(clonedElement));
-          console.log('Element copied to clipboard (cross-banner enabled)');
-        } catch (error) {
-          console.error('Failed to save to localStorage:', error);
-        }
+    if (selectedElementIds.length === 0) return;
+
+    const elementsToCopy = elements.filter((el) => selectedElementIds.includes(el.id));
+    if (elementsToCopy.length > 0) {
+      const clonedElements = JSON.parse(JSON.stringify(elementsToCopy));
+      setCopiedElements(clonedElements);
+      // Save to localStorage for cross-banner paste
+      try {
+        localStorage.setItem('whatif_clipboard', JSON.stringify(clonedElements));
+        console.log(`${clonedElements.length} element(s) copied to clipboard (cross-banner enabled)`);
+      } catch (error) {
+        console.error('Failed to save to localStorage:', error);
       }
     }
   };
 
   // Paste (with localStorage for cross-banner support)
   const handlePaste = () => {
-    let elementToPaste = copiedElement;
+    let elementsToPaste = copiedElements.length > 0 ? copiedElements : null;
 
     // Try to get from localStorage if no local copy
-    if (!elementToPaste) {
+    if (!elementsToPaste || elementsToPaste.length === 0) {
       try {
-        const stored = localStorage.getItem('whathif_clipboard');
+        const stored = localStorage.getItem('whatif_clipboard');
         if (stored) {
-          elementToPaste = JSON.parse(stored);
-          console.log('Element retrieved from cross-banner clipboard');
+          const parsed = JSON.parse(stored);
+          // Support both old format (single element) and new format (array)
+          elementsToPaste = Array.isArray(parsed) ? parsed : [parsed];
+          console.log(`${elementsToPaste.length} element(s) retrieved from cross-banner clipboard`);
         }
       } catch (error) {
         console.error('Failed to read from localStorage:', error);
       }
     }
 
-    if (elementToPaste) {
-      const newId = `${elementToPaste.type}-${Date.now()}`;
-      const newElement: CanvasElement = {
-        ...elementToPaste,
-        id: newId,
-        x: elementToPaste.x + 20,
-        y: elementToPaste.y + 20,
-      } as CanvasElement;
-      elementOps.addElement(newElement);
-      setSelectedElementIds([newId]);
+    if (elementsToPaste && elementsToPaste.length > 0) {
+      const newIds: string[] = [];
+      const timestamp = Date.now();
+      elementsToPaste.forEach((element, index) => {
+        const newId = `${element.type}-${timestamp}-${index}`;
+        const newElement: CanvasElement = {
+          ...element,
+          id: newId,
+          x: element.x + 20,
+          y: element.y + 20,
+        } as CanvasElement;
+        elementOps.addElement(newElement);
+        newIds.push(newId);
+      });
+      setSelectedElementIds(newIds);
     }
   };
 
@@ -992,7 +999,10 @@ export const BannerEditor = () => {
           className="flex-1 overflow-auto bg-[#212526] p-8 flex items-center justify-center"
           style={{ touchAction: 'none' }}
           onClick={(e) => {
-            if (e.target === e.currentTarget) {
+            // Deselect when clicking outside the canvas stage
+            const target = e.target as HTMLElement;
+            const isCanvasStage = target.tagName === 'CANVAS';
+            if (!isCanvasStage) {
               handleSelectElement([]);
             }
           }}
@@ -1037,7 +1047,10 @@ export const BannerEditor = () => {
           className="flex-1 overflow-auto bg-[#212526] p-8 flex items-center justify-center"
           style={{ touchAction: 'none' }}
           onClick={(e) => {
-            if (e.target === e.currentTarget) {
+            // Deselect when clicking outside the canvas stage
+            const target = e.target as HTMLElement;
+            const isCanvasStage = target.tagName === 'CANVAS';
+            if (!isCanvasStage) {
               handleSelectElement([]);
             }
           }}
