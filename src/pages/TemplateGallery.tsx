@@ -12,7 +12,7 @@ import { bannerStorage } from '../utils/bannerStorage';
 import { templateStorage } from '../utils/templateStorage';
 
 export const TemplateGallery = () => {
-  const { t } = useTranslation(['banner', 'common', 'message']);
+  const { t } = useTranslation(['banner', 'common', 'message', 'auth']);
   const [templateImageLoadingStates, setTemplateImageLoadingStates] = useState<Record<string, boolean>>({});
   const [templateActionId, setTemplateActionId] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -174,9 +174,9 @@ export const TemplateGallery = () => {
                     </div>
                   </div>
                   {isGuest && template.id !== guestTemplateId && (
-                    <div className="absolute top-2 right-2">
-                      <div className="bg-black/70 text-white h-6 w-6 rounded-md shadow flex items-center justify-center">
-                        <span className="material-symbols-outlined text-[14px]">lock</span>
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="bg-black/60 text-white h-16 w-16 rounded-full shadow-lg flex items-center justify-center">
+                        <span className="material-symbols-outlined text-[40px]">lock</span>
                       </div>
                     </div>
                   )}
@@ -185,7 +185,7 @@ export const TemplateGallery = () => {
                     {isGuest && template.id !== guestTemplateId ? (
                       <div className="flex flex-col items-center gap-3 text-center">
                         <p className="text-white text-xs font-semibold">
-                          アンロックするにはログインしてください
+                          {t('banner:unlockWithLogin')}
                         </p>
                         <button
                           onClick={(e) => {
@@ -194,7 +194,7 @@ export const TemplateGallery = () => {
                           }}
                           className="px-4 py-2 bg-white/95 text-gray-900 text-xs font-semibold rounded shadow-sm"
                         >
-                          ログイン
+                          {t('auth:login')}
                         </button>
                       </div>
                     ) : (

@@ -145,7 +145,7 @@ export const BannerEditor = () => {
 
     if (!banner) {
       if (!isLoading && !id) {
-        navigate('/');
+        navigate('/mydesign');
       }
       return;
     }
@@ -942,17 +942,17 @@ export const BannerEditor = () => {
 
     try {
       if (isGuest) {
-        navigate('/');
+        navigate('/mydesign');
         return;
       }
       // Save any pending changes with thumbnail before navigating
       debouncedSave.cancel();
       await performSave(true); // Always generate thumbnail when leaving editor
-      navigate('/');
+      navigate('/mydesign');
     } catch (error) {
       console.error('[BannerEditor] Failed to save before navigating:', error);
       // Navigate anyway to avoid being stuck
-      navigate('/');
+      navigate('/mydesign');
     } finally {
       setIsNavigating(false);
     }
@@ -1111,7 +1111,7 @@ export const BannerEditor = () => {
         isOpen={showUpgradeModal}
         onClose={() => {
           setShowUpgradeModal(false);
-          navigate('/');
+          navigate('/mydesign');
         }}
       />
 

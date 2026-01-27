@@ -7,8 +7,8 @@ export const GalleryTabs = () => {
   const navigate = useNavigate();
 
   const tabs = [
-    { path: '/templates', label: t('banner:templatesTab') },
-    { path: '/', label: t('banner:myBannersTab') },
+    { path: '/', label: t('banner:templatesTab') },
+    { path: '/mydesign', label: t('banner:myBannersTab') },
   ];
 
   return (

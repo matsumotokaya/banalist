@@ -65,10 +65,6 @@ export const BannerManager = () => {
   }, [isGuest]);
 
   const handleCreateBanner = async () => {
-    if (isGuest) {
-      navigate('/templates');
-      return;
-    }
     const result = await createBanner.mutateAsync({
       name: t('message:placeholder.untitledBanner'),
       template: DEFAULT_TEMPLATES[0],
@@ -167,18 +163,18 @@ export const BannerManager = () => {
           </div>
         ) : displayedBanners.length === 0 ? (
           <div className="text-center py-20">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-700 mb-4">
               <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
             <h3 className="text-lg font-medium text-gray-300 mb-2">{t('banner:noBanners')}</h3>
+            <p className="text-gray-400 mb-6">{t('banner:emptyStateMessage')}</p>
             <button
-              onClick={handleCreateBanner}
-              disabled={createBanner.isPending}
-              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+              onClick={() => navigate('/')}
+              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
             >
-              {createBanner.isPending ? t('common:status.creating') : t('banner:createFirst')}
+              {t('banner:viewTemplates')}
             </button>
           </div>
         ) : (

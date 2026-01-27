@@ -15,5 +15,10 @@
   "delete": "削除",
   "confirmDelete": "このバナーを削除してもよろしいですか？",
   "editName": "名前を編集",
-  "backToManager": "管理画面に戻る"
+  "backToManager": "管理画面に戻る",
+  "sampleTemplate": "サンプルテンプレート",
+  "createFromScratch": "白紙から作成",
+  "emptyStateMessage": "無料テンプレートからデザインを作りましょう",
+  "viewTemplates": "テンプレートを見る",
+  "unlockWithLogin": "ログインしてアンロック"
 }

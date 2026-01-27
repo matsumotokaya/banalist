@@ -14,8 +14,8 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<BannerManager />} />
-            <Route path="/templates" element={<TemplateGallery />} />
+            <Route path="/" element={<TemplateGallery />} />
+            <Route path="/mydesign" element={<BannerManager />} />
             <Route path="/banner/:id" element={<BannerEditor />} />
             <Route path="/banner" element={<BannerEditor />} />
             <Route path="/success" element={<PaymentSuccess />} />

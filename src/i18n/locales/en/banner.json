@@ -15,5 +15,10 @@
   "delete": "Delete",
   "confirmDelete": "Are you sure you want to delete this banner?",
   "editName": "Edit name",
-  "backToManager": "Back to Manager"
+  "backToManager": "Back to Manager",
+  "sampleTemplate": "Sample Template",
+  "createFromScratch": "Start from blank canvas",
+  "emptyStateMessage": "Create a design from free templates",
+  "viewTemplates": "View Templates",
+  "unlockWithLogin": "Login to unlock"
 }
