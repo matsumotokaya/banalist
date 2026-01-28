@@ -5,6 +5,9 @@ import { BannerManager } from './pages/BannerManager';
 import { TemplateGallery } from './pages/TemplateGallery';
 import { BannerEditor } from './pages/BannerEditor';
 import { PaymentSuccess } from './pages/PaymentSuccess';
+import { Tokushoho } from './pages/Tokushoho';
+import { PrivacyPolicy } from './pages/PrivacyPolicy';
+import { TermsOfService } from './pages/TermsOfService';
 import { AuthProvider } from './contexts/AuthContext';
 import { queryClient } from './lib/queryClient';
 
@@ -19,6 +22,9 @@ function App() {
             <Route path="/banner/:id" element={<BannerEditor />} />
             <Route path="/banner" element={<BannerEditor />} />
             <Route path="/success" element={<PaymentSuccess />} />
+            <Route path="/legal/tokushoho" element={<Tokushoho />} />
+            <Route path="/legal/privacy" element={<PrivacyPolicy />} />
+            <Route path="/legal/terms" element={<TermsOfService />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

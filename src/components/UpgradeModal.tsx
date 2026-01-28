@@ -122,6 +122,13 @@ export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
               {t('common:button.cancel')}
             </button>
           </div>
+
+          <p className="mt-4 text-[10px] text-center text-gray-400">
+            By upgrading, you agree to our{' '}
+            <a href="/legal/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">Terms of Service</a>
+            {' '}and{' '}
+            <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">Privacy Policy</a>.
+          </p>
         </div>
       </div>
     </div>

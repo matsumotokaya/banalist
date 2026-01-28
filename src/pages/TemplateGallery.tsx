@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Header } from '../components/Header';
 import { GalleryTabs } from '../components/GalleryTabs';
 import { UpgradeModal } from '../components/UpgradeModal';
+import { Footer } from '../components/Footer';
 import { useTemplates } from '../hooks/useTemplates';
 import { DEFAULT_TEMPLATES } from '../templates/defaultTemplates';
 import type { Template, TemplateRecord } from '../types/template';
@@ -119,9 +120,8 @@ export const TemplateGallery = () => {
                 className="group bg-white rounded-lg border border-gray-200 hover:border-indigo-400 hover:shadow-lg transition-all overflow-hidden"
               >
                 <div
-                  className={`aspect-[9/16] bg-gray-100 relative overflow-hidden ${
-                    isGuest ? 'cursor-default' : 'cursor-pointer'
-                  }`}
+                  className={`aspect-[9/16] bg-gray-100 relative overflow-hidden ${isGuest ? 'cursor-default' : 'cursor-pointer'
+                    }`}
                   onClick={() => handleTemplateClick(template)}
                 >
                   {template.thumbnailUrl ? (
@@ -162,11 +162,10 @@ export const TemplateGallery = () => {
 
                   <div className="absolute top-2 left-2 flex flex-col gap-1">
                     <div
-                      className={`h-6 px-2 rounded-md shadow text-white inline-flex items-center ${
-                        template.planType === 'premium'
+                      className={`h-6 px-2 rounded-md shadow text-white inline-flex items-center ${template.planType === 'premium'
                           ? 'bg-gradient-to-r from-yellow-400 to-amber-500'
                           : 'bg-emerald-500/90'
-                      }`}
+                        }`}
                     >
                       <span className="text-xs font-bold">
                         {template.planType === 'premium' ? 'PREMIUM' : 'FREE'}
@@ -220,6 +219,7 @@ export const TemplateGallery = () => {
       </main>
 
       <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
+      <Footer />
     </div>
   );
 };
