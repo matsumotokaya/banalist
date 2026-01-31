@@ -42,8 +42,8 @@ i18n
   .use(initReactI18next) // React integration
   .init({
     resources,
-    lng: 'en', // Default language (English as base)
-    fallbackLng: 'en', // Fallback language
+    lng: 'ja', // Default language (Japanese as base)
+    fallbackLng: 'ja', // Fallback language
     defaultNS: 'common', // Default namespace
     ns: ['common', 'banner', 'editor', 'auth', 'modal', 'message'],
 

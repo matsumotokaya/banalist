@@ -14,10 +14,10 @@ export function Tokushoho() {
             ← {isJapanese ? 'ホームに戻る' : 'Back to Home'}
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">
-            {isJapanese ? '特定商取引法に基づく表記' : 'Legal Information (Tokushoho)'}
+            {isJapanese ? '特定商取引法に基づく表記' : 'Specified Commercial Transactions Act'}
           </h1>
           <p className="text-gray-600 mt-2">
-            {isJapanese ? '最終更新日: 2026年1月28日' : 'Last Updated: January 28, 2026'}
+            {isJapanese ? '最終更新日: 2026年1月31日' : 'Last Updated: January 31, 2026'}
           </p>
         </div>
 
@@ -29,89 +29,101 @@ export function Tokushoho() {
                 <p>松本 夏弥（Kaya Matsumoto）</p>
               </Section>
 
-              <Section title="運営統括責任者">
-                <p>松本 夏弥</p>
-              </Section>
+          <Section title="運営統括責任者">
+            <p>松本 夏弥</p>
+          </Section>
 
-              <Section title="所在地">
-                <p>〒221-0003</p>
-                <p>神奈川県横浜市神奈川区大口仲町203-40</p>
-              </Section>
+          <Section title="所在地">
+            <p>〒221-0003</p>
+            <p>神奈川県横浜市神奈川区大口仲町203-40</p>
+          </Section>
 
-              <Section title="連絡先">
-                <p>メールアドレス: matsumotokaya@gmail.com</p>
-                <p>電話番号: 090-4238-3149</p>
-                <p className="text-sm text-gray-600 mt-2">
-                  ※お問い合わせは、原則としてメールにて受け付けております。
-                </p>
-              </Section>
+          <Section title="連絡先">
+            <p>メールアドレス: matsumotokaya@gmail.com</p>
+            <p>電話番号: 090-4238-3149</p>
+            <p className="text-sm text-gray-600 mt-2">
+              ※お問い合わせは、原則としてメールにて受け付けております。
+            </p>
+          </Section>
 
-              <Section title="サービス名">
-                <p>WHATIF - バナーデザインアシスタントツール</p>
-              </Section>
+          <Section title="サービス名">
+            <p>WHATIF - デザイン制作アシスタントツール</p>
+          </Section>
 
-              <Section title="販売価格">
-                <p>月額 $8.00（米ドル）</p>
-                <p className="text-sm text-gray-600 mt-1">
-                  ※価格は税込みです。為替レートにより日本円換算額は変動します。
-                </p>
-              </Section>
+          <Section title="販売価格">
+            <p>月額 $8.00（米ドル）</p>
+            <p className="text-sm text-gray-600 mt-1">
+              ※価格は税込みです。為替レートにより日本円換算額は変動します。
+            </p>
+          </Section>
 
-              <Section title="支払い方法">
-                <p>クレジットカード決済（Stripe経由）</p>
-                <p className="text-sm text-gray-600 mt-1">
-                  対応カード: Visa, Mastercard, American Express, JCB等
-                </p>
-              </Section>
+          <Section title="送料">
+            <p>デジタルサービスのため送料はかかりません。</p>
+          </Section>
 
-              <Section title="支払い時期">
-                <p>サブスクリプション登録時に初回決済が行われ、以降は毎月自動更新されます。</p>
-              </Section>
+          <Section title="その他の費用">
+            <p>上記の月額料金以外に費用はかかりません。</p>
+          </Section>
 
-              <Section title="サービス提供時期">
-                <p>決済完了後、即時ご利用いただけます。</p>
-              </Section>
+          <Section title="支払い方法">
+            <p>クレジットカード決済</p>
+            <p className="text-sm text-gray-600 mt-1">
+              対応カード: Visa, Mastercard, American Express, JCB等
+            </p>
+          </Section>
 
-              <Section title="返品・キャンセルについて">
-                <p>本サービスはデジタルコンテンツのため、原則として返金には応じかねます。</p>
-                <p className="mt-2">
-                  ただし、以下の場合は返金対応を検討いたします：
-                </p>
-                <ul className="list-disc list-inside mt-2 space-y-1 text-gray-700">
-                  <li>システム障害により長期間サービスが利用できなかった場合</li>
-                  <li>二重課金などの明らかな請求エラーがあった場合</li>
-                </ul>
-              </Section>
+          <Section title="支払い時期">
+            <p>サブスクリプション登録時に初回決済が行われ、以降は毎月自動更新されます。</p>
+          </Section>
 
-              <Section title="解約方法">
-                <p>アカウント設定画面からいつでも解約可能です。</p>
-                <p className="mt-2 text-gray-700">
-                  解約手続き完了後、次回の更新日以降は課金されません。現在の請求期間内は引き続きサービスをご利用いただけます。
-                </p>
-              </Section>
+          <Section title="サービス提供時期">
+            <p>決済完了後、即時ご利用いただけます。</p>
+          </Section>
 
-              <Section title="動作環境">
-                <p>以下のブラウザでの動作を推奨します：</p>
-                <ul className="list-disc list-inside mt-2 space-y-1 text-gray-700">
-                  <li>Google Chrome（最新版）</li>
-                  <li>Safari（最新版）</li>
-                  <li>Microsoft Edge（最新版）</li>
-                  <li>Firefox（最新版）</li>
-                </ul>
-              </Section>
+          <Section title="返品特約">
+            <p>本サービスはデジタルコンテンツのため、原則として返金には応じかねます。</p>
+            <p className="mt-2">
+              ただし、以下の場合は返金対応を検討いたします：
+            </p>
+            <ul className="list-disc list-inside mt-2 space-y-1 text-gray-700">
+              <li>システム障害により長期間サービスが利用できなかった場合</li>
+              <li>二重課金などの明らかな請求エラーがあった場合</li>
+            </ul>
+          </Section>
 
-              <Section title="その他">
-                <p>
-                  <Link to="/legal/privacy" className="text-blue-600 hover:underline">
-                    プライバシーポリシー
-                  </Link>
-                  および
-                  <Link to="/legal/terms" className="text-blue-600 hover:underline ml-1">
-                    利用規約
-                  </Link>
-                  も併せてご確認ください。
-                </p>
-              </Section>
+          <Section title="解約方法">
+            <p>アカウント設定画面からいつでも解約可能です。</p>
+            <p className="mt-2 text-gray-700">
+              解約手続き完了後、次回の更新日以降は課金されません。現在の請求期間内は引き続きサービスをご利用いただけます。
+            </p>
+          </Section>
+
+          <Section title="動作環境">
+            <p>以下のブラウザでの動作を推奨します：</p>
+            <ul className="list-disc list-inside mt-2 space-y-1 text-gray-700">
+              <li>Google Chrome（最新版）</li>
+              <li>Safari（最新版）</li>
+              <li>Microsoft Edge（最新版）</li>
+              <li>Firefox（最新版）</li>
+            </ul>
+          </Section>
+
+          <Section title="販売数量の制限">
+            <p>特に制限はございません。</p>
+          </Section>
+
+          <Section title="その他">
+            <p>
+              <Link to="/legal/privacy" className="text-blue-600 hover:underline">
+                プライバシーポリシー
+              </Link>
+              および
+              <Link to="/legal/terms" className="text-blue-600 hover:underline ml-1">
+                利用規約
+              </Link>
+              も併せてご確認ください。
+            </p>
+          </Section>
             </>
           ) : (
             <>
@@ -130,14 +142,14 @@ export function Tokushoho() {
 
               <Section title="Contact">
                 <p>Email: matsumotokaya@gmail.com</p>
-                <p>Phone: +81-90-4238-3149</p>
+                <p>Phone: 090-4238-3149</p>
                 <p className="text-sm text-gray-600 mt-2">
                   ※Inquiries are primarily handled via email.
                 </p>
               </Section>
 
               <Section title="Service Name">
-                <p>WHATIF - Banner Design Assistant Tool</p>
+                <p>WHATIF - Design Creation Assistant Tool</p>
               </Section>
 
               <Section title="Price">
@@ -147,8 +159,16 @@ export function Tokushoho() {
                 </p>
               </Section>
 
+              <Section title="Shipping">
+                <p>No shipping charges as this is a digital service.</p>
+              </Section>
+
+              <Section title="Other Fees">
+                <p>No fees other than the monthly subscription fee.</p>
+              </Section>
+
               <Section title="Payment Method">
-                <p>Credit Card (via Stripe)</p>
+                <p>Credit Card</p>
                 <p className="text-sm text-gray-600 mt-1">
                   Accepted cards: Visa, Mastercard, American Express, JCB, etc.
                 </p>
@@ -162,7 +182,7 @@ export function Tokushoho() {
                 <p>Service is available immediately after payment completion.</p>
               </Section>
 
-              <Section title="Refund & Cancellation Policy">
+              <Section title="Return Policy">
                 <p>As this is a digital service, refunds are generally not provided.</p>
                 <p className="mt-2">
                   However, refunds may be considered in the following cases:
@@ -188,6 +208,10 @@ export function Tokushoho() {
                   <li>Microsoft Edge (latest version)</li>
                   <li>Firefox (latest version)</li>
                 </ul>
+              </Section>
+
+              <Section title="Sales Volume Limit">
+                <p>No specific limit.</p>
               </Section>
 
               <Section title="Additional Information">
