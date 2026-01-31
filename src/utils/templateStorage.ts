@@ -55,4 +55,37 @@ export const templateStorage = {
 
     return data ? dbToTemplate(data) : null;
   },
+
+  async createTemplate(params: {
+    name: string;
+    elements: CanvasElement[];
+    canvasColor: string;
+    thumbnailUrl?: string;
+    planType: 'free' | 'premium';
+    displayOrder?: number;
+    width: number;
+    height: number;
+  }): Promise<string | null> {
+    const { data, error } = await supabase
+      .from('templates')
+      .insert({
+        name: params.name,
+        elements: params.elements,
+        canvas_color: params.canvasColor,
+        thumbnail_url: params.thumbnailUrl || null,
+        plan_type: params.planType,
+        display_order: params.displayOrder || null,
+        width: params.width,
+        height: params.height,
+      })
+      .select('id')
+      .single();
+
+    if (error) {
+      console.error('Error creating template:', error);
+      throw error;
+    }
+
+    return data?.id || null;
+  },
 };

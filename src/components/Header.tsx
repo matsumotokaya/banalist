@@ -8,9 +8,11 @@ interface HeaderProps {
   bannerName?: string;
   bannerId?: string;
   onBannerNameChange?: (newName: string) => void;
+  onSaveAsTemplate?: () => void;
+  isAdmin?: boolean;
 }
 
-export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChange }: HeaderProps) => {
+export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChange, onSaveAsTemplate, isAdmin }: HeaderProps) => {
   const { t } = useTranslation(['banner', 'common', 'auth']);
   const [isEditing, setIsEditing] = useState(false);
   const [editingName, setEditingName] = useState('');
@@ -81,6 +83,18 @@ export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChan
                     <svg className="w-3 h-3 md:w-4 md:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                     </svg>
+                  </button>
+                )}
+                {isAdmin && bannerId && onSaveAsTemplate && (
+                  <button
+                    onClick={onSaveAsTemplate}
+                    className="ml-2 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded transition-colors flex items-center gap-1"
+                    title="テンプレートに登録"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                    <span className="hidden md:inline">テンプレート登録</span>
                   </button>
                 )}
               </div>

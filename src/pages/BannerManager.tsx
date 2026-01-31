@@ -42,7 +42,9 @@ export const BannerManager = () => {
     }
     try {
       const stored = localStorage.getItem(guestStorageKey);
+      console.log('[BannerManager] Loading guest banner from localStorage...');
       if (!stored) {
+        console.log('[BannerManager] No guest banner found in localStorage');
         setGuestBanner(null);
         return;
       }
@@ -53,6 +55,7 @@ export const BannerManager = () => {
         createdAt?: string;
         thumbnailUrl?: string;
       };
+      console.log('[BannerManager] Guest banner loaded - name:', parsed.name, 'hasThumbnail:', !!parsed.thumbnailUrl, 'thumbnailLength:', parsed.thumbnailUrl?.length || 0);
       setGuestBanner({
         id: 'guest',
         name: parsed.name || parsed.template?.name || 'Guest Banner',

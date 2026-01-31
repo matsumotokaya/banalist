@@ -27,6 +27,23 @@ npm run dev
 npm run build
 ```
 
+## Local Auth Testing (Single Supabase Project)
+
+PoCの間はSupabaseを1プロジェクトだけ使い、
+**ローカルは .env.local / 本番はVercelの環境変数**で切り替える運用にしています。
+
+### Local (localhost)
+- `.env.local` に **Supabase URL / ANON KEY** を入れる
+- Supabase Auth の Redirect URLs に `http://localhost:5173` を登録
+- 変更後は dev server を再起動
+
+### Deploy (Production)
+- Vercel の環境変数に本番用の値を設定
+- **戻すときは `.env.local` を削除 or リネーム** すればOK
+
+> `redirectTo` は `window.location.origin` を使っているため、
+> ローカルでは localhost に戻ります。
+
 ## Deployment (Vercel + Domain)
 
 ### Vercel build
@@ -399,7 +416,7 @@ WordPress-style image library with dual storage:
 #### Emergency Fixes (Phase 0)
 - ✅ **Initial load time**: 30-120s → **3s** (90-97% improvement)
 - ✅ **Auto-save debounce**: 800ms → 2000ms (60% reduction in network requests)
-- ✅ **Thumbnail generation**: Separated to 5-second interval (no longer blocks saves)
+- ✅ **Thumbnail generation**: Generated only when leaving editor (no longer blocks auto-saves)
 - ✅ **React StrictMode**: Removed to prevent duplicate executions (4-5x → 1x queries)
 - ✅ **Profile caching**: SessionStorage cache for instant page reloads
 - ✅ **Optimistic UI**: Profile loading no longer blocks initial render
@@ -442,7 +459,7 @@ WordPress-style image library with dual storage:
 | Initial load | 30-120s | 3s | **90-97%** |
 | Subsequent loads | 2-3s | **Instant (cache)** | **100%** |
 | Auto-save frequency | 800ms | 2000ms | 60% reduction |
-| Thumbnail generation | Every save | Every 5s | Major reduction |
+| Thumbnail generation | Every save | Only on exit | Major reduction |
 | Duplicate requests | Common | **Zero** | 100% eliminated |
 | UI update latency | Save wait | **Instant** | Optimistic updates |
 

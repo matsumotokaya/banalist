@@ -7,6 +7,7 @@ import { PropertyPanel } from '../components/PropertyPanel';
 import { BottomBar } from '../components/BottomBar';
 import { Canvas, type CanvasRef } from '../components/Canvas';
 import { UpgradeModal } from '../components/UpgradeModal';
+import { SaveAsTemplateModal } from '../components/SaveAsTemplateModal';
 import { useBanner, useBatchSaveBanner, useUpdateBanner, useUpdateBannerName } from '../hooks/useBanners';
 import type { Banner, Template, CanvasElement, TextElement, ShapeElement, ImageElement } from '../types/template';
 import { useHistory } from '../hooks/useHistory';
@@ -15,6 +16,7 @@ import { useZoomControl } from '../hooks/useZoomControl';
 import { useElementOperations } from '../hooks/useElementOperations';
 import { useAuth } from '../contexts/AuthContext';
 import { isDataUrlImage, uploadDataUrlToBucket, uploadFileToBucket } from '../utils/storage';
+import { templateStorage } from '../utils/templateStorage';
 
 export const BannerEditor = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +24,7 @@ export const BannerEditor = () => {
   const location = useLocation();
   const { profile, user } = useAuth();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showSaveAsTemplateModal, setShowSaveAsTemplateModal] = useState(false);
   const isGuest = !id;
   const guestStorageKey = 'banalist_guest_banner';
 
@@ -266,8 +269,12 @@ export const BannerEditor = () => {
       try {
         let thumbnailDataURL: string | undefined;
         if (generateThumbnail && canvasRef.current && elements.length > 0) {
+          console.log('[BannerEditor Guest] Generating thumbnail...');
           await new Promise(resolve => setTimeout(resolve, 100));
           thumbnailDataURL = canvasRef.current.exportThumbnail();
+          console.log('[BannerEditor Guest] Thumbnail generated:', thumbnailDataURL ? `${thumbnailDataURL.substring(0, 50)}... (length: ${thumbnailDataURL.length})` : 'NONE');
+        } else {
+          console.log('[BannerEditor Guest] Skipping thumbnail generation - generateThumbnail:', generateThumbnail, 'hasCanvas:', !!canvasRef.current, 'elementsCount:', elements.length);
         }
 
         const updatedAt = new Date().toISOString();
@@ -280,10 +287,12 @@ export const BannerEditor = () => {
           createdAt: guestCreatedAtRef.current,
           thumbnailUrl: thumbnailDataURL,
         };
+        console.log('[BannerEditor Guest] Saving to localStorage with thumbnail:', !!thumbnailDataURL);
         localStorage.setItem(guestStorageKey, JSON.stringify(snapshot));
         setGuestUpdatedAt(updatedAt);
         setHasUnsavedChanges(false);
         setSaveStatus('saved');
+        console.log('[BannerEditor Guest] Save complete');
       } catch (error) {
         console.error('[BannerEditor] Guest save failed:', error);
         setSaveStatus('error');
@@ -444,6 +453,8 @@ export const BannerEditor = () => {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges, isGuest, debouncedGuestSave, debouncedSave, performSave]);
+
+
 
   // Manual save handler (for save button)
   const handleSave = async () => {
@@ -948,13 +959,13 @@ export const BannerEditor = () => {
     setIsNavigating(true);
 
     try {
-      if (isGuest) {
-        navigate('/mydesign');
-        return;
-      }
       // Save any pending changes with thumbnail before navigating
-      debouncedSave.cancel();
-      await performSave(true); // Always generate thumbnail when leaving editor
+      if (isGuest) {
+        debouncedGuestSave.cancel();
+      } else {
+        debouncedSave.cancel();
+      }
+      await performSave(true); // Always generate thumbnail when leaving editor (both guest and logged-in)
       navigate('/mydesign');
     } catch (error) {
       console.error('[BannerEditor] Failed to save before navigating:', error);
@@ -965,6 +976,46 @@ export const BannerEditor = () => {
     }
   };
 
+  const handleSaveAsTemplate = () => {
+    // Only allow admins to save as template
+    if (profile?.role !== 'admin') {
+      return;
+    }
+    setShowSaveAsTemplateModal(true);
+  };
+
+  const handleTemplateModalSave = async ({ planType, displayOrder }: { planType: 'free' | 'premium'; displayOrder: number }) => {
+    try {
+      // Generate thumbnail for the template
+      const thumbnailDataUrl = canvasRef.current?.exportThumbnail();
+      if (!thumbnailDataUrl) {
+        console.error('Failed to generate thumbnail');
+        return;
+      }
+
+      // Upload thumbnail to storage (same bucket as existing templates)
+      const fileBase = `templates/${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const thumbnailUrl = await uploadDataUrlToBucket(thumbnailDataUrl, 'default-images', fileBase);
+
+      // Create template
+      await templateStorage.createTemplate({
+        name: banner.name,
+        elements: elements,
+        canvasColor: canvasColor,
+        thumbnailUrl: thumbnailUrl,
+        planType: planType,
+        displayOrder: displayOrder,
+        width: banner.template.width,
+        height: banner.template.height,
+      });
+
+      // モーダル側で閉じる処理とメッセージ表示を行う
+    } catch (error) {
+      console.error('Failed to save template:', error);
+      throw error; // モーダル側で catch してエラー表示
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col bg-[#212526]">
       <Header
@@ -972,6 +1023,8 @@ export const BannerEditor = () => {
         bannerName={banner.name}
         bannerId={isGuest ? undefined : banner.id}
         onBannerNameChange={isGuest ? undefined : handleBannerNameChange}
+        isAdmin={profile?.role === 'admin'}
+        onSaveAsTemplate={handleSaveAsTemplate}
       />
 
 
@@ -1126,6 +1179,13 @@ export const BannerEditor = () => {
           setShowUpgradeModal(false);
           navigate('/mydesign');
         }}
+      />
+
+      <SaveAsTemplateModal
+        isOpen={showSaveAsTemplateModal}
+        onClose={() => setShowSaveAsTemplateModal(false)}
+        onSave={handleTemplateModalSave}
+        defaultName={banner.name}
       />
 
       {/* Loading overlay when navigating */}
