@@ -64,7 +64,7 @@ export const BannerManager = () => {
       }
       const parsed = JSON.parse(stored) as {
         name: string;
-        template: { name: string };
+        template: { name: string; width?: number; height?: number };
         updatedAt?: string;
         createdAt?: string;
         thumbnailUrl?: string;
@@ -75,6 +75,8 @@ export const BannerManager = () => {
         name: parsed.name || parsed.template?.name || 'Guest Banner',
         updatedAt: parsed.updatedAt || parsed.createdAt || new Date().toISOString(),
         thumbnailUrl: parsed.thumbnailUrl,
+        width: parsed.template?.width,
+        height: parsed.template?.height,
       });
     } catch (error) {
       console.warn('[BannerManager] Failed to load guest banner from localStorage:', error);

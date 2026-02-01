@@ -9,12 +9,7 @@ export const templateKeys = {
 export function useTemplates() {
   return useQuery({
     queryKey: templateKeys.lists(),
-    queryFn: async () => {
-      console.log('[useTemplates] 🔍 Fetching templates from database...');
-      const templates = await templateStorage.getPublicTemplates();
-      console.log('[useTemplates] ✅ Fetched', templates.length, 'templates');
-      return templates;
-    },
+    queryFn: () => templateStorage.getPublicTemplates(),
     staleTime: 5 * 60 * 1000,
     refetchOnMount: false,
     refetchOnWindowFocus: false,

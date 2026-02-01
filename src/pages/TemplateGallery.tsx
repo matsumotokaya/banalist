@@ -8,6 +8,7 @@ import { UpgradeModal } from '../components/UpgradeModal';
 import { EditTemplateModal } from '../components/EditTemplateModal';
 import { Footer } from '../components/Footer';
 import { SortableGrid } from '../components/SortableGrid';
+import { DemoCanvas } from '../components/DemoCanvas';
 import { useTemplates, templateKeys } from '../hooks/useTemplates';
 import { DEFAULT_TEMPLATES } from '../templates/defaultTemplates';
 import type { Template, TemplateRecord } from '../types/template';
@@ -261,6 +262,37 @@ export const TemplateGallery = () => {
   return (
     <div className="min-h-screen bg-[#212526]">
       <Header />
+
+      {/* Hero Section - Guest Only */}
+      {isGuest && (
+        <section className="pt-20 pb-24 px-6">
+          <div className="max-w-5xl mx-auto text-center">
+            {/* Main Headline */}
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-[1.1] tracking-tight">
+              Your design is{' '}
+              <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                99% done.
+              </span>
+              <br />
+              <span className="text-gray-400 text-4xl md:text-5xl lg:text-6xl font-medium">
+                You just finish it.
+              </span>
+            </h1>
+
+            {/* Description */}
+            <p className="text-xl md:text-2xl text-gray-400 mb-16 max-w-3xl mx-auto leading-relaxed">
+              Unleash your creativity with WHATIF's social-ready templates.
+              <br className="hidden md:block" />
+              Loved by creators. Ready to customize.
+            </p>
+
+            {/* Interactive Demo Canvas */}
+            <div className="max-w-5xl mx-auto">
+              <DemoCanvas scale={0.45} />
+            </div>
+          </div>
+        </section>
+      )}
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         <GalleryTabs />

@@ -93,8 +93,9 @@ Missing Supabase env vars will cause a blank screen at runtime.
 
 ```
 src/
-├── components/       # React components (18 files)
+├── components/       # React components
 │   ├── Canvas.tsx           # Main canvas with Konva
+│   ├── DemoCanvas.tsx       # Interactive demo canvas for guest landing page
 │   ├── Sidebar.tsx          # Left sidebar (tools)
 │   ├── Header.tsx           # Top header
 │   ├── BottomBar.tsx        # Bottom bar (zoom, export)
@@ -311,12 +312,23 @@ WordPress-style image library with dual storage:
 - **RLS Policies**: Row-level security ensures users only access their own data
 - **Guest Mode**: One trial banner stored in `localStorage` (`banalist_guest_banner`)
 
-### Template Gallery ✅ (2025-12-18)
+### Template Gallery ✅ (2025-12-18, Updated 2026-02-01)
 - **Tabs**: "My Banners" and "Templates" are separate pages
 - **Ordering**: `templates.display_order` asc (NULLs last), fallback to `updated_at` desc
 - **Access**:
-  - Guests: all templates locked except a single trial template (hardcoded ID)
+  - Guests: Can view all templates (RLS policy updated to allow public read access)
   - Logged-in: `plan_type = premium` is gated by `profiles.subscription_tier`
+
+### Guest Landing Page ✅ NEW (2026-02-01)
+- **Hero Section**: Displayed only for guest users (not logged in)
+  - Headline: "Your design is 99% done. You just finish it."
+  - Description text with value proposition
+- **Interactive Demo Canvas**: Embedded Konva canvas for hands-on experience
+  - Pre-loaded with sample artwork
+  - Text element pre-selected to show editing is possible
+  - Full drag/drop, resize, text editing capabilities
+  - Download button for PNG export
+  - No login required, no data saved to database
 
 ### Export
 - PNG export functionality

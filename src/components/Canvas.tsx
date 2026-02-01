@@ -426,18 +426,17 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
     const absoluteX = stageContainer.left + textPosition.x + window.scrollX;
     const absoluteY = stageContainer.top + textPosition.y + window.scrollY;
 
-    // Calculate minimum width to fit content
-    const minWidth = Math.max(textPosition.width, 100);
+    // Use actual rendered size from Konva
+    const textWidth = Math.max(textPosition.width, 100);
+    const textHeight = Math.max(textPosition.height, element.fontSize * scale);
 
     // Position the textarea
     textarea.value = element.text;
     textarea.style.position = 'absolute';
     textarea.style.top = `${absoluteY}px`;
     textarea.style.left = `${absoluteX}px`;
-    textarea.style.minWidth = `${minWidth}px`;
-    textarea.style.width = 'auto';
-    textarea.style.minHeight = `${element.fontSize * scale}px`;
-    textarea.style.height = 'auto';
+    textarea.style.width = `${textWidth}px`;
+    textarea.style.height = `${textHeight}px`;
     textarea.style.fontSize = `${element.fontSize * scale}px`;
     textarea.style.fontFamily = element.fontFamily;
     textarea.style.fontWeight = element.fontWeight.toString();
@@ -449,18 +448,20 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
     textarea.style.background = 'rgba(255, 255, 255, 0.9)';
     textarea.style.outline = 'none';
     textarea.style.resize = 'none';
-    textarea.style.lineHeight = '1.2';
+    textarea.style.lineHeight = '1';
     textarea.style.color = element.fill;
     textarea.style.transformOrigin = 'left top';
     textarea.style.zIndex = '1000';
     textarea.style.boxSizing = 'border-box';
-    textarea.style.whiteSpace = 'pre-wrap';
-    textarea.style.wordWrap = 'break-word';
+    textarea.style.whiteSpace = 'pre';
+    textarea.style.wordWrap = 'normal';
+    textarea.style.maxHeight = `${template.height * scale}px`;
+    textarea.style.overflow = 'auto';
 
-    // Auto-resize function
+    // Auto-resize function (only on input, not on init)
     const autoResize = () => {
-      textarea.style.height = 'auto';
-      textarea.style.height = `${textarea.scrollHeight}px`;
+      const newHeight = Math.max(textarea.scrollHeight, textHeight);
+      textarea.style.height = `${newHeight}px`;
     };
 
     textarea.addEventListener('input', autoResize);
@@ -468,7 +469,6 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
     // Focus and select all text
     textarea.focus();
     textarea.select();
-    autoResize();
 
     const removeTextarea = () => {
       textarea.parentNode?.removeChild(textarea);

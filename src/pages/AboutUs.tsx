@@ -25,13 +25,15 @@ export function AboutUs() {
         <div className="bg-white rounded-lg shadow-sm p-8 space-y-8">
           {isJapanese ? (
             <>
-              <Section title="WHATIFについて">
+              <Section title="IMAGINE; Anime Aesthetic Design with WHATIF">
             <p className="mb-4">
-              WHATIFは、誰でも簡単にプロフェッショナルなデザインを作成できる、ブラウザベースのデザイン制作アシスタントツールです。
+              デザインツールIMAGINE; で「作る」を、もっと自由に、もっと簡単に。
             </p>
             <p className="mb-4">
-              テンプレートを選んで、テキストや画像を追加するだけで、高品質なバナーやビジュアルコンテンツを数分で作成できます。
-              デザインの専門知識がなくても、直感的な操作でプロフェッショナルな仕上がりを実現します。
+              Gen-AIを活用したスタイルが人気のWHATIFによるアートワークが、そのままあなたのデザインテンプレートになります。高度なテクニックはいりません。デザインの99%は既に用意されています。
+            </p>
+            <p className="mb-4">
+              スマホの壁紙、SNSのヘッダー、自分専用のアイコン。インスピレーションを形にするのに、もう時間はかかりません。WHATIFの美学を、今すぐあなたのデバイスへ。
             </p>
           </Section>
 
@@ -98,13 +100,15 @@ export function AboutUs() {
             </>
           ) : (
             <>
-              <Section title="About WHATIF">
+              <Section title="IMAGINE; Anime Aesthetic Design with WHATIF">
                 <p className="mb-4">
-                  WHATIF is a browser-based design assistant tool that enables anyone to create professional designs easily.
+                  With the design tool IMAGINE;, create more freely, more easily.
                 </p>
                 <p className="mb-4">
-                  Simply choose a template, add text and images, and create high-quality banners and visual content in minutes.
-                  Achieve professional results with intuitive operations, even without design expertise.
+                  Artwork by WHATIF, known for its popular Gen-AI powered style, becomes your design template. No advanced techniques required. 99% of the design is already done for you.
+                </p>
+                <p className="mb-4">
+                  Phone wallpapers, social media headers, your own custom icons. It no longer takes time to turn inspiration into reality. Bring WHATIF's aesthetic to your device today.
                 </p>
               </Section>
 
