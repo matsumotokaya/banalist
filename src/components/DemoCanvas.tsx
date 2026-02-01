@@ -145,7 +145,7 @@ export const DemoCanvas = ({ scale = 0.45 }: DemoCanvasProps) => {
 
   const handleElementUpdate = (id: string, updates: Partial<CanvasElement>) => {
     setElements((prev) =>
-      prev.map((el) => (el.id === id ? { ...el, ...updates } : el))
+      prev.map((el) => (el.id === id ? { ...el, ...updates } as CanvasElement : el))
     );
   };
 
@@ -154,13 +154,13 @@ export const DemoCanvas = ({ scale = 0.45 }: DemoCanvasProps) => {
     updateFn: (el: CanvasElement) => Partial<CanvasElement>
   ) => {
     setElements((prev) =>
-      prev.map((el) => (ids.includes(el.id) ? { ...el, ...updateFn(el) } : el))
+      prev.map((el) => (ids.includes(el.id) ? { ...el, ...updateFn(el) } as CanvasElement : el))
     );
   };
 
   const handleTextChange = (id: string, newText: string) => {
     setElements((prev) =>
-      prev.map((el) => (el.id === id ? { ...el, text: newText } : el))
+      prev.map((el) => (el.id === id ? { ...el, text: newText } as CanvasElement : el))
     );
   };
 
