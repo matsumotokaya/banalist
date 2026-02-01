@@ -58,6 +58,7 @@ const TextRendererComponent = ({
       fontSize={textElement.fontSize}
       fontFamily={textElement.fontFamily}
       letterSpacing={textElement.letterSpacing ?? 0}
+      lineHeight={textElement.lineHeight ?? 1}
       fontStyle={textElement.fontWeight >= 700 ? 'bold' : textElement.fontWeight <= 300 ? 'lighter' : 'normal'}
       fill={textElement.fillEnabled ? textElement.fill : 'transparent'}
       stroke={textElement.strokeEnabled ? textElement.stroke : undefined}
@@ -150,6 +151,7 @@ export const TextRenderer = memo(TextRendererComponent, (prevProps, nextProps) =
     prevProps.textElement.fontSize === nextProps.textElement.fontSize &&
     prevProps.textElement.fontFamily === nextProps.textElement.fontFamily &&
     prevProps.textElement.letterSpacing === nextProps.textElement.letterSpacing &&
+    prevProps.textElement.lineHeight === nextProps.textElement.lineHeight &&
     prevProps.textElement.fontWeight === nextProps.textElement.fontWeight &&
     prevProps.textElement.fill === nextProps.textElement.fill &&
     prevProps.textElement.fillEnabled === nextProps.textElement.fillEnabled &&

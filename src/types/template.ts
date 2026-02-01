@@ -37,6 +37,7 @@ export interface TextElement extends BaseElement {
   fontSize: number;
   fontFamily: string;
   letterSpacing: number;
+  lineHeight?: number; // Line height multiplier (e.g., 1.0 = 100%, 1.5 = 150%)
 
   // Fill properties
   fill: string;

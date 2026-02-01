@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { CanvasElement, TextElement, ShapeElement } from '../types/template';
 import { ColorSelector } from './ColorSelector';
+import { FontSelector } from './FontSelector';
 
 interface PropertyPanelProps {
   selectedElement: CanvasElement | null;
@@ -9,6 +10,7 @@ interface PropertyPanelProps {
   onSizeChange?: (size: number) => void;
   onWeightChange?: (weight: number) => void;
   onLetterSpacingChange?: (letterSpacing: number) => void;
+  onLineHeightChange?: (lineHeight: number) => void;
   onOpacityChange?: (opacity: number) => void;
   onBringToFront?: () => void;
   onSendToBack?: () => void;
@@ -22,43 +24,8 @@ interface PropertyPanelProps {
   onStrokeEnabledChange?: (enabled: boolean) => void;
 }
 
-const AVAILABLE_FONTS = [
-  {
-    categoryKey: 'latinSans',
-    fonts: [
-      { name: 'Arial', value: 'Arial' },
-      { name: 'Bebas Neue', value: '"Bebas Neue", sans-serif' },
-      { name: 'Anton SC', value: '"Anton SC", sans-serif' },
-      { name: 'Josefin Sans', value: '"Josefin Sans", sans-serif' },
-      { name: 'Special Gothic Expanded One', value: '"Special Gothic Expanded One", sans-serif' },
-      { name: 'Six Caps', value: '"Six Caps", sans-serif' },
-      { name: 'Bytesized', value: '"Bytesized", sans-serif' },
-    ]
-  },
-  {
-    categoryKey: 'latinSerif',
-    fonts: [
-      { name: 'Georgia', value: 'Georgia' },
-    ]
-  },
-  {
-    categoryKey: 'japaneseSans',
-    fonts: [
-      { name: 'Noto Sans JP', value: '"Noto Sans JP", sans-serif' },
-      { name: '游ゴシック', value: '"Yu Gothic", "游ゴシック", YuGothic, sans-serif' },
-      { name: 'WDXL Lubrifont JP N', value: '"WDXL Lubrifont JP N", sans-serif' },
-      { name: 'DotGothic16', value: '"DotGothic16", sans-serif' },
-    ]
-  },
-  {
-    categoryKey: 'japaneseSerif',
-    fonts: [
-      { name: 'Noto Serif JP', value: '"Noto Serif JP", serif' },
-    ]
-  },
-];
 
-export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, onSizeChange, onWeightChange, onLetterSpacingChange, onOpacityChange, onBringToFront, onSendToBack, isMobile = false, onClose, onFillEnabledChange, onStrokeChange, onStrokeWidthChange, onStrokeEnabledChange }: PropertyPanelProps) => {
+export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, onSizeChange, onWeightChange, onLetterSpacingChange, onLineHeightChange, onOpacityChange, onBringToFront, onSendToBack, isMobile = false, onClose, onFillEnabledChange, onStrokeChange, onStrokeWidthChange, onStrokeEnabledChange }: PropertyPanelProps) => {
   const { t } = useTranslation('editor');
   const getWeightLabel = (weight: number): string => {
     if (weight <= 100) return t('properties.fontWeights.thin');
@@ -124,28 +91,10 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
           <label className="block text-xs font-medium text-gray-300 mb-2">
             {t('properties.font')}
           </label>
-          <div className="relative">
-            <select
-              value={textElement.fontFamily}
-              onChange={(e) => onFontChange(e.target.value)}
-              className="w-full appearance-none px-3 py-2 pr-8 bg-[#2b2b2b] border border-[#444444] rounded-lg text-xs text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer hover:bg-[#333333]"
-            >
-              {AVAILABLE_FONTS.map((group) => (
-                <optgroup key={group.categoryKey} label={t(`properties.fontCategories.${group.categoryKey}`)}>
-                  {group.fonts.map((font) => (
-                    <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
-                      {font.name}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
-              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </div>
-          </div>
+          <FontSelector
+            selectedFont={textElement.fontFamily}
+            onFontChange={onFontChange}
+          />
         </div>
       )}
 
@@ -159,13 +108,13 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
             <input
               type="range"
               min="12"
-              max="1000"
+              max="2000"
               step="1"
               value={textElement.fontSize}
               onChange={(e) => onSizeChange(Number(e.target.value))}
               className="flex-1 h-1.5 bg-[#444444] rounded-lg appearance-none cursor-pointer accent-indigo-500"
             />
-            <span className="text-xs font-medium text-gray-300 w-12 text-right">
+            <span className="text-xs font-medium text-gray-300 w-14 text-right">
               {textElement.fontSize}px
             </span>
           </div>
@@ -204,8 +153,8 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
           <div className="flex items-center gap-2">
             <input
               type="range"
-              min="-50"
-              max="200"
+              min="-100"
+              max="100"
               step="1"
               value={textElement.letterSpacing ?? 0}
               onChange={(e) => onLetterSpacingChange(Number(e.target.value))}
@@ -213,6 +162,29 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
             />
             <span className="text-xs font-medium text-gray-300 w-12 text-right">
               {(textElement.letterSpacing ?? 0)}px
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Line height slider - only for text */}
+      {isTextElement && textElement && onLineHeightChange && (
+        <div className="mb-3">
+          <label className="block text-xs font-medium text-gray-300 mb-2">
+            {t('properties.lineHeight')}
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min="0.5"
+              max="3"
+              step="0.1"
+              value={textElement.lineHeight ?? 1}
+              onChange={(e) => onLineHeightChange(Number(e.target.value))}
+              className="flex-1 h-1.5 bg-[#444444] rounded-lg appearance-none cursor-pointer accent-indigo-500"
+            />
+            <span className="text-xs font-medium text-gray-300 w-12 text-right">
+              {((textElement.lineHeight ?? 1) * 100).toFixed(0)}%
             </span>
           </div>
         </div>

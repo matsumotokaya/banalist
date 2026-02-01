@@ -763,6 +763,8 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                     : ['top-left', 'top-right', 'bottom-left', 'bottom-right']
                 }
                 rotateEnabled={true}
+                rotationSnaps={isShiftPressed ? [0, 45, 90, 135, 180, 225, 270, 315] : []}
+                rotationSnapTolerance={5}
                 keepRatio={selectedNodeType === 'text'}
               />
               {selectionRect && (

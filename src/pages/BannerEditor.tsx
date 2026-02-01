@@ -45,6 +45,7 @@ export const BannerEditor = () => {
   const [selectedSize, setSelectedSize] = useState<number>(80);
   const [selectedWeight, setSelectedWeight] = useState<number>(400);
   const [selectedLetterSpacing, setSelectedLetterSpacing] = useState<number>(0);
+  const [selectedLineHeight, setSelectedLineHeight] = useState<number>(1);
   const [selectedTextColor, setSelectedTextColor] = useState<string>('#000000');
   const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]);
   const [copiedElements, setCopiedElements] = useState<CanvasElement[]>([]);
@@ -585,6 +586,7 @@ export const BannerEditor = () => {
         setSelectedSize(element.fontSize);
         setSelectedWeight(element.fontWeight);
         setSelectedLetterSpacing(element.letterSpacing ?? 0);
+        setSelectedLineHeight(element.lineHeight ?? 1);
         setSelectedTextColor(element.fill);
       }
     }
@@ -626,6 +628,7 @@ export const BannerEditor = () => {
       fontSize: selectedSize,
       fontFamily: selectedFont,
       letterSpacing: selectedLetterSpacing,
+      lineHeight: selectedLineHeight,
       fill: selectedTextColor,
       fillEnabled: true,
       stroke: '#000000',
@@ -789,6 +792,14 @@ export const BannerEditor = () => {
     }
   };
 
+  const handleLineHeightChange = (lineHeight: number) => {
+    setSelectedLineHeight(lineHeight);
+    if (selectedElementIds.length > 0) {
+      elementOps.updateElements(selectedElementIds, (el) =>
+        el.type === 'text' ? { lineHeight } : {}
+      );
+    }
+  };
 
   const handlePropertyColorChange = (color: string) => {
     if (selectedElementIds.length > 0) {
@@ -1083,6 +1094,7 @@ export const BannerEditor = () => {
           onSizeChange={handleSizeChange}
           onWeightChange={handleWeightChange}
           onLetterSpacingChange={handleLetterSpacingChange}
+          onLineHeightChange={handleLineHeightChange}
           onOpacityChange={handleOpacityChange}
           onBringToFront={handleBringToFront}
           onSendToBack={handleSendToBack}
@@ -1151,6 +1163,7 @@ export const BannerEditor = () => {
           onSizeChange={handleSizeChange}
           onWeightChange={handleWeightChange}
           onLetterSpacingChange={handleLetterSpacingChange}
+          onLineHeightChange={handleLineHeightChange}
           onOpacityChange={handleOpacityChange}
           onBringToFront={handleBringToFront}
           onSendToBack={handleSendToBack}

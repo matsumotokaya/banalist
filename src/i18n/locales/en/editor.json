@@ -54,6 +54,7 @@
     "textSize": "Text Size",
     "fontWeight": "Font Weight",
     "letterSpacing": "Letter Spacing",
+    "lineHeight": "Line Height",
     "fill": "Fill",
     "stroke": "Stroke",
     "strokeOnly": "Stroke Only",
