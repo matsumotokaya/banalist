@@ -1,4 +1,29 @@
 {
+  "editTemplate": {
+    "title": "テンプレート編集",
+    "templateName": "テンプレート名",
+    "templateNamePlaceholder": "テンプレート名を入力",
+    "planType": "プラン種別",
+    "free": "無料",
+    "premium": "プレミアム",
+    "displayOrder": "表示順",
+    "displayOrderPlaceholder": "数字が小さいほど先に表示",
+    "displayOrderHint": "空欄の場合は更新日順",
+    "size": "サイズ",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "saving": "保存中...",
+    "deleteTemplate": "テンプレートを削除",
+    "deleteConfirm": "本当に削除しますか？この操作は取り消せません。",
+    "deleting": "削除中...",
+    "delete": "削除",
+    "editButton": "編集",
+    "errors": {
+      "nameEmpty": "テンプレート名を入力してください",
+      "saveFailed": "テンプレートの保存に失敗しました",
+      "deleteFailed": "テンプレートの削除に失敗しました"
+    }
+  },
   "upgrade": {
     "title": "プレミアム限定デザイン",
     "description": "このデザインの閲覧・編集にはアップグレードが必要です",

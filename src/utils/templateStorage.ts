@@ -29,7 +29,7 @@ export const templateStorage = {
   async getPublicTemplates(): Promise<TemplateRecord[]> {
     const { data, error } = await supabase
       .from('templates')
-      .select('id, name, canvas_color, thumbnail_url, plan_type, display_order, updated_at')
+      .select('id, name, canvas_color, thumbnail_url, plan_type, display_order, width, height, updated_at')
       .order('display_order', { ascending: true, nullsFirst: false })
       .order('updated_at', { ascending: false });
 
@@ -87,5 +87,61 @@ export const templateStorage = {
     }
 
     return data?.id || null;
+  },
+
+  async updateTemplate(
+    id: string,
+    params: {
+      name?: string;
+      planType?: 'free' | 'premium';
+      displayOrder?: number | null;
+    }
+  ): Promise<void> {
+    const updates: Record<string, unknown> = {};
+    if (params.name !== undefined) updates.name = params.name;
+    if (params.planType !== undefined) updates.plan_type = params.planType;
+    if (params.displayOrder !== undefined) updates.display_order = params.displayOrder;
+
+    const { error } = await supabase
+      .from('templates')
+      .update(updates)
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating template:', error);
+      throw error;
+    }
+  },
+
+  async deleteTemplate(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('templates')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting template:', error);
+      throw error;
+    }
+  },
+
+  async updateDisplayOrders(
+    orders: { id: string; displayOrder: number }[]
+  ): Promise<void> {
+    // Update each template's display_order
+    const promises = orders.map(({ id, displayOrder }) =>
+      supabase
+        .from('templates')
+        .update({ display_order: displayOrder })
+        .eq('id', id)
+    );
+
+    const results = await Promise.all(promises);
+    const errors = results.filter((r) => r.error);
+
+    if (errors.length > 0) {
+      console.error('Error updating display orders:', errors);
+      throw new Error('Failed to update display orders');
+    }
   },
 };

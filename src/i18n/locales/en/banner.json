@@ -5,6 +5,8 @@
   "templatesTab": "Templates",
   "noTemplates": "No templates available",
   "createFromTemplate": "Create with this design",
+  "open": "Open",
+  "download": "Download",
   "count": "{{count}} design",
   "count_plural": "{{count}} designs",
   "noBanners": "No designs",

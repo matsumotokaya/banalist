@@ -10,7 +10,7 @@ export function Footer() {
             <div className="max-w-7xl mx-auto px-6">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-8">
                     <div className="flex flex-col items-center md:items-start">
-                        <h2 className="text-xl font-bold text-white mb-2">WHATIF</h2>
+                        <h2 className="text-xl font-bold text-white mb-2">IMAGINE;</h2>
                         <p className="text-gray-400 text-sm mb-4">
                             {isJapanese
                                 ? 'ブラウザベースのデザインアシスタントツール'
@@ -77,7 +77,7 @@ export function Footer() {
 
                 <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
                     <p className="text-gray-500 text-xs">
-                        © 2026 WHATIF. All rights reserved.
+                        © 2026 IMAGINE;. All rights reserved.
                     </p>
                     <p className="text-gray-500 text-xs">
                         {isJapanese ? '運営: 松本 夏弥' : 'Operated by Kaya Matsumoto'}

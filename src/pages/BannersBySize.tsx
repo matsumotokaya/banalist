@@ -1,39 +1,27 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '../components/Header';
-import { UpgradeModal } from '../components/UpgradeModal';
-import { GalleryTabs } from '../components/GalleryTabs';
 import { Footer } from '../components/Footer';
 import { SortableGrid } from '../components/SortableGrid';
 import { bannerStorage } from '../utils/bannerStorage';
-import { useQueryClient } from '@tanstack/react-query';
 import {
   useBanners,
-  useCreateBanner,
   useDeleteBanner,
   useDuplicateBanner,
   useUpdateBannerName,
   bannerKeys,
 } from '../hooks/useBanners';
-import { DEFAULT_TEMPLATES } from '../templates/defaultTemplates';
 import type { BannerListItem, CanvasElement, Template } from '../types/template';
 import { useAuth } from '../contexts/AuthContext';
+import { SIZE_CATEGORIES } from './BannerManager';
 
-// Size category definitions (exported for use in BannersBySize page)
-export const SIZE_CATEGORIES = [
-  { key: 'phone', label: 'PHONE WALLPAPER', width: 1080, height: 1920 },
-  { key: 'pc', label: 'PC WALLPAPER', width: 1920, height: 1080 },
-  { key: 'square', label: 'SQUARE', width: 1080, height: 1080 },
-] as const;
-
-const MAX_DISPLAY_COUNT = 10;
-
-export const BannerManager = () => {
+export const BannersBySize = () => {
+  const { sizeKey } = useParams<{ sizeKey: string }>();
   const { t, i18n } = useTranslation(['banner', 'common', 'message']);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [imageLoadingStates, setImageLoadingStates] = useState<Record<string, boolean>>({});
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -42,9 +30,11 @@ export const BannerManager = () => {
   const guestStorageKey = 'banalist_guest_banner';
   const [guestBanner, setGuestBanner] = useState<BannerListItem | null>(null);
 
+  // Find the current category
+  const category = SIZE_CATEGORIES.find((c) => c.key === sizeKey);
+
   // React Query hooks
   const { data: banners = [], isLoading } = useBanners();
-  const createBanner = useCreateBanner();
   const deleteBanner = useDeleteBanner();
   const duplicateBanner = useDuplicateBanner();
   const updateName = useUpdateBannerName(editingId || '');
@@ -56,41 +46,29 @@ export const BannerManager = () => {
     }
     try {
       const stored = localStorage.getItem(guestStorageKey);
-      console.log('[BannerManager] Loading guest banner from localStorage...');
       if (!stored) {
-        console.log('[BannerManager] No guest banner found in localStorage');
         setGuestBanner(null);
         return;
       }
       const parsed = JSON.parse(stored) as {
         name: string;
-        template: { name: string };
+        template: { name: string; width?: number; height?: number };
         updatedAt?: string;
         createdAt?: string;
         thumbnailUrl?: string;
       };
-      console.log('[BannerManager] Guest banner loaded - name:', parsed.name, 'hasThumbnail:', !!parsed.thumbnailUrl, 'thumbnailLength:', parsed.thumbnailUrl?.length || 0);
       setGuestBanner({
         id: 'guest',
         name: parsed.name || parsed.template?.name || 'Guest Banner',
         updatedAt: parsed.updatedAt || parsed.createdAt || new Date().toISOString(),
         thumbnailUrl: parsed.thumbnailUrl,
+        width: parsed.template?.width,
+        height: parsed.template?.height,
       });
-    } catch (error) {
-      console.warn('[BannerManager] Failed to load guest banner from localStorage:', error);
+    } catch {
       setGuestBanner(null);
     }
   }, [isGuest]);
-
-  const handleCreateBanner = async () => {
-    const result = await createBanner.mutateAsync({
-      name: t('message:placeholder.untitledBanner'),
-      template: DEFAULT_TEMPLATES[0],
-    });
-    if (result) {
-      navigate(`/banner/${result.id}`);
-    }
-  };
 
   const handleDeleteBanner = async (id: string) => {
     if (window.confirm(t('message:confirm.deleteBanner'))) {
@@ -151,8 +129,8 @@ export const BannerManager = () => {
             templateId: parsed.template.id,
           },
         });
-      } catch (error) {
-        console.warn('[BannerManager] Failed to open guest banner:', error);
+      } catch {
+        // Ignore error
       }
       return;
     }
@@ -161,12 +139,12 @@ export const BannerManager = () => {
 
   const displayedBanners = isGuest ? (guestBanner ? [guestBanner] : []) : banners;
 
-  // Filter banners by size category
-  const filterBannersBySize = (targetWidth: number, targetHeight: number) => {
-    return displayedBanners.filter(
-      (banner) => banner.width === targetWidth && banner.height === targetHeight
-    );
-  };
+  // Filter banners by the current category size
+  const filteredBanners = category
+    ? displayedBanners.filter(
+        (banner) => banner.width === category.width && banner.height === category.height
+      )
+    : [];
 
   // Handle reorder for banners (used by SortableGrid)
   const handleReorderBanners = async (reorderedBanners: BannerListItem[]) => {
@@ -190,6 +168,15 @@ export const BannerManager = () => {
     if (width === height) return 'aspect-square';
     return 'aspect-[9/16]';
   };
+
+  // Grid columns based on aspect ratio
+  const gridCols = category
+    ? category.width > category.height
+      ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+      : category.width === category.height
+      ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+      : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+    : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
 
   // Render a single banner card
   const renderBannerCard = (banner: BannerListItem) => {
@@ -337,16 +324,55 @@ export const BannerManager = () => {
     );
   };
 
+  // If category not found, show error
+  if (!category) {
+    return (
+      <div className="min-h-screen bg-[#212526]">
+        <Header />
+        <main className="max-w-7xl mx-auto px-6 py-8">
+          <div className="text-center py-20">
+            <h2 className="text-xl font-semibold text-gray-100 mb-4">カテゴリが見つかりません</h2>
+            <button
+              onClick={() => navigate('/banners')}
+              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
+            >
+              デザイン一覧に戻る
+            </button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#212526]">
       <Header />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
-        <GalleryTabs />
+        {/* Breadcrumb */}
+        <nav className="mb-6">
+          <ol className="flex items-center gap-2 text-sm text-gray-400">
+            <li>
+              <button
+                onClick={() => navigate('/banners')}
+                className="hover:text-indigo-400 transition-colors"
+              >
+                {t('banner:title')}
+              </button>
+            </li>
+            <li>/</li>
+            <li className="text-gray-100">{category.label}</li>
+          </ol>
+        </nav>
 
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-100">
-            {t('banner:title')} ({displayedBanners.length})
+          <h2 className="text-xl font-semibold text-gray-100 flex items-center gap-2">
+            {category.label}
+            <span className="text-sm font-normal text-gray-400">
+              ({category.width}×{category.height})
+            </span>
+            <span className="text-sm font-normal text-gray-500">— {filteredBanners.length}件</span>
           </h2>
         </div>
 
@@ -355,15 +381,27 @@ export const BannerManager = () => {
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
             <p className="mt-4 text-gray-600">{t('common:status.loading')}</p>
           </div>
-        ) : displayedBanners.length === 0 ? (
+        ) : filteredBanners.length === 0 ? (
           <div className="text-center py-20">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-700 mb-4">
-              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <svg
+                className="w-8 h-8 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-300 mb-2">{t('banner:noBanners')}</h3>
-            <p className="text-gray-400 mb-6">{t('banner:emptyStateMessage')}</p>
+            <h3 className="text-lg font-medium text-gray-300 mb-2">
+              このサイズのデザインはありません
+            </h3>
+            <p className="text-gray-400 mb-6">テンプレートから新しいデザインを作成してください</p>
             <button
               onClick={() => navigate('/')}
               className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
@@ -372,94 +410,16 @@ export const BannerManager = () => {
             </button>
           </div>
         ) : (
-          <div className="space-y-10">
-            {SIZE_CATEGORIES.map((category) => {
-              const filteredBanners = filterBannersBySize(category.width, category.height);
-              const displayBanners = filteredBanners.slice(0, MAX_DISPLAY_COUNT);
-              const hasMore = filteredBanners.length > MAX_DISPLAY_COUNT;
-              const gridCols =
-                category.width > category.height
-                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-                  : category.width === category.height
-                  ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
-                  : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
-
-              return (
-                <section key={category.key}>
-                  <h3 className="text-lg font-semibold text-gray-100 mb-4 flex items-center gap-2">
-                    <button
-                      onClick={() => navigate(`/banners/${category.key}`)}
-                      className="hover:text-indigo-400 transition-colors cursor-pointer"
-                    >
-                      {category.label}
-                    </button>
-                    <span className="text-sm font-normal text-gray-400">
-                      ({category.width}×{category.height})
-                    </span>
-                    <span className="text-sm font-normal text-gray-500">
-                      — {filteredBanners.length}件
-                    </span>
-                  </h3>
-
-                  {filteredBanners.length === 0 ? (
-                    <div className="py-8 text-center text-gray-500 bg-gray-800/30 rounded-lg border border-gray-700/50">
-                      該当するデザインはありません
-                    </div>
-                  ) : (
-                    <>
-                      <SortableGrid
-                        items={displayBanners}
-                        disabled={isGuest}
-                        gridClassName={`grid ${gridCols} gap-4`}
-                        onReorder={handleReorderBanners}
-                        renderItem={renderBannerCard}
-                      />
-                      {hasMore && (
-                        <div className="mt-4 text-center">
-                          <button
-                            onClick={() => navigate(`/banners/${category.key}`)}
-                            className="px-6 py-2 text-sm font-medium text-indigo-400 hover:text-indigo-300 hover:bg-indigo-900/30 rounded-lg transition-colors"
-                          >
-                            もっと見る ({filteredBanners.length - MAX_DISPLAY_COUNT}件)
-                            <span className="ml-1">→</span>
-                          </button>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </section>
-              );
-            })}
-
-            {/* Add new banner card - shown at bottom */}
-            {!isGuest && (
-              <section>
-                <h3 className="text-lg font-semibold text-gray-100 mb-4">新規作成</h3>
-                <div
-                  onClick={handleCreateBanner}
-                  className="group bg-white rounded-lg border-2 border-dashed border-gray-300 hover:border-indigo-400 hover:shadow-lg transition-all overflow-hidden cursor-pointer w-48"
-                >
-                  <div className="aspect-[9/16] bg-gray-50 flex items-center justify-center">
-                    <div className="text-center px-4">
-                      <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-indigo-100 flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
-                        <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
-                      </div>
-                      <p className="text-xs font-medium text-gray-700 group-hover:text-indigo-600 transition-colors">
-                        {t('banner:newBanner')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </section>
-            )}
-          </div>
+          <SortableGrid
+            items={filteredBanners}
+            disabled={isGuest}
+            gridClassName={`grid ${gridCols} gap-4`}
+            onReorder={handleReorderBanners}
+            renderItem={renderBannerCard}
+          />
         )}
       </main>
 
-      {/* Upgrade Modal */}
-      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
       <Footer />
     </div>
   );

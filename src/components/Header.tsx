@@ -51,8 +51,9 @@ export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChan
           </button>
         )}
         <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
-          <h1 className="text-white text-sm md:text-lg" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
-            <span className="font-bold">WHATIF</span>
+          <h1 className="text-white text-lg whitespace-nowrap" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+            <span className="font-bold">IMAGINE;</span>
+            <span className="hidden sm:inline font-normal text-white/70 ml-1">Anime Aesthetic Design with WHATIF</span>
           </h1>
         </div>
         {bannerName && (

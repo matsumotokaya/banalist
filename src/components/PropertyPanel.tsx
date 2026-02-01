@@ -29,6 +29,10 @@ const AVAILABLE_FONTS = [
       { name: 'Arial', value: 'Arial' },
       { name: 'Bebas Neue', value: '"Bebas Neue", sans-serif' },
       { name: 'Anton SC', value: '"Anton SC", sans-serif' },
+      { name: 'Josefin Sans', value: '"Josefin Sans", sans-serif' },
+      { name: 'Special Gothic Expanded One', value: '"Special Gothic Expanded One", sans-serif' },
+      { name: 'Six Caps', value: '"Six Caps", sans-serif' },
+      { name: 'Bytesized', value: '"Bytesized", sans-serif' },
     ]
   },
   {

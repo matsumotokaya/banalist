@@ -91,4 +91,7 @@ export interface BannerListItem {
   name: string;
   updatedAt: string;
   thumbnailUrl?: string;
+  width?: number;
+  height?: number;
+  displayOrder?: number;
 }

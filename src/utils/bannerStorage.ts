@@ -22,6 +22,8 @@ interface DbBannerListItem {
   thumbnail_data_url?: string | null;
   thumbnail_url?: string | null;
   updated_at: string;
+  template?: { width?: number; height?: number } | null;
+  display_order?: number | null;
 }
 
 // Convert DB format to Banner format
@@ -41,6 +43,9 @@ const dbToBannerListItem = (db: DbBannerListItem): BannerListItem => ({
   name: db.name,
   thumbnailUrl: db.thumbnail_url || db.thumbnail_data_url || undefined,
   updatedAt: db.updated_at,
+  width: db.template?.width,
+  height: db.template?.height,
+  displayOrder: db.display_order ?? undefined,
 });
 
 export const bannerStorage = {
@@ -118,8 +123,8 @@ export const bannerStorage = {
     // RLS policy handles access control: public banners OR own banners
     const { data, error } = await supabase
       .from('banners')
-      .select('id, name, thumbnail_url, updated_at')
-      .order('updated_at', { ascending: false });
+      .select('id, name, thumbnail_url, updated_at, template, display_order')
+      .order('display_order', { ascending: true });
 
     if (error) {
       console.error('Error fetching banners:', error);
@@ -336,7 +341,23 @@ export const bannerStorage = {
     await this.update(id, { name });
   },
 
+  // Update display orders for multiple banners
+  async updateDisplayOrders(orders: { id: string; displayOrder: number }[]): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
 
-  // Update public status
-  // Public/private is deprecated; no-op placeholder removed
+    // Update each banner's display_order
+    const updates = orders.map(({ id, displayOrder }) =>
+      supabase
+        .from('banners')
+        .update({ display_order: displayOrder })
+        .eq('id', id)
+        .eq('user_id', user.id)
+    );
+
+    await Promise.all(updates);
+
+    // Invalidate cache
+    cacheManager.invalidate(`banners:all:${user.id}`);
+  },
 };

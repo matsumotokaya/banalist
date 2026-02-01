@@ -35,5 +35,11 @@
   },
   "colorPicker": {
     "open": "カラーピッカーを開く"
+  },
+  "cookie": {
+    "message": "当サイトでは、サービス向上のためにCookieを使用しています。サイトの利用を続けることで、Cookieの使用に同意したものとみなします。",
+    "accept": "同意する",
+    "decline": "拒否する",
+    "privacyLink": "プライバシーポリシー"
   }
 }

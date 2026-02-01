@@ -27,6 +27,22 @@ npm run dev
 npm run build
 ```
 
+### Localhost ポート番号・Tips
+
+- デフォルト: http://localhost:5173 で開発サーバーが起動します
+- ポートを変更したい場合: `npm run dev -- --port 3000` など
+- 5173番が競合している場合: `lsof -i :5173` でプロセス確認→`kill <PID>` で解放
+
+例：
+```bash
+# 3000番で起動
+npm run dev -- --port 3000
+# ポート競合プロセス確認
+lsof -i :5173
+# プロセスをkill（例: PIDが12345の場合）
+kill 12345
+```
+
 ## Local Auth Testing (Single Supabase Project)
 
 PoCの間はSupabaseを1プロジェクトだけ使い、
@@ -43,6 +59,14 @@ PoCの間はSupabaseを1プロジェクトだけ使い、
 
 > `redirectTo` は `window.location.origin` を使っているため、
 > ローカルでは localhost に戻ります。
+
+⚠️ **注意: ローカルと本番のリダイレクト運用について**
+
+- 本プロジェクトは「ローカルで検証したい時だけSupabase AuthのリダイレクトURLをlocalhostにし、本番検証時は必ず本番URL（例: https://app.whatif-ep.xyz）に戻す」運用です。
+- 本番でログイン挙動を確認したい場合は、Supabase Authの「Redirect URLs」からlocalhostを外し、本番URLのみを登録してください。
+- `.env.local` を削除 or `.env.production` で本番用URL/キーを指定し、Vercel等の環境変数も本番用にしてください。
+- この切り替えを忘れると「本番でログイン後にローカルにリダイレクトされる」等のトラブルになります。
+- 必ずデプロイ前・本番検証前にリダイレクトURLと環境変数を確認してください。
 
 ## Deployment (Vercel + Domain)
 

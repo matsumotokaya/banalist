@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '../components/Header';
-import { GalleryTabs } from '../components/GalleryTabs';
 import { UpgradeModal } from '../components/UpgradeModal';
 import { EditTemplateModal } from '../components/EditTemplateModal';
 import { Footer } from '../components/Footer';
@@ -16,11 +15,12 @@ import { bannerStorage } from '../utils/bannerStorage';
 import { templateStorage } from '../utils/templateStorage';
 import { SIZE_CATEGORIES } from './BannerManager';
 
-const MAX_DISPLAY_COUNT = 10;
-
-export const TemplateGallery = () => {
+export const TemplatesBySize = () => {
+  const { sizeKey } = useParams<{ sizeKey: string }>();
   const { t } = useTranslation(['banner', 'common', 'message', 'auth', 'modal']);
-  const [templateImageLoadingStates, setTemplateImageLoadingStates] = useState<Record<string, boolean>>({});
+  const [templateImageLoadingStates, setTemplateImageLoadingStates] = useState<
+    Record<string, boolean>
+  >({});
   const [templateActionId, setTemplateActionId] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<TemplateRecord | null>(null);
@@ -31,7 +31,17 @@ export const TemplateGallery = () => {
   const isAdmin = profile?.role === 'admin';
   const guestTemplateId = 'd9c4fee2-8e9c-4703-a507-57f3bde5d2b3';
 
+  // Find the current category
+  const category = SIZE_CATEGORIES.find((c) => c.key === sizeKey);
+
   const { data: templates = [], isLoading: templatesLoading } = useTemplates();
+
+  // Filter templates by the current category size
+  const filteredTemplates = category
+    ? templates.filter(
+        (template) => template.width === category.width && template.height === category.height
+      )
+    : [];
 
   // Handle reorder for templates (used by SortableGrid)
   const handleReorderTemplates = async (reorderedTemplates: TemplateRecord[]) => {
@@ -48,13 +58,6 @@ export const TemplateGallery = () => {
     }
   };
 
-  // Filter templates by size category
-  const filterTemplatesBySize = (targetWidth: number, targetHeight: number) => {
-    return templates.filter(
-      (template) => template.width === targetWidth && template.height === targetHeight
-    );
-  };
-
   // Get aspect ratio class based on template dimensions
   const getAspectClass = (width?: number, height?: number) => {
     if (!width || !height) return 'aspect-[9/16]';
@@ -62,6 +65,15 @@ export const TemplateGallery = () => {
     if (width === height) return 'aspect-square';
     return 'aspect-[9/16]';
   };
+
+  // Grid columns based on aspect ratio
+  const gridCols = category
+    ? category.width > category.height
+      ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+      : category.width === category.height
+      ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+      : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+    : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
 
   const buildEditorTemplate = (template: TemplateRecord): Template => {
     const fallbackTemplate = DEFAULT_TEMPLATES[0];
@@ -258,86 +270,89 @@ export const TemplateGallery = () => {
     );
   };
 
+  // If category not found, show error
+  if (!category) {
+    return (
+      <div className="min-h-screen bg-[#212526]">
+        <Header />
+        <main className="max-w-7xl mx-auto px-6 py-8">
+          <div className="text-center py-20">
+            <h2 className="text-xl font-semibold text-gray-100 mb-4">カテゴリが見つかりません</h2>
+            <button
+              onClick={() => navigate('/')}
+              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
+            >
+              テンプレート一覧に戻る
+            </button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#212526]">
       <Header />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
-        <GalleryTabs />
+        {/* Breadcrumb */}
+        <nav className="mb-6">
+          <ol className="flex items-center gap-2 text-sm text-gray-400">
+            <li>
+              <button onClick={() => navigate('/')} className="hover:text-indigo-400 transition-colors">
+                {t('banner:templatesTitle')}
+              </button>
+            </li>
+            <li>/</li>
+            <li className="text-gray-100">{category.label}</li>
+          </ol>
+        </nav>
 
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-100">
-            {t('banner:templatesTitle')} ({templates.length})
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold text-gray-100 flex items-center gap-2">
+            {category.label}
+            <span className="text-sm font-normal text-gray-400">
+              ({category.width}×{category.height})
+            </span>
+            <span className="text-sm font-normal text-gray-500">— {filteredTemplates.length}件</span>
           </h2>
         </div>
 
         {templatesLoading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
-            <p className="mt-3 text-gray-600">{t('common:status.loading')}</p>
+          <div className="text-center py-20">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            <p className="mt-4 text-gray-600">{t('common:status.loading')}</p>
           </div>
-        ) : templates.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">{t('banner:noTemplates')}</div>
+        ) : filteredTemplates.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-700 mb-4">
+              <svg
+                className="w-8 h-8 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-300 mb-2">
+              このサイズのテンプレートはありません
+            </h3>
+          </div>
         ) : (
-          <div className="space-y-10">
-            {SIZE_CATEGORIES.map((category) => {
-              const filteredTemplates = filterTemplatesBySize(category.width, category.height);
-              const displayTemplates = filteredTemplates.slice(0, MAX_DISPLAY_COUNT);
-              const hasMore = filteredTemplates.length > MAX_DISPLAY_COUNT;
-              const gridCols =
-                category.width > category.height
-                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-                  : category.width === category.height
-                  ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
-                  : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
-
-              return (
-                <section key={category.key}>
-                  <h3 className="text-lg font-semibold text-gray-100 mb-4 flex items-center gap-2">
-                    <button
-                      onClick={() => navigate(`/templates/${category.key}`)}
-                      className="hover:text-indigo-400 transition-colors cursor-pointer"
-                    >
-                      {category.label}
-                    </button>
-                    <span className="text-sm font-normal text-gray-400">
-                      ({category.width}×{category.height})
-                    </span>
-                    <span className="text-sm font-normal text-gray-500">
-                      — {filteredTemplates.length}件
-                    </span>
-                  </h3>
-
-                  {filteredTemplates.length === 0 ? (
-                    <div className="py-8 text-center text-gray-500 bg-gray-800/30 rounded-lg border border-gray-700/50">
-                      該当するテンプレートはありません
-                    </div>
-                  ) : (
-                    <>
-                      <SortableGrid
-                        items={displayTemplates}
-                        disabled={!isAdmin}
-                        gridClassName={`grid ${gridCols} gap-4`}
-                        onReorder={handleReorderTemplates}
-                        renderItem={renderTemplateCard}
-                      />
-                      {hasMore && (
-                        <div className="mt-4 text-center">
-                          <button
-                            onClick={() => navigate(`/templates/${category.key}`)}
-                            className="px-6 py-2 text-sm font-medium text-indigo-400 hover:text-indigo-300 hover:bg-indigo-900/30 rounded-lg transition-colors"
-                          >
-                            もっと見る ({filteredTemplates.length - MAX_DISPLAY_COUNT}件)
-                            <span className="ml-1">→</span>
-                          </button>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </section>
-              );
-            })}
-          </div>
+          <SortableGrid
+            items={filteredTemplates}
+            disabled={!isAdmin}
+            gridClassName={`grid ${gridCols} gap-4`}
+            onReorder={handleReorderTemplates}
+            renderItem={renderTemplateCard}
+          />
         )}
       </main>
 

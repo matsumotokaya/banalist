@@ -5,6 +5,8 @@
   "templatesTab": "テンプレート",
   "noTemplates": "テンプレートがありません",
   "createFromTemplate": "このデザインで作成",
+  "open": "開く",
+  "download": "ダウンロード",
   "count": "{{count}} 個のデザイン",
   "count_plural": "{{count}} 個のデザイン",
   "noBanners": "デザインがありません",
