@@ -48,6 +48,12 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   }>({ active: false, draggedId: null, startPositions: new Map(), elementMap: new Map() });
   const multiDragLockAxisRef = useRef<'x' | 'y' | null>(null);
 
+  // Always-current ref for selectedElementIds — prevents stale closure bugs
+  // in event handlers (handleElementClick, handleElementDragStart) that may
+  // fire before React has re-rendered with the latest props.
+  const selectedIdsRef = useRef(selectedElementIds);
+  selectedIdsRef.current = selectedElementIds;
+
   // Track Shift key state
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -169,8 +175,15 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
     },
   }), [scale, selectedElementIds, isEditing, template.width, template.height]);
 
-  // Update individual transformers when selection changes
+  // Update individual transformers and reset multi-drag when selection changes
   useEffect(() => {
+    // Force-reset multi-drag state whenever selection changes.
+    // This prevents "ghost grouping" where elements move together
+    // after the visual selection (bounding boxes) has been cleared.
+    multiDragRef.current = { active: false, draggedId: null, startPositions: new Map(), elementMap: new Map() };
+    setIsMultiDragging(false);
+    multiDragLockAxisRef.current = null;
+
     if (selectedElementIds.length > 0 && !isEditing) {
       // Attach each transformer to its respective node
       selectedElementIds.forEach(id => {
@@ -193,33 +206,35 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   }, [selectedElementIds, isEditing, elements]);
 
   // Handle element selection (single or multi with Shift)
+  // Uses selectedIdsRef to always read the latest selection,
+  // avoiding stale-closure bugs when clicks happen in rapid succession.
   const handleElementClick = (id: string, event: Konva.KonvaEventObject<MouseEvent>) => {
     if (!onSelectElement) return;
 
+    const current = selectedIdsRef.current;
     const isShiftPressed = event.evt.shiftKey;
-    const isAlreadySelected = selectedElementIds.includes(id);
-
-    console.log('handleElementClick:', { id, isShiftPressed, isAlreadySelected, currentSelection: selectedElementIds });
+    const isAlreadySelected = current.includes(id);
 
     if (isShiftPressed) {
       // Shift+Click: toggle selection
       if (isAlreadySelected) {
-        onSelectElement(selectedElementIds.filter(selectedId => selectedId !== id));
+        onSelectElement(current.filter(selectedId => selectedId !== id));
       } else {
-        onSelectElement([...selectedElementIds, id]);
+        onSelectElement([...current, id]);
       }
     } else {
-      // Regular click: only change selection if clicking on unselected element
-      // This allows dragging multiple selected elements without deselecting
-      if (!isAlreadySelected || selectedElementIds.length === 1) {
+      // Regular click: select only this element, unless it's already
+      // part of a multi-selection (keep multi for multi-drag)
+      if (!isAlreadySelected || current.length === 1) {
         onSelectElement([id]);
       }
-      // If already selected and part of multi-selection, keep the current selection
     }
   };
 
   const handleElementDragStart = (id: string, _event: Konva.KonvaEventObject<DragEvent>) => {
-    if (selectedElementIds.length <= 1 || !selectedElementIds.includes(id)) {
+    const current = selectedIdsRef.current;
+
+    if (current.length <= 1 || !current.includes(id)) {
       multiDragRef.current = { active: false, draggedId: null, startPositions: new Map(), elementMap: new Map() };
       setIsMultiDragging(false);
       multiDragLockAxisRef.current = null;
@@ -228,10 +243,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
 
     const startPositions = new Map<string, { x: number; y: number }>();
     const elementMap = new Map<string, CanvasElement>();
-    selectedElementIds.forEach((selectedId) => {
-      // Use element's logical coordinates instead of node.x()/y()
-      // This ensures consistent coordinate system for all element types
-      // (Star/Circle use center coordinates in Konva, but element.x/y is top-left)
+    current.forEach((selectedId) => {
       const element = elements.find(el => el.id === selectedId);
       if (element) {
         startPositions.set(selectedId, { x: element.x, y: element.y });
@@ -367,7 +379,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
     }
 
     if (onElementsUpdate) {
-      const ids = selectedElementIds.length > 0 ? selectedElementIds : Array.from(startPositions.keys());
+      const ids = selectedIdsRef.current.length > 0 ? selectedIdsRef.current : Array.from(startPositions.keys());
       onElementsUpdate(ids, (element) => ({
         x: element.x + dx,
         y: element.y + dy,
