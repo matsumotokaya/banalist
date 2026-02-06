@@ -70,10 +70,41 @@ export const BannerEditor = () => {
     const isMobile = window.innerWidth < 768;
     return isMobile ? 30 : 40;
   };
-  const { zoom, setZoom } = useZoomControl({
+  const { zoom, setZoom, panOffset, setPanOffset, resetView } = useZoomControl({
     initialZoom: getInitialZoom(),
     containerRef: mainRef,
   });
+
+  // Pan (grab & drag) state
+  const [isPanning, setIsPanning] = useState(false);
+  const panStartRef = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
+  const wasPanningRef = useRef(false);
+
+  const handlePanMouseDown = useCallback((e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName !== 'CANVAS') {
+      setIsPanning(true);
+      panStartRef.current = { x: e.clientX, y: e.clientY, panX: panOffset.x, panY: panOffset.y };
+      wasPanningRef.current = false;
+    }
+  }, [panOffset]);
+
+  const handlePanMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isPanning) return;
+    const dx = e.clientX - panStartRef.current.x;
+    const dy = e.clientY - panStartRef.current.y;
+    setPanOffset({
+      x: panStartRef.current.panX + dx,
+      y: panStartRef.current.panY + dy,
+    });
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+      wasPanningRef.current = true;
+    }
+  }, [isPanning, setPanOffset]);
+
+  const handlePanMouseUp = useCallback(() => {
+    setIsPanning(false);
+  }, []);
   const elementOps = useElementOperations({
     setElements,
     saveToHistory,
@@ -1060,10 +1091,17 @@ export const BannerEditor = () => {
 
         <main
           ref={mainRef}
-          className="flex-1 overflow-auto bg-[#101010] p-8 flex items-center justify-center"
-          style={{ touchAction: 'none' }}
+          className="flex-1 overflow-hidden bg-[#101010] flex items-center justify-center"
+          style={{ touchAction: 'none', cursor: isPanning ? 'grabbing' : 'grab' }}
+          onMouseDown={handlePanMouseDown}
+          onMouseMove={handlePanMouseMove}
+          onMouseUp={handlePanMouseUp}
+          onMouseLeave={handlePanMouseUp}
           onClick={(e) => {
-            // Deselect when clicking outside the canvas stage
+            if (wasPanningRef.current) {
+              wasPanningRef.current = false;
+              return;
+            }
             const target = e.target as HTMLElement;
             const isCanvasStage = target.tagName === 'CANVAS';
             if (!isCanvasStage) {
@@ -1071,20 +1109,22 @@ export const BannerEditor = () => {
             }
           }}
         >
-          <Canvas
-              ref={canvasRef}
-              template={banner.template}
-              elements={elements}
-              scale={zoom / 100}
-              canvasColor={canvasColor}
-              fileName={`${banner.name}.png`}
-              onTextChange={handleTextChange}
-              selectedElementIds={selectedElementIds}
-              onSelectElement={handleSelectElement}
-              onElementUpdate={handleElementUpdate}
-              onElementsUpdate={handleElementsUpdate}
-              onImageDrop={handleImageDrop}
-            />
+          <div style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px)`, cursor: isPanning ? 'grabbing' : 'default' }}>
+            <Canvas
+                ref={canvasRef}
+                template={banner.template}
+                elements={elements}
+                scale={zoom / 100}
+                canvasColor={canvasColor}
+                fileName={`${banner.name}.png`}
+                onTextChange={handleTextChange}
+                selectedElementIds={selectedElementIds}
+                onSelectElement={handleSelectElement}
+                onElementUpdate={handleElementUpdate}
+                onElementsUpdate={handleElementsUpdate}
+                onImageDrop={handleImageDrop}
+              />
+          </div>
         </main>
 
         <PropertyPanel
@@ -1109,10 +1149,17 @@ export const BannerEditor = () => {
       <div className="flex md:hidden flex-1 flex-col overflow-hidden">
         <main
           ref={mainRef}
-          className="flex-1 overflow-auto bg-[#101010] p-8 flex items-center justify-center"
-          style={{ touchAction: 'none' }}
+          className="flex-1 overflow-hidden bg-[#101010] flex items-center justify-center"
+          style={{ touchAction: 'none', cursor: isPanning ? 'grabbing' : 'grab' }}
+          onMouseDown={handlePanMouseDown}
+          onMouseMove={handlePanMouseMove}
+          onMouseUp={handlePanMouseUp}
+          onMouseLeave={handlePanMouseUp}
           onClick={(e) => {
-            // Deselect when clicking outside the canvas stage
+            if (wasPanningRef.current) {
+              wasPanningRef.current = false;
+              return;
+            }
             const target = e.target as HTMLElement;
             const isCanvasStage = target.tagName === 'CANVAS';
             if (!isCanvasStage) {
@@ -1120,20 +1167,22 @@ export const BannerEditor = () => {
             }
           }}
         >
-          <Canvas
-              ref={canvasRef}
-              template={banner.template}
-              elements={elements}
-              scale={zoom / 100}
-              canvasColor={canvasColor}
-              fileName={`${banner.name}.png`}
-              onTextChange={handleTextChange}
-              selectedElementIds={selectedElementIds}
-              onSelectElement={handleSelectElement}
-              onElementUpdate={handleElementUpdate}
-              onElementsUpdate={handleElementsUpdate}
-              onImageDrop={handleImageDrop}
-            />
+          <div style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px)`, cursor: isPanning ? 'grabbing' : 'default' }}>
+            <Canvas
+                ref={canvasRef}
+                template={banner.template}
+                elements={elements}
+                scale={zoom / 100}
+                canvasColor={canvasColor}
+                fileName={`${banner.name}.png`}
+                onTextChange={handleTextChange}
+                selectedElementIds={selectedElementIds}
+                onSelectElement={handleSelectElement}
+                onElementUpdate={handleElementUpdate}
+                onElementsUpdate={handleElementsUpdate}
+                onImageDrop={handleImageDrop}
+              />
+          </div>
         </main>
 
         {/* Mobile Sidebar - Bottom horizontal scrollable */}
@@ -1179,6 +1228,7 @@ export const BannerEditor = () => {
       <BottomBar
         zoom={zoom}
         onZoomChange={setZoom}
+        onResetView={resetView}
         onExport={handleExport}
         saveStatus={saveStatus}
         lastSaveError={lastSaveError}

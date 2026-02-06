@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 interface BottomBarProps {
   zoom: number;
   onZoomChange: (zoom: number) => void;
+  onResetView?: () => void;
   onExport: () => void;
   saveStatus?: 'saved' | 'saving' | 'unsaved' | 'error';
   lastSaveError?: string | null;
@@ -12,6 +13,7 @@ interface BottomBarProps {
 export const BottomBar = ({
   zoom,
   onZoomChange,
+  onResetView,
   onExport,
   saveStatus = 'saved',
   onRetry
@@ -54,6 +56,15 @@ export const BottomBar = ({
             </span>
           </div>
 
+          {onResetView && (
+            <button
+              onClick={onResetView}
+              className="px-2 py-1 text-xs md:text-sm text-gray-600 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+              title="Fit to screen"
+            >
+              Fit
+            </button>
+          )}
         </div>
 
         {/* Save status indicator in the center */}

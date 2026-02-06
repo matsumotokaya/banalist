@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { RefObject } from 'react';
 
 interface UseZoomControlProps {
@@ -15,8 +15,14 @@ export const useZoomControl = ({
   containerRef,
 }: UseZoomControlProps) => {
   const [zoom, setZoom] = useState<number>(initialZoom);
+  const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const lastTouchDistance = useRef<number | null>(null);
   const lastGestureScale = useRef<number>(1);
+
+  const resetView = useCallback(() => {
+    setPanOffset({ x: 0, y: 0 });
+    setZoom(initialZoom);
+  }, [initialZoom]);
 
   useEffect(() => {
     const mainElement = containerRef.current;
@@ -58,13 +64,21 @@ export const useZoomControl = ({
       lastTouchDistance.current = null;
     };
 
-    // Handle wheel zoom (Ctrl/Cmd + scroll on Mac/PC)
+    // Handle wheel: Ctrl/Cmd + scroll = zoom, regular scroll = pan
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
+        // Zoom
         e.preventDefault();
         const delta = -e.deltaY * 0.5;
         const newZoom = Math.max(minZoom, Math.min(maxZoom, zoom + delta));
         setZoom(Math.round(newZoom));
+      } else {
+        // Pan
+        e.preventDefault();
+        setPanOffset(prev => ({
+          x: prev.x - e.deltaX,
+          y: prev.y - e.deltaY,
+        }));
       }
     };
 
@@ -109,5 +123,5 @@ export const useZoomControl = ({
     };
   }, [zoom, minZoom, maxZoom, containerRef]);
 
-  return { zoom, setZoom };
+  return { zoom, setZoom, panOffset, setPanOffset, resetView };
 };
