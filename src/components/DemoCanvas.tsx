@@ -157,7 +157,7 @@ export const DemoCanvas = ({ scale = 0.45 }: DemoCanvasProps) => {
   // Auto-animation refs
   const autoAnimatingRef = useRef(true);
   const animFrameRef = useRef<number>(0);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const stopAutoAnimation = useCallback(() => {
     autoAnimatingRef.current = false;

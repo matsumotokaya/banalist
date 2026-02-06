@@ -7,6 +7,7 @@ interface ImageRendererProps {
   imageElement: ImageElement;
   isShiftPressed: boolean;
   isMultiDragging: boolean;
+  isMultiSelected: boolean;
   onSelect: (id: string, event: Konva.KonvaEventObject<MouseEvent>) => void;
   onUpdate?: (id: string, updates: Partial<ImageElement>) => void;
   onDragStart?: (id: string, event: Konva.KonvaEventObject<DragEvent>) => void;
@@ -19,6 +20,7 @@ const ImageRendererComponent = ({
   imageElement,
   isShiftPressed,
   isMultiDragging,
+  isMultiSelected,
   onSelect,
   onUpdate,
   onDragStart,
@@ -168,6 +170,9 @@ const ImageRendererComponent = ({
         }
       }}
       onTransformEnd={(e) => {
+        // Skip when multi-selected — group Transformer handles batch update
+        if (isMultiSelected) return;
+
         const node = e.target;
         const scaleX = node.scaleX();
         const scaleY = node.scaleY();
@@ -207,6 +212,7 @@ export const ImageRenderer = memo(ImageRendererComponent, (prevProps, nextProps)
     prevImage.locked === nextImage.locked &&
     prevImage.visible === nextImage.visible &&
     prevProps.isShiftPressed === nextProps.isShiftPressed &&
-    prevProps.isMultiDragging === nextProps.isMultiDragging
+    prevProps.isMultiDragging === nextProps.isMultiDragging &&
+    prevProps.isMultiSelected === nextProps.isMultiSelected
   );
 });

@@ -7,6 +7,7 @@ interface TextRendererProps {
   textElement: TextElement;
   isShiftPressed: boolean;
   isMultiDragging: boolean;
+  isMultiSelected: boolean;
   onSelect: (id: string, event: Konva.KonvaEventObject<MouseEvent>) => void;
   onDoubleClick: (element: TextElement, textNode: Konva.Text) => void;
   onUpdate?: (id: string, updates: Partial<TextElement>) => void;
@@ -20,6 +21,7 @@ const TextRendererComponent = ({
   textElement,
   isShiftPressed,
   isMultiDragging,
+  isMultiSelected,
   onSelect,
   onDoubleClick,
   onUpdate,
@@ -122,6 +124,9 @@ const TextRendererComponent = ({
         }
       }}
       onTransformEnd={(e) => {
+        // Skip when multi-selected — group Transformer handles batch update
+        if (isMultiSelected) return;
+
         const node = e.target as Konva.Text;
         const scaleY = node.scaleY();
 
@@ -161,6 +166,7 @@ export const TextRenderer = memo(TextRendererComponent, (prevProps, nextProps) =
     prevProps.textElement.rotation === nextProps.textElement.rotation &&
     prevProps.textElement.visible === nextProps.textElement.visible &&
     prevProps.isShiftPressed === nextProps.isShiftPressed &&
-    prevProps.isMultiDragging === nextProps.isMultiDragging
+    prevProps.isMultiDragging === nextProps.isMultiDragging &&
+    prevProps.isMultiSelected === nextProps.isMultiSelected
   );
 });

@@ -33,6 +33,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   const { t } = useTranslation('editor');
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRefsMap = useRef<Map<string, Konva.Transformer>>(new Map());
+  const multiTransformerRef = useRef<Konva.Transformer>(null);
   const nodesRef = useRef<Map<string, Konva.Node>>(new Map());
   const [isEditing, setIsEditing] = useState(false);
   const [selectionRect, setSelectionRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
@@ -88,6 +89,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
       // Save current transformer state and hide all transformers before export
       const wasTransformerVisible = transformerRefsMap.current.size > 0;
       transformerRefsMap.current.forEach(tr => tr.nodes([]));
+      if (multiTransformerRef.current) multiTransformerRef.current.nodes([]);
 
       // Force redraw to ensure all elements are rendered
       const layers = stage.getLayers();
@@ -117,6 +119,13 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
             const node = nodesRef.current.get(id);
             if (tr && node) tr.nodes([node]);
           });
+          // Restore multi transformer
+          if (selectedElementIds.length > 1 && multiTransformerRef.current) {
+            const selectedNodes = selectedElementIds
+              .map(id => nodesRef.current.get(id))
+              .filter((node): node is Konva.Node => !!node);
+            multiTransformerRef.current.nodes(selectedNodes);
+          }
           if (layers.length > 0) {
             layers[0].batchDraw();
           }
@@ -138,6 +147,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
 
       // Hide all transformers before export
       transformerRefsMap.current.forEach(tr => tr.nodes([]));
+      if (multiTransformerRef.current) multiTransformerRef.current.nodes([]);
 
       const layers = stage.getLayers();
       if (layers.length > 0) {
@@ -185,7 +195,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
     multiDragLockAxisRef.current = null;
 
     if (selectedElementIds.length > 0 && !isEditing) {
-      // Attach each transformer to its respective node
+      // Attach each individual transformer to its node
       selectedElementIds.forEach(id => {
         const tr = transformerRefsMap.current.get(id);
         const node = nodesRef.current.get(id);
@@ -193,6 +203,14 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
           tr.nodes([node]);
         }
       });
+
+      // Attach group transformer for multi-selection
+      if (selectedElementIds.length > 1 && multiTransformerRef.current) {
+        const selectedNodes = selectedElementIds
+          .map(id => nodesRef.current.get(id))
+          .filter((node): node is Konva.Node => !!node);
+        multiTransformerRef.current.nodes(selectedNodes);
+      }
     }
 
     // Clear transformers for deselected elements
@@ -201,6 +219,11 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
         tr.nodes([]);
       }
     });
+
+    // Clear group transformer when not multi-selected
+    if (selectedElementIds.length <= 1 && multiTransformerRef.current) {
+      multiTransformerRef.current.nodes([]);
+    }
 
     stageRef.current?.getLayers()[0]?.batchDraw();
   }, [selectedElementIds, isEditing, elements]);
@@ -349,7 +372,13 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
 
   const handleElementDragEnd = (id: string, event: Konva.KonvaEventObject<DragEvent>) => {
     const { active, draggedId, startPositions, elementMap } = multiDragRef.current;
-    if (!active || draggedId !== id) return false;
+    // Multi-drag is active but this is NOT the lead element.
+    // Return true to suppress individual drag handler —
+    // the lead element's handler will batch-update all elements.
+    if (active && draggedId !== id) return true;
+
+    // Not a multi-drag — let individual handler process
+    if (!active) return false;
 
     const draggedElement = elementMap.get(id);
     const draggedStart = startPositions.get(id);
@@ -397,6 +426,104 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
     setIsMultiDragging(false);
     multiDragLockAxisRef.current = null;
     return true;
+  };
+
+  // Handle group transform end for multi-selection resize/rotate
+  const handleMultiTransformEnd = () => {
+    if (!onElementsUpdate) return;
+
+    const currentIds = selectedIdsRef.current;
+
+    // Phase 1: Collect ALL node transform data BEFORE resetting any scales
+    // This prevents cascade effects where resetting one node's scale
+    // could affect another node's Transformer computation.
+    const nodeData = new Map<string, {
+      scaleX: number;
+      scaleY: number;
+      x: number;
+      y: number;
+      rotation: number;
+      width: number;
+      height: number;
+    }>();
+
+    currentIds.forEach(id => {
+      const node = nodesRef.current.get(id);
+      if (!node) return;
+      nodeData.set(id, {
+        scaleX: node.scaleX(),
+        scaleY: node.scaleY(),
+        x: node.x(),
+        y: node.y(),
+        rotation: node.rotation(),
+        width: node.width(),
+        height: node.height(),
+      });
+    });
+
+    // Phase 2: Reset ALL node scales at once
+    currentIds.forEach(id => {
+      const node = nodesRef.current.get(id);
+      if (!node) return;
+      node.scaleX(1);
+      node.scaleY(1);
+    });
+
+    // Phase 3: Compute updates using collected data
+    const updatesMap = new Map<string, Partial<CanvasElement>>();
+
+    currentIds.forEach(id => {
+      const data = nodeData.get(id);
+      const element = elements.find(el => el.id === id);
+      if (!data || !element) return;
+
+      const { scaleX, scaleY, x, y, rotation } = data;
+
+      if (element.type === 'text') {
+        const textEl = element as TextElement;
+        updatesMap.set(id, {
+          x,
+          y,
+          fontSize: Math.max(10, textEl.fontSize * scaleY),
+          rotation,
+        });
+      } else if (element.type === 'shape') {
+        const shape = element as ShapeElement;
+        const isCentered = shape.shapeType === 'star' || shape.shapeType === 'circle';
+        const newWidth = Math.max(5, shape.width * scaleX);
+        const newHeight = Math.max(5, shape.height * scaleY);
+
+        if (isCentered) {
+          updatesMap.set(id, {
+            x: x - newWidth / 2,
+            y: y - newHeight / 2,
+            width: newWidth,
+            height: newHeight,
+            rotation,
+          });
+        } else {
+          updatesMap.set(id, {
+            x,
+            y,
+            width: newWidth,
+            height: newHeight,
+            rotation,
+          });
+        }
+      } else if (element.type === 'image') {
+        const imageEl = element as ImageElement;
+        updatesMap.set(id, {
+          x,
+          y,
+          width: Math.max(5, imageEl.width * scaleX),
+          height: Math.max(5, imageEl.height * scaleY),
+          rotation,
+        });
+      }
+
+    });
+
+    onElementsUpdate(currentIds, (element) => updatesMap.get(element.id) || {});
   };
 
   const handleTextDoubleClick = (element: TextElement, textNode: Konva.Text) => {
@@ -692,6 +819,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                     nodesRef.current.delete(id);
                   }
                 };
+                const isMultiSelected = selectedElementIds.length > 1 && selectedElementIds.includes(element.id);
 
                 if (element.type === 'shape') {
                   return (
@@ -700,6 +828,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                       shape={element as ShapeElement}
                       isShiftPressed={isShiftPressed}
                       isMultiDragging={isMultiDragging}
+                      isMultiSelected={isMultiSelected}
                       onSelect={handleElementClick}
                       onUpdate={onElementUpdate}
                       onDragStart={handleElementDragStart}
@@ -715,6 +844,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                       textElement={element as TextElement}
                       isShiftPressed={isShiftPressed}
                       isMultiDragging={isMultiDragging}
+                      isMultiSelected={isMultiSelected}
                       onSelect={handleElementClick}
                       onDoubleClick={handleTextDoubleClick}
                       onUpdate={onElementUpdate}
@@ -731,6 +861,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                       imageElement={element as ImageElement}
                       isShiftPressed={isShiftPressed}
                       isMultiDragging={isMultiDragging}
+                      isMultiSelected={isMultiSelected}
                       onSelect={handleElementClick}
                       onUpdate={onElementUpdate}
                       onDragStart={handleElementDragStart}
@@ -746,6 +877,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                 const element = elements.find(el => el.id === id);
                 if (!element) return null;
                 const isText = element.type === 'text';
+                const isMulti = selectedElementIds.length > 1;
                 return (
                   <Transformer
                     key={`transformer-${id}`}
@@ -760,17 +892,37 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                     anchorFill="#FFFFFF"
                     anchorSize={8}
                     enabledAnchors={
-                      isText
-                        ? ['top-left', 'top-right', 'bottom-left', 'bottom-right']
-                        : ['top-left', 'top-center', 'top-right', 'middle-left', 'middle-right', 'bottom-left', 'bottom-center', 'bottom-right']
+                      isMulti
+                        ? []
+                        : isText
+                          ? ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+                          : ['top-left', 'top-center', 'top-right', 'middle-left', 'middle-right', 'bottom-left', 'bottom-center', 'bottom-right']
                     }
-                    rotateEnabled={true}
+                    rotateEnabled={!isMulti}
                     rotationSnaps={isShiftPressed ? [0, 45, 90, 135, 180, 225, 270, 315] : []}
                     rotationSnapTolerance={5}
                     keepRatio={isText}
                   />
                 );
               })}
+              {/* Group transformer for multi-selection resize/rotate */}
+              {!isEditing && selectedElementIds.length > 1 && (
+                <Transformer
+                  ref={multiTransformerRef}
+                  borderStroke="#4F46E5"
+                  borderStrokeWidth={1}
+                  borderDash={[6, 3]}
+                  anchorStroke="#4F46E5"
+                  anchorFill="#FFFFFF"
+                  anchorSize={10}
+                  enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
+                  rotateEnabled={true}
+                  rotationSnaps={isShiftPressed ? [0, 45, 90, 135, 180, 225, 270, 315] : []}
+                  rotationSnapTolerance={5}
+                  keepRatio={true}
+                  onTransformEnd={handleMultiTransformEnd}
+                />
+              )}
               {selectionRect && (
                 <Rect
                   x={selectionRect.x / scale}
