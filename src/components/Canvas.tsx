@@ -32,10 +32,9 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
 ) {
   const { t } = useTranslation('editor');
   const stageRef = useRef<Konva.Stage>(null);
-  const transformerRef = useRef<Konva.Transformer>(null);
+  const transformerRefsMap = useRef<Map<string, Konva.Transformer>>(new Map());
   const nodesRef = useRef<Map<string, Konva.Node>>(new Map());
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedNodeType, setSelectedNodeType] = useState<'text' | 'shape' | 'image' | null>(null);
   const [selectionRect, setSelectionRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const selectionStartRef = useRef<{ x: number; y: number } | null>(null);
   const [isShiftPressed, setIsShiftPressed] = useState(false);
@@ -80,13 +79,9 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
 
       const stage = stageRef.current;
 
-      // Save current transformer state
-      const wasTransformerVisible = transformerRef.current && transformerRef.current.nodes().length > 0;
-
-      // Hide transformer before export
-      if (transformerRef.current) {
-        transformerRef.current.nodes([]);
-      }
+      // Save current transformer state and hide all transformers before export
+      const wasTransformerVisible = transformerRefsMap.current.size > 0;
+      transformerRefsMap.current.forEach(tr => tr.nodes([]));
 
       // Force redraw to ensure all elements are rendered
       const layers = stage.getLayers();
@@ -109,16 +104,15 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
 
         console.log('Export dataURL length:', dataURL?.length || 0);
 
-        // Restore transformer selection after export
-        if (wasTransformerVisible && transformerRef.current && !isEditing) {
-          const selectedNodes = selectedElementIds
-            .map(id => nodesRef.current.get(id))
-            .filter((node): node is Konva.Node => node !== undefined);
-          if (selectedNodes.length > 0) {
-            transformerRef.current.nodes(selectedNodes);
-            if (layers.length > 0) {
-              layers[0].batchDraw();
-            }
+        // Restore individual transformers after export
+        if (wasTransformerVisible && !isEditing) {
+          selectedElementIds.forEach(id => {
+            const tr = transformerRefsMap.current.get(id);
+            const node = nodesRef.current.get(id);
+            if (tr && node) tr.nodes([node]);
+          });
+          if (layers.length > 0) {
+            layers[0].batchDraw();
           }
         }
 
@@ -136,10 +130,8 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
 
       const stage = stageRef.current;
 
-      // Hide transformer before export
-      if (transformerRef.current) {
-        transformerRef.current.nodes([]);
-      }
+      // Hide all transformers before export
+      transformerRefsMap.current.forEach(tr => tr.nodes([]));
 
       const layers = stage.getLayers();
       if (layers.length > 0) {
@@ -177,36 +169,27 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
     },
   }), [scale, selectedElementIds, isEditing, template.width, template.height]);
 
-  // Update transformer when selection changes
+  // Update individual transformers when selection changes
   useEffect(() => {
-    if (!transformerRef.current) return;
-
     if (selectedElementIds.length > 0 && !isEditing) {
-      const selectedNodes = selectedElementIds
-        .map(id => nodesRef.current.get(id))
-        .filter((node): node is Konva.Node => node !== undefined);
-
-      // Always update transformer nodes (even if empty, to clear stale state)
-      transformerRef.current.nodes(selectedNodes);
-
-      if (selectedNodes.length > 0) {
-        // Determine node type (only if single selection)
-        if (selectedElementIds.length === 1) {
-          const element = elements.find((el) => el.id === selectedElementIds[0]);
-          if (element) {
-            setSelectedNodeType(element.type === 'text' ? 'text' : element.type === 'image' ? 'image' : 'shape');
-          }
-        } else {
-          setSelectedNodeType('shape'); // Multi-selection: use shape-like behavior
+      // Attach each transformer to its respective node
+      selectedElementIds.forEach(id => {
+        const tr = transformerRefsMap.current.get(id);
+        const node = nodesRef.current.get(id);
+        if (tr && node) {
+          tr.nodes([node]);
         }
-      } else {
-        setSelectedNodeType(null);
-      }
-    } else {
-      transformerRef.current.nodes([]);
-      setSelectedNodeType(null);
+      });
     }
-    transformerRef.current.getLayer()?.batchDraw();
+
+    // Clear transformers for deselected elements
+    transformerRefsMap.current.forEach((tr, id) => {
+      if (!selectedElementIds.includes(id) || isEditing) {
+        tr.nodes([]);
+      }
+    });
+
+    stageRef.current?.getLayers()[0]?.batchDraw();
   }, [selectedElementIds, isEditing, elements]);
 
   // Handle element selection (single or multi with Shift)
@@ -747,26 +730,35 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                 }
                 return null;
               })}
-              <Transformer
-                ref={transformerRef}
-                borderStroke="#4F46E5"
-                borderStrokeWidth={2}
-                borderDash={[4, 4]}
-                anchorStroke="#4F46E5"
-                anchorFill="#FFFFFF"
-                anchorSize={8}
-                enabledAnchors={
-                  selectedNodeType === 'shape'
-                    ? ['top-left', 'top-center', 'top-right', 'middle-left', 'middle-right', 'bottom-left', 'bottom-center', 'bottom-right']
-                    : selectedNodeType === 'image'
-                    ? ['top-left', 'top-center', 'top-right', 'middle-left', 'middle-right', 'bottom-left', 'bottom-center', 'bottom-right']
-                    : ['top-left', 'top-right', 'bottom-left', 'bottom-right']
-                }
-                rotateEnabled={true}
-                rotationSnaps={isShiftPressed ? [0, 45, 90, 135, 180, 225, 270, 315] : []}
-                rotationSnapTolerance={5}
-                keepRatio={selectedNodeType === 'text'}
-              />
+              {!isEditing && selectedElementIds.map(id => {
+                const element = elements.find(el => el.id === id);
+                if (!element) return null;
+                const isText = element.type === 'text';
+                return (
+                  <Transformer
+                    key={`transformer-${id}`}
+                    ref={(trRef) => {
+                      if (trRef) transformerRefsMap.current.set(id, trRef);
+                      else transformerRefsMap.current.delete(id);
+                    }}
+                    borderStroke="#4F46E5"
+                    borderStrokeWidth={2}
+                    borderDash={[4, 4]}
+                    anchorStroke="#4F46E5"
+                    anchorFill="#FFFFFF"
+                    anchorSize={8}
+                    enabledAnchors={
+                      isText
+                        ? ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+                        : ['top-left', 'top-center', 'top-right', 'middle-left', 'middle-right', 'bottom-left', 'bottom-center', 'bottom-right']
+                    }
+                    rotateEnabled={true}
+                    rotationSnaps={isShiftPressed ? [0, 45, 90, 135, 180, 225, 270, 315] : []}
+                    rotationSnapTolerance={5}
+                    keepRatio={isText}
+                  />
+                );
+              })}
               {selectionRect && (
                 <Rect
                   x={selectionRect.x / scale}

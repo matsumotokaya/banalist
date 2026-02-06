@@ -1,7 +1,19 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Canvas } from './Canvas';
 import type { CanvasRef } from './Canvas';
 import type { Template, CanvasElement } from '../types/template';
+
+// Easing: smooth acceleration and deceleration
+const easeInOutCubic = (t: number): number =>
+  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+// Elements to cycle through with movement direction (canvas px)
+const ANIMATE_TARGETS = [
+  { id: 'default-text', dx: 50, dy: -25 },
+  { id: 'image-1766582681522-0.628893595817318', dx: -35, dy: 30 },
+  { id: 'image-1766582786263-0.9803562303447114', dx: 40, dy: -20 },
+  { id: 'image-1766582804530-0.15343167122973567', dx: -30, dy: 35 },
+];
 
 // Demo template definition
 const DEMO_TEMPLATE: Template = {
@@ -138,12 +150,88 @@ interface DemoCanvasProps {
 
 export const DemoCanvas = ({ scale = 0.45 }: DemoCanvasProps) => {
   const [elements, setElements] = useState<CanvasElement[]>(INITIAL_ELEMENTS);
-  // Pre-select the text element to show editing is possible
   const [selectedIds, setSelectedIds] = useState<string[]>(['default-text']);
   const canvasRef = useRef<CanvasRef>(null);
   const canvasColor = '#FFFFFF';
 
+  // Auto-animation refs
+  const autoAnimatingRef = useRef(true);
+  const animFrameRef = useRef<number>(0);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const stopAutoAnimation = useCallback(() => {
+    autoAnimatingRef.current = false;
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+  }, []);
+
+  const animateElement = useCallback((targetIndex: number) => {
+    if (!autoAnimatingRef.current) return;
+
+    const target = ANIMATE_TARGETS[targetIndex % ANIMATE_TARGETS.length];
+    setSelectedIds([target.id]);
+
+    const duration = 1500;
+    let originX: number | null = null;
+    let originY: number | null = null;
+
+    // Small pause so selection frame appears before movement
+    timeoutRef.current = setTimeout(() => {
+      if (!autoAnimatingRef.current) return;
+      const startTime = performance.now();
+
+      const tick = (now: number) => {
+        if (!autoAnimatingRef.current) return;
+
+        const progress = Math.min((now - startTime) / duration, 1);
+        const eased = easeInOutCubic(progress);
+
+        setElements((prev) =>
+          prev.map((el) => {
+            if (el.id !== target.id) return el;
+            if (originX === null) {
+              originX = el.x;
+              originY = el.y;
+            }
+            return {
+              ...el,
+              x: originX + target.dx * eased,
+              y: (originY ?? el.y) + target.dy * eased,
+            } as CanvasElement;
+          })
+        );
+
+        if (progress < 1) {
+          animFrameRef.current = requestAnimationFrame(tick);
+        } else {
+          // Wait 0.5s then move to the next element
+          timeoutRef.current = setTimeout(() => {
+            animateElement(targetIndex + 1);
+          }, 500);
+        }
+      };
+
+      animFrameRef.current = requestAnimationFrame(tick);
+    }, 300);
+  }, []);
+
+  useEffect(() => {
+    // Start the cycle after a short initial delay
+    timeoutRef.current = setTimeout(() => animateElement(0), 1500);
+    return () => stopAutoAnimation();
+  }, [animateElement, stopAutoAnimation]);
+
+  // Stop auto-animation on user interaction
+  const handleUserSelect = useCallback(
+    (ids: string[]) => {
+      stopAutoAnimation();
+      setSelectedIds(ids);
+    },
+    [stopAutoAnimation]
+  );
+
   const handleElementUpdate = (id: string, updates: Partial<CanvasElement>) => {
+    stopAutoAnimation();
     setElements((prev) =>
       prev.map((el) => (el.id === id ? { ...el, ...updates } as CanvasElement : el))
     );
@@ -153,12 +241,14 @@ export const DemoCanvas = ({ scale = 0.45 }: DemoCanvasProps) => {
     ids: string[],
     updateFn: (el: CanvasElement) => Partial<CanvasElement>
   ) => {
+    stopAutoAnimation();
     setElements((prev) =>
       prev.map((el) => (ids.includes(el.id) ? { ...el, ...updateFn(el) } as CanvasElement : el))
     );
   };
 
   const handleTextChange = (id: string, newText: string) => {
+    stopAutoAnimation();
     setElements((prev) =>
       prev.map((el) => (el.id === id ? { ...el, text: newText } as CanvasElement : el))
     );
@@ -178,7 +268,7 @@ export const DemoCanvas = ({ scale = 0.45 }: DemoCanvasProps) => {
   return (
     <div className="relative">
       {/* Canvas container with border */}
-      <div className="rounded-2xl border border-gray-700/50 shadow-2xl shadow-black/50 overflow-hidden bg-gray-900">
+      <div className="rounded-[2rem] border border-gray-700/50 shadow-2xl shadow-black/50 overflow-hidden bg-gray-900">
         <Canvas
           ref={canvasRef}
           template={DEMO_TEMPLATE}
@@ -186,7 +276,7 @@ export const DemoCanvas = ({ scale = 0.45 }: DemoCanvasProps) => {
           selectedElementIds={selectedIds}
           canvasColor={canvasColor}
           scale={scale}
-          onSelectElement={setSelectedIds}
+          onSelectElement={handleUserSelect}
           onElementUpdate={handleElementUpdate}
           onElementsUpdate={handleElementsUpdate}
           onTextChange={handleTextChange}

@@ -6,7 +6,7 @@ export function Footer() {
     const isJapanese = i18n.language === 'ja';
 
     return (
-        <footer className="bg-[#212526] border-t border-gray-800 py-12 mt-auto">
+        <footer className="bg-[#101010] border-t border-gray-800 py-12 mt-auto">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-8">
                     <div className="flex flex-col items-center md:items-start">

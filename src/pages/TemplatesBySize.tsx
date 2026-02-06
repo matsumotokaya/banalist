@@ -273,7 +273,7 @@ export const TemplatesBySize = () => {
   // If category not found, show error
   if (!category) {
     return (
-      <div className="min-h-screen bg-[#212526]">
+      <div className="min-h-screen bg-[#101010]">
         <Header />
         <main className="max-w-7xl mx-auto px-6 py-8">
           <div className="text-center py-20">
@@ -292,7 +292,7 @@ export const TemplatesBySize = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#212526]">
+    <div className="min-h-screen bg-[#101010]">
       <Header />
 
       <main className="max-w-7xl mx-auto px-6 py-8">

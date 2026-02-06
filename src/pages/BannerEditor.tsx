@@ -608,7 +608,7 @@ export const BannerEditor = () => {
 
   if (!banner) {
     return (
-      <div className="h-screen flex items-center justify-center bg-[#212526]">
+      <div className="h-screen flex items-center justify-center bg-[#101010]">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           <p className="mt-4 text-gray-600">読み込み中...</p>
@@ -951,7 +951,7 @@ export const BannerEditor = () => {
   const isBannerLoading = !isGuest && (isLoading || !banner);
   if (isBannerLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-[#212526]">
+      <div className="h-screen flex items-center justify-center bg-[#101010]">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           <p className="mt-4 text-gray-600">読み込み中...</p>
@@ -1028,7 +1028,7 @@ export const BannerEditor = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-[#212526]">
+    <div className="h-screen flex flex-col bg-[#101010]">
       <Header
         onBackToManager={handleBackToManager}
         bannerName={banner.name}
@@ -1060,7 +1060,7 @@ export const BannerEditor = () => {
 
         <main
           ref={mainRef}
-          className="flex-1 overflow-auto bg-[#212526] p-8 flex items-center justify-center"
+          className="flex-1 overflow-auto bg-[#101010] p-8 flex items-center justify-center"
           style={{ touchAction: 'none' }}
           onClick={(e) => {
             // Deselect when clicking outside the canvas stage
@@ -1109,7 +1109,7 @@ export const BannerEditor = () => {
       <div className="flex md:hidden flex-1 flex-col overflow-hidden">
         <main
           ref={mainRef}
-          className="flex-1 overflow-auto bg-[#212526] p-8 flex items-center justify-center"
+          className="flex-1 overflow-auto bg-[#101010] p-8 flex items-center justify-center"
           style={{ touchAction: 'none' }}
           onClick={(e) => {
             // Deselect when clicking outside the canvas stage

@@ -260,7 +260,7 @@ export const TemplateGallery = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#212526]">
+    <div className="min-h-screen bg-[#101010]">
       <Header />
 
       {/* Hero Section - Guest Only */}
