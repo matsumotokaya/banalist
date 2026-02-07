@@ -920,6 +920,43 @@ export const BannerEditor = () => {
     }
   };
 
+  // Shadow handlers
+  const handleShadowEnabledChange = (enabled: boolean) => {
+    if (selectedElementIds.length > 0) {
+      elementOps.updateElements(selectedElementIds, () => ({ shadowEnabled: enabled }));
+    }
+  };
+
+  const handleShadowColorChange = (color: string) => {
+    if (selectedElementIds.length > 0) {
+      elementOps.updateElements(selectedElementIds, () => ({ shadowColor: color }));
+    }
+  };
+
+  const handleShadowBlurChange = (blur: number) => {
+    if (selectedElementIds.length > 0) {
+      elementOps.updateElements(selectedElementIds, () => ({ shadowBlur: blur }));
+    }
+  };
+
+  const handleShadowOffsetXChange = (offset: number) => {
+    if (selectedElementIds.length > 0) {
+      elementOps.updateElements(selectedElementIds, () => ({ shadowOffsetX: offset }));
+    }
+  };
+
+  const handleShadowOffsetYChange = (offset: number) => {
+    if (selectedElementIds.length > 0) {
+      elementOps.updateElements(selectedElementIds, () => ({ shadowOffsetY: offset }));
+    }
+  };
+
+  const handleShadowOpacityChange = (opacity: number) => {
+    if (selectedElementIds.length > 0) {
+      elementOps.updateElements(selectedElementIds, () => ({ shadowOpacity: opacity }));
+    }
+  };
+
   const handleBannerNameChange = async (newName: string) => {
     if (isGuest) return;
     await updateName.mutateAsync(newName);
@@ -1142,6 +1179,12 @@ export const BannerEditor = () => {
           onStrokeChange={handleStrokeChange}
           onStrokeWidthChange={handleStrokeWidthChange}
           onStrokeEnabledChange={handleStrokeEnabledChange}
+          onShadowEnabledChange={handleShadowEnabledChange}
+          onShadowColorChange={handleShadowColorChange}
+          onShadowBlurChange={handleShadowBlurChange}
+          onShadowOffsetXChange={handleShadowOffsetXChange}
+          onShadowOffsetYChange={handleShadowOffsetYChange}
+          onShadowOpacityChange={handleShadowOpacityChange}
         />
       </div>
 
@@ -1220,6 +1263,12 @@ export const BannerEditor = () => {
           onStrokeChange={handleStrokeChange}
           onStrokeWidthChange={handleStrokeWidthChange}
           onStrokeEnabledChange={handleStrokeEnabledChange}
+          onShadowEnabledChange={handleShadowEnabledChange}
+          onShadowColorChange={handleShadowColorChange}
+          onShadowBlurChange={handleShadowBlurChange}
+          onShadowOffsetXChange={handleShadowOffsetXChange}
+          onShadowOffsetYChange={handleShadowOffsetYChange}
+          onShadowOpacityChange={handleShadowOpacityChange}
           isMobile={true}
           onClose={() => handleSelectElement([])}
         />

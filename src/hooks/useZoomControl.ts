@@ -24,11 +24,61 @@ export const useZoomControl = ({
     setZoom(initialZoom);
   }, [initialZoom]);
 
+  // Document-level: block browser zoom AND handle pinch-to-zoom
+  // Runs immediately on mount (no containerRef dependency) so it works
+  // even during loading state before the canvas element is rendered.
+  useEffect(() => {
+    const clampZoom = (value: number) => Math.round(Math.max(minZoom, Math.min(maxZoom, value)));
+
+    // Trackpad pinch on Chrome/Firefox fires as ctrlKey + wheel
+    const handleDocumentWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const delta = -e.deltaY * 0.5;
+        setZoom(prev => clampZoom(prev + delta));
+      }
+    };
+
+    // Safari gesture events
+    const handleGestureStart = (e: any) => {
+      e.preventDefault();
+      lastGestureScale.current = 1;
+    };
+
+    const handleGestureChange = (e: any) => {
+      e.preventDefault();
+      const scale = e.scale;
+      const delta = (scale - lastGestureScale.current) * 100;
+      setZoom(prev => clampZoom(prev + delta));
+      lastGestureScale.current = scale;
+    };
+
+    const handleGestureEnd = (e: any) => {
+      e.preventDefault();
+      lastGestureScale.current = 1;
+    };
+
+    document.addEventListener('wheel', handleDocumentWheel, { passive: false });
+    document.addEventListener('gesturestart', handleGestureStart, { passive: false } as any);
+    document.addEventListener('gesturechange', handleGestureChange, { passive: false } as any);
+    document.addEventListener('gestureend', handleGestureEnd, { passive: false } as any);
+
+    return () => {
+      document.removeEventListener('wheel', handleDocumentWheel);
+      document.removeEventListener('gesturestart', handleGestureStart as any);
+      document.removeEventListener('gesturechange', handleGestureChange as any);
+      document.removeEventListener('gestureend', handleGestureEnd as any);
+    };
+  }, [minZoom, maxZoom]);
+
+  // Container-level: scroll pan + mobile touch pinch
   useEffect(() => {
     const mainElement = containerRef.current;
     if (!mainElement) return;
 
-    // Handle pinch zoom (mobile/trackpad)
+    const clampZoom = (value: number) => Math.round(Math.max(minZoom, Math.min(maxZoom, value)));
+
+    // Mobile two-finger pinch
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         const touch1 = e.touches[0];
@@ -53,8 +103,7 @@ export const useZoomControl = ({
 
         const delta = distance - lastTouchDistance.current;
         const zoomDelta = delta * 0.1;
-        const newZoom = Math.max(minZoom, Math.min(maxZoom, zoom + zoomDelta));
-        setZoom(Math.round(newZoom));
+        setZoom(prev => clampZoom(prev + zoomDelta));
 
         lastTouchDistance.current = distance;
       }
@@ -64,16 +113,9 @@ export const useZoomControl = ({
       lastTouchDistance.current = null;
     };
 
-    // Handle wheel: Ctrl/Cmd + scroll = zoom, regular scroll = pan
+    // Regular scroll (no Ctrl/Cmd) = pan
     const handleWheel = (e: WheelEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        // Zoom
-        e.preventDefault();
-        const delta = -e.deltaY * 0.5;
-        const newZoom = Math.max(minZoom, Math.min(maxZoom, zoom + delta));
-        setZoom(Math.round(newZoom));
-      } else {
-        // Pan
+      if (!e.ctrlKey && !e.metaKey) {
         e.preventDefault();
         setPanOffset(prev => ({
           x: prev.x - e.deltaX,
@@ -82,46 +124,18 @@ export const useZoomControl = ({
       }
     };
 
-    // Safari-specific gesture events for trackpad pinch
-    const handleGestureStart = (e: any) => {
-      e.preventDefault();
-      lastGestureScale.current = 1;
-    };
-
-    const handleGestureChange = (e: any) => {
-      e.preventDefault();
-      const scale = e.scale;
-      const delta = (scale - lastGestureScale.current) * 100;
-      const newZoom = Math.max(minZoom, Math.min(maxZoom, zoom + delta));
-      setZoom(Math.round(newZoom));
-      lastGestureScale.current = scale;
-    };
-
-    const handleGestureEnd = (e: any) => {
-      e.preventDefault();
-      lastGestureScale.current = 1;
-    };
-
     mainElement.addEventListener('touchstart', handleTouchStart);
     mainElement.addEventListener('touchmove', handleTouchMove, { passive: false });
     mainElement.addEventListener('touchend', handleTouchEnd);
     mainElement.addEventListener('wheel', handleWheel, { passive: false });
-
-    // Safari gesture events
-    mainElement.addEventListener('gesturestart', handleGestureStart, { passive: false } as any);
-    mainElement.addEventListener('gesturechange', handleGestureChange, { passive: false } as any);
-    mainElement.addEventListener('gestureend', handleGestureEnd, { passive: false } as any);
 
     return () => {
       mainElement.removeEventListener('touchstart', handleTouchStart);
       mainElement.removeEventListener('touchmove', handleTouchMove);
       mainElement.removeEventListener('touchend', handleTouchEnd);
       mainElement.removeEventListener('wheel', handleWheel);
-      mainElement.removeEventListener('gesturestart', handleGestureStart as any);
-      mainElement.removeEventListener('gesturechange', handleGestureChange as any);
-      mainElement.removeEventListener('gestureend', handleGestureEnd as any);
     };
-  }, [zoom, minZoom, maxZoom, containerRef]);
+  }, [minZoom, maxZoom, containerRef]);
 
   return { zoom, setZoom, panOffset, setPanOffset, resetView };
 };

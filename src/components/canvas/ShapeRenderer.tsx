@@ -62,6 +62,12 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, isMultiDragging, isMult
     fill: shape.fillEnabled ? shape.fill : undefined,
     stroke: shape.strokeEnabled ? shape.stroke : undefined,
     strokeWidth: shape.strokeEnabled ? shape.strokeWidth : 0,
+    shadowEnabled: shape.shadowEnabled ?? false,
+    shadowColor: shape.shadowColor ?? '#000000',
+    shadowBlur: shape.shadowBlur ?? 4,
+    shadowOffsetX: shape.shadowOffsetX ?? 2,
+    shadowOffsetY: shape.shadowOffsetY ?? 2,
+    shadowOpacity: shape.shadowOpacity ?? 0.5,
     rotation: safeRotation,
     opacity: safeOpacity,
     visible: shape.visible ?? true,
@@ -338,6 +344,12 @@ export const ShapeRenderer = memo(ShapeRendererComponent, (prevProps, nextProps)
     prevShape.locked === nextShape.locked &&
     prevShape.visible === nextShape.visible &&
     prevShape.shapeType === nextShape.shapeType &&
+    prevShape.shadowEnabled === nextShape.shadowEnabled &&
+    prevShape.shadowColor === nextShape.shadowColor &&
+    prevShape.shadowBlur === nextShape.shadowBlur &&
+    prevShape.shadowOffsetX === nextShape.shadowOffsetX &&
+    prevShape.shadowOffsetY === nextShape.shadowOffsetY &&
+    prevShape.shadowOpacity === nextShape.shadowOpacity &&
     prevProps.isShiftPressed === nextProps.isShiftPressed &&
     prevProps.isMultiDragging === nextProps.isMultiDragging &&
     prevProps.isMultiSelected === nextProps.isMultiSelected

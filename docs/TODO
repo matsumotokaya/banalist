@@ -1,0 +1,35 @@
+# README TODO
+
+## テキスト・図形のエフェクト機能
+
+**目的:**
+Illustratorのような高度な視覚効果を実現する
+
+**実装したいエフェクト:**
+- **外側線**: 線が塗りに重ならない（複数レイヤーを内部的に生成）
+- **グロー効果**: 発光するような光彩
+- **アウトライン効果**: 線を外側に配置
+- **グラデーション**: 塗りにグラデーションを適用
+
+**技術的アプローチ:**
+1. 単一の要素を内部的に複数のKonvaノードで構成
+2. エフェクトをプリセットとして提供（ユーザーは選択するだけ）
+3. 編集は単一オブジェクトとして、レンダリング時に複数レイヤーに展開
+
+**課題:**
+- Konva.jsの制約（strokeは常に中央配置）
+- 複数ノードの同期管理
+- パフォーマンス
+
+**Status**: 📋 TODO（将来実装予定）
+
+---
+
+## Lasso Selection (In Progress)
+
+- Selection rectangle visual appears correctly
+- Coordinate system mismatch preventing element selection
+- **Status**: Debugging coordinate transformation between screen and canvas space
+
+---
+

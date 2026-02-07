@@ -115,6 +115,12 @@ const ImageRendererComponent = ({
       y={imageElement.y}
       width={imageElement.width}
       height={imageElement.height}
+      shadowEnabled={imageElement.shadowEnabled ?? false}
+      shadowColor={imageElement.shadowColor ?? '#000000'}
+      shadowBlur={imageElement.shadowBlur ?? 4}
+      shadowOffsetX={imageElement.shadowOffsetX ?? 2}
+      shadowOffsetY={imageElement.shadowOffsetY ?? 2}
+      shadowOpacity={imageElement.shadowOpacity ?? 0.5}
       rotation={imageElement.rotation || 0}
       opacity={imageElement.opacity ?? 1}
       visible={imageElement.visible ?? true}
@@ -211,6 +217,12 @@ export const ImageRenderer = memo(ImageRendererComponent, (prevProps, nextProps)
     prevImage.opacity === nextImage.opacity &&
     prevImage.locked === nextImage.locked &&
     prevImage.visible === nextImage.visible &&
+    prevImage.shadowEnabled === nextImage.shadowEnabled &&
+    prevImage.shadowColor === nextImage.shadowColor &&
+    prevImage.shadowBlur === nextImage.shadowBlur &&
+    prevImage.shadowOffsetX === nextImage.shadowOffsetX &&
+    prevImage.shadowOffsetY === nextImage.shadowOffsetY &&
+    prevImage.shadowOpacity === nextImage.shadowOpacity &&
     prevProps.isShiftPressed === nextProps.isShiftPressed &&
     prevProps.isMultiDragging === nextProps.isMultiDragging &&
     prevProps.isMultiSelected === nextProps.isMultiSelected

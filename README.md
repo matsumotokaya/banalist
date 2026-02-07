@@ -4,158 +4,120 @@ Browser-based banner design tool with template and rule-based image generation.
 
 ---
 
-## Tech Stack
-
-- **Frontend**: React 19.2.0 + Vite + TypeScript
-- **Styling**: TailwindCSS
-- **Canvas**: Konva.js (react-konva)
-- **Backend**: Supabase (Auth, Database, Storage)
-- **Data Fetching**: React Query (@tanstack/react-query)
-- **State Management**: Local useState (planned: Zustand in Phase 2)
-- **i18n**: react-i18next (English/Japanese support)
-
-## Getting Started
+## Quick Start
 
 ```bash
 # Install dependencies
 npm install
 
-# Start dev server
+# Start dev server (http://localhost:5173)
 npm run dev
 
 # Build for production
 npm run build
 ```
 
-### Localhost ポート番号・Tips
+## Tech Stack
 
-- デフォルト: http://localhost:5173 で開発サーバーが起動します
-- ポートを変更したい場合: `npm run dev -- --port 3000` など
-- 5173番が競合している場合: `lsof -i :5173` でプロセス確認→`kill <PID>` で解放
+- **Frontend**: React 19.2.0 + Vite + TypeScript
+- **Canvas**: Konva.js (react-konva)
+- **Styling**: TailwindCSS
+- **Backend**: Supabase (Auth, Database, Storage)
+- **Data Fetching**: React Query (@tanstack/react-query)
+- **i18n**: react-i18next (English/Japanese)
 
-例：
-```bash
-# 3000番で起動
-npm run dev -- --port 3000
-# ポート競合プロセス確認
-lsof -i :5173
-# プロセスをkill（例: PIDが12345の場合）
-kill 12345
-```
+## Features
 
-## Local Auth Testing (Single Supabase Project)
+### Canvas Editing
+- **Text**: Add/edit text with custom fonts, size, weight, letter spacing, line height
+- **Shapes**: Rectangle, circle, triangle, star, heart with fill/stroke controls
+- **Images**: Upload to personal library or use default library, drag & drop support
+- **Effects**: Shadow (blur, offset X/Y, opacity, color)
+- **Transform**: Drag, resize, rotate with visual transformers
+- **Multi-selection**: Shift+Click to select multiple elements, group transform/move
 
-PoCの間はSupabaseを1プロジェクトだけ使い、
-**ローカルは .env.local / 本番はVercelの環境変数**で切り替える運用にしています。
+### Keyboard Shortcuts
+- **Cmd/Ctrl + Z/Y**: Undo/Redo
+- **Cmd/Ctrl + C/V**: Copy/Paste
+- **Delete/Backspace**: Delete selected element(s)
+- **Arrow keys**: Move element (1px normal, 10px with Shift)
 
-### Local (localhost)
-- `.env.local` に **Supabase URL / ANON KEY** を入れる
-- Supabase Auth の Redirect URLs に `http://localhost:5173` を登録
-- 変更後は dev server を再起動
+### Zoom & Pan
+- **Trackpad Pinch**: Zoom in/out (blocks browser zoom)
+- **Ctrl/Cmd + Wheel**: Zoom in/out
+- **Regular Wheel**: Pan canvas
+- **Grab & Drag**: Pan with mouse
+- **Fit Button**: Reset view to center
 
-### Deploy (Production)
-- Vercel の環境変数に本番用の値を設定
-- **戻すときは `.env.local` を削除 or リネーム** すればOK
+### User Management
+- **Authentication**: Google OAuth via Supabase
+- **Roles**: `admin` | `user`
+- **Subscription**: `free` | `premium` ($8/month via Stripe)
+- **Permissions**: Admin can upload default images, manage templates
 
-> `redirectTo` は `window.location.origin` を使っているため、
-> ローカルでは localhost に戻ります。
+### Data Persistence
+- **Auto-save**: 3-second debounce with real-time status indicator
+- **Storage**: Supabase PostgreSQL (JSONB for elements)
+- **Guest Mode**: Single trial banner in localStorage
+- **Image Libraries**: User library (private) + Default library (public)
 
-⚠️ **注意: ローカルと本番のリダイレクト運用について**
-
-- 本プロジェクトは「ローカルで検証したい時だけSupabase AuthのリダイレクトURLをlocalhostにし、本番検証時は必ず本番URL（例: https://app.whatif-ep.xyz）に戻す」運用です。
-- 本番でログイン挙動を確認したい場合は、Supabase Authの「Redirect URLs」からlocalhostを外し、本番URLのみを登録してください。
-- `.env.local` を削除 or `.env.production` で本番用URL/キーを指定し、Vercel等の環境変数も本番用にしてください。
-- この切り替えを忘れると「本番でログイン後にローカルにリダイレクトされる」等のトラブルになります。
-- 必ずデプロイ前・本番検証前にリダイレクトURLと環境変数を確認してください。
-
-## Deployment (Vercel + Domain)
-
-### Vercel build
-- Build command: `npm run build`
-- Output directory: `dist`
-
-### Required environment variables (Vercel)
-Set these in Project Settings -> Environment Variables:
-- `VITE_SUPABASE_URL` (Supabase -> Settings -> API -> Project URL)
-- `VITE_SUPABASE_ANON_KEY` (Supabase -> Settings -> API -> anon public key)
-- `VITE_STRIPE_PUBLISHABLE_KEY` (if Stripe is enabled)
-
-Missing Supabase env vars will cause a blank screen at runtime.
-
-### Domain setup example (`app.whatif-ep.xyz`)
-1) Vercel -> Project -> Settings -> Domains -> add `app.whatif-ep.xyz`
-2) At the registrar DNS, add/update a `CNAME` record:
-   - Host/Name: `app`
-   - Value/Target: use the value shown by Vercel (for example, `cname.vercel-dns.com` or a `vercel-dns-xxx.com` target)
-3) Wait for DNS propagation, then confirm the domain is `Ready` in Vercel
+### Export
+- PNG export at original resolution
+- JPEG thumbnails (400px, 70% quality)
 
 ## Project Structure
 
 ```
 src/
-├── components/       # React components
-│   ├── Canvas.tsx           # Main canvas with Konva
-│   ├── DemoCanvas.tsx       # Interactive demo canvas for guest landing page
-│   ├── Sidebar.tsx          # Left sidebar (tools)
-│   ├── Header.tsx           # Top header
-│   ├── BottomBar.tsx        # Bottom bar (zoom, export)
-│   ├── PropertyPanel.tsx    # Right panel (properties)
-│   └── ...
-├── pages/            # Page components
-│   ├── BannerManager.tsx    # Banner list page
-│   ├── TemplateGallery.tsx  # Template gallery page
-│   └── BannerEditor.tsx     # Banner editor page
-├── hooks/            # Custom React hooks
-│   ├── useBanners.ts        # React Query hooks for banners
-│   ├── useTemplates.ts      # React Query hooks for templates
-│   ├── useProfile.ts        # React Query hook for user profile
-│   ├── useHistory.ts        # Undo/redo functionality
-│   ├── useElementOperations.ts
-│   └── ...
-├── contexts/         # React contexts
-│   └── AuthContext.tsx      # Authentication context
-├── lib/              # Library configurations
-│   └── queryClient.ts       # React Query client setup
-├── types/            # TypeScript type definitions
-│   └── template.ts          # Element types (CanvasElement, TextElement, ShapeElement)
-├── templates/        # Template data
-│   └── defaultTemplates.ts
-├── utils/            # Utility functions
-│   ├── bannerStorage.ts     # Supabase CRUD operations
-│   ├── templateStorage.ts   # Supabase template queries
-│   ├── storage.ts           # Supabase Storage helpers
-│   ├── cacheManager.ts      # In-memory cache (legacy, being replaced by React Query)
-│   └── supabase.ts          # Supabase client
-├── scripts/           # One-off migration scripts
-│   ├── migrate-base64-images.js
-│   └── migrate-thumbnail-data-url.js
-└── App.tsx           # Main app component
+├── components/         # UI components (Canvas, Sidebar, PropertyPanel, etc.)
+├── pages/              # Page components (BannerEditor, BannerManager, TemplateGallery)
+├── hooks/              # Custom hooks (useBanners, useTemplates, useZoomControl, etc.)
+├── types/              # TypeScript types (template.ts: CanvasElement, TextElement, etc.)
+├── utils/              # Utilities (bannerStorage, templateStorage, supabase client)
+├── i18n/               # Translation files (en, ja)
+└── contexts/           # React contexts (AuthContext)
 ```
 
-## Internationalization (i18n)
+## Environment Variables
 
-### Supported Languages
-- 🇬🇧 **English** (Base language)
-- 🇯🇵 **日本語** (Japanese)
+Create `.env.local` for local development:
 
-### Implementation
-- **Library**: react-i18next + i18next + i18next-browser-languagedetector
-- **Translation Files**: `/src/i18n/locales/{en,ja}/*.json`
-- **Namespaces**: `common`, `banner`, `editor`, `auth`, `modal`, `message`
-- **Auto-detection**: Browser language with localStorage persistence
-- **Language Switcher**: Available in header (🇬🇧/🇯🇵 dropdown)
-
-### Adding New Languages
-```bash
-# 1. Create translation files
-mkdir -p src/i18n/locales/zh
-cp src/i18n/locales/en/*.json src/i18n/locales/zh/
-
-# 2. Update i18n/index.ts resources
-# 3. Add to LanguageSwitcher.tsx LANGUAGES array
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
 ```
 
-### Usage in Components
+For production (Vercel), set these in Project Settings → Environment Variables.
+
+## Database Schema
+
+### Core Tables
+- **`profiles`**: User metadata (role, subscription_tier, full_name, avatar_url)
+- **`banners`**: User banner data (elements as JSONB, canvas_color, thumbnail_url)
+- **`templates`**: Public templates (elements, plan_type: free/premium)
+- **`default_images`**: Default image library metadata
+- **`user_images`**: User image library metadata
+
+See [docs/DATABASE.md](docs/DATABASE.md) for full schema details.
+
+## Deployment (Vercel)
+
+1. Build command: `npm run build`
+2. Output directory: `dist`
+3. Set environment variables (see above)
+4. Add custom domain via Vercel → Settings → Domains
+
+## Documentation
+
+- [Development Guide](docs/DEVELOPMENT.md) - Architecture, conventions, adding features
+- [Performance Guide](docs/PERFORMANCE.md) - React Query cache settings, optimization history
+- [Database Schema](docs/DATABASE.md) - Full table definitions and RLS policies
+
+## i18n (Internationalization)
+
+Supported languages: English (🇬🇧) / Japanese (🇯🇵)
+
 ```typescript
 import { useTranslation } from 'react-i18next';
 
@@ -165,368 +127,10 @@ const MyComponent = () => {
 };
 ```
 
-## Type System
-
-Canvas element types and properties are defined in `src/types/template.ts`.
-
-## Features
-
-### Canvas Operations
-- Add/edit text elements
-- Add shapes (rectangle, triangle, star)
-- Add images (via image library or drag & drop from local files)
-- Drag and drop elements on canvas
-- **Drag & Drop Local Images** ✨ NEW (2025-12-16): Drag images from desktop/folders directly onto canvas with visual feedback
-- Resize elements (shape: free resize, text: proportional)
-- Delete elements
-
-### Multi-Selection System ✨ NEW
-- **Shift + Click**: Add/remove elements to/from selection
-- **Lasso Selection**: Drag on background to select multiple elements (⚠️ In Progress)
-- **Multi-drag**: Move all selected elements together
-- **Multi-delete**: Delete all selected elements at once
-- **Layer operations**: Bring to front / Send to back for multiple elements
-
-### Keyboard Shortcuts
-- **Cmd/Ctrl + Z**: Undo
-- **Cmd/Ctrl + Y**: Redo
-- **Cmd/Ctrl + C**: Copy (single element)
-- **Cmd/Ctrl + V**: Paste
-- **Delete/Backspace**: Delete selected element(s)
-
-### History Management
-- Unified history for all element types (text + shapes + images)
-- Max 50 history entries
-- Full undo/redo support
-
-### Authentication ✅ (2025-11-21)
-- **Google OAuth**: Login/Logout via Supabase
-- **UI**: Canva-style avatar dropdown menu
-- **Status**: ✅ Fully implemented with database integration
-- **Profile Source of Truth**: `profiles` table is used by the app; `auth.users` is only for authentication
-
-### User Roles & Permissions ✅ (2025-11-23, Updated 2025-12-16)
-- **Role Types**: `admin` | `user`
-- **Subscription Tiers**: `free` | `premium`
-- **Storage**: `profiles` table (`role`, `subscription_tier`, `full_name`, `avatar_url`)
-- **Admin Privileges**:
-  - Upload to default image library
-  - Mark banners as Premium (via checkbox in header)
-  - Manage default templates (future)
-- **Free Users**: Basic banner creation & personal image library
-- **Premium Users**: Advanced features (planned)
-
-### Stripe Subscription Integration ✅ NEW (2025-12-21)
-
-**Status**: ✅ Fully implemented and operational
-
-#### Features
-- **Stripe Checkout**: Seamless redirect-based payment flow
-- **Subscription Price**: $8.00/month (recurring)
-- **Webhook Integration**: Automatic profile updates after successful payment
-- **Auto-Refresh**: Profile data automatically refreshes on payment success page
-
-#### Technical Implementation
-- **Frontend**:
-  - `@stripe/stripe-js` for Checkout Session creation
-  - Upgrade modal with seamless Stripe redirection
-  - Payment success page with auto-redirect
-
-- **Backend**:
-  - Supabase Edge Functions:
-    - `create-checkout-session`: Creates Stripe Checkout Session
-    - `stripe-webhook`: Handles payment events and updates database
-  - Webhook events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
-
-- **Data Flow**:
-  ```
-  User clicks "Upgrade to Premium"
-    ↓
-  Edge Function creates Stripe Checkout Session
-    ↓
-  Redirects to Stripe Checkout page
-    ↓
-  User completes payment
-    ↓
-  Stripe sends webhook to Supabase
-    ↓
-  profiles.subscription_tier updated to 'premium'
-    ↓
-  User redirected to success page
-    ↓
-  Profile automatically refreshed (React Query)
-    ↓
-  Immediate access to Premium banners
-  ```
-
-#### Configuration
-- **Test Mode**: Currently using Stripe test API keys
-- **Environment Variables**:
-  - `VITE_STRIPE_PUBLISHABLE_KEY`: Frontend Stripe key
-  - `STRIPE_SECRET_KEY`: Backend Stripe key (Edge Functions)
-  - `STRIPE_WEBHOOK_SECRET`: Webhook signature verification
-
-#### 今後の実装予定
-- [ ] 本番環境への移行（Live Mode API Keys）
-- [ ] サブスクリプション管理画面（キャンセル・再開）
-- [ ] Premium限定機能（AI文言生成、高度なエフェクトなど）
-- [ ] 請求履歴・領収書ダウンロード
-
-### Image Library System ✅ NEW (2025-11-23)
-WordPress-style image library with dual storage:
-
-#### Default Image Library
-- **Bucket**: `default-images` (Public)
-- **Table**: `default_images`
-- **Access**: All users can view, only admins can upload
-- **Purpose**: High-quality curated images provided by the service
-
-#### User Image Library (My Library)
-- **Bucket**: `user-images` (Public with RLS)
-- **Table**: `user_images`
-- **Access**: Users can only view/upload their own images
-- **Storage Path**: `user-images/{user_id}/{filename}`
-- **Features**:
-  - Once uploaded, images can be reused across multiple banners
-  - Automatic metadata storage (width, height, file size)
-  - Organized by user ID for multi-tenant support
-
-#### UI Features
-- **Modal Interface**: WordPress-style image picker
-- **Tabs**: "Default" and "My Library"
-- **Upload**: Drag & drop or file picker
-- **Grid Display**: Thumbnail previews with hover effects
-- **One-Click Insert**: Click to add image to canvas at original size
-
-### Data Persistence ✅ (2025-11-23, Updated 2025-12-16)
-- **Storage**: Migrated from localStorage to Supabase PostgreSQL (logged-in users)
-- **Tables**:
-  - `templates`: Public template definitions
-  - `banners`: User banner data with JSONB elements and `template_id`
-  - `profiles`: User metadata (role, subscription tier, full name, avatar)
-  - `default_images`: Default library metadata
-  - `user_images`: User library metadata
-- **Auto-save**: Elements, canvas color, thumbnails
-- **Thumbnails**: Stored in Supabase Storage (`thumbnail_url`), Base64 is deprecated
-- **Save Status Indicator** ✨ NEW (2025-12-16): Real-time "Saving..." / "Saved" indicator in bottom-left corner
-- **RLS Policies**: Row-level security ensures users only access their own data
-- **Guest Mode**: One trial banner stored in `localStorage` (`banalist_guest_banner`)
-
-### Template Gallery ✅ (2025-12-18, Updated 2026-02-01)
-- **Tabs**: "My Banners" and "Templates" are separate pages
-- **Ordering**: `templates.display_order` asc (NULLs last), fallback to `updated_at` desc
-- **Access**:
-  - Guests: Can view all templates (RLS policy updated to allow public read access)
-  - Logged-in: `plan_type = premium` is gated by `profiles.subscription_tier`
-
-### Guest Landing Page ✅ NEW (2026-02-01)
-- **Hero Section**: Displayed only for guest users (not logged in)
-  - Headline: "Your design is 99% done. You just finish it."
-  - Description text with value proposition
-- **Interactive Demo Canvas**: Embedded Konva canvas for hands-on experience
-  - Pre-loaded with sample artwork
-  - Text element pre-selected to show editing is possible
-  - Full drag/drop, resize, text editing capabilities
-  - Download button for PNG export
-  - No login required, no data saved to database
-
-### Export
-- PNG export functionality
-
-## Development Notes
-
-### Element Management
-- All elements are stored in a single `elements: CanvasElement[]` array
-- Element type is determined by the `type` field (`'text'` | `'shape'` | `'image'`)
-- History stack tracks all element changes uniformly
-
-### Adding New Element Types
-1. Define new interface in `src/types/template.ts` extending `BaseElement`
-2. Add to `CanvasElement` union type
-3. Add rendering logic in `Canvas.tsx`
-4. Add creation handler in `App.tsx`
-
-### Canvas Architecture
-- `BannerEditor.tsx`: State management, keyboard shortcuts, history
-- `Canvas.tsx`: Konva rendering, element selection, transformers
-- `Sidebar.tsx`: Tool palette
-- `PropertyPanel.tsx`: Element property editors
-
-### Selection System Architecture (2025-11-20)
-
-**Completed Refactoring:**
-- State changed from `selectedElementId: string | null` to `selectedElementIds: string[]`
-- All handlers updated to support multi-selection
-- Konva Transformer configured for multiple nodes simultaneously
-- Smart click behavior: clicking already-selected element preserves multi-selection
-
-**Implementation Details:**
-- `handleElementClick()`: Distinguishes between Shift+Click (toggle) and regular click
-- Multi-drag: Selected elements maintain selection during drag operations
-- Keyboard shortcuts: Copy/Paste work with single element, Delete works with multiple
-- PropertyPanel: Only shows properties when exactly 1 element is selected
+Translation files: `/src/i18n/locales/{en,ja}/*.json`
 
 ---
 
-## Known Issues
+## License
 
-### Lasso Selection (In Progress)
-- Selection rectangle visual appears correctly
-- Coordinate system mismatch preventing element selection
-- **Status**: Debugging coordinate transformation between screen and canvas space
-
-## Database Schema
-
-### Tables
-
-#### `profiles`
-```sql
-- id: uuid (FK to auth.users)
-- email: text
-- full_name: text
-- avatar_url: text
-- role: text (admin | user)
-- subscription_tier: text (free | premium)
-- subscription_expires_at: timestamp
-- created_at: timestamp
-- updated_at: timestamp
-```
-
-#### `banners`
-```sql
-- id: uuid (PK)
-- user_id: uuid (FK to profiles)
-- name: text
-- template: jsonb
-- elements: jsonb
-- canvas_color: text
-- thumbnail_data_url: text -- legacy (deprecated)
-- thumbnail_url: text       -- Storage public URL
-- created_at: timestamp
-- updated_at: timestamp
-```
-
-#### `templates`
-```sql
-- id: uuid (PK)
-- name: text
-- elements: jsonb
-- canvas_color: text
-- thumbnail_url: text
-- plan_type: text (free | premium)
-- display_order: integer (nullable)
-- width: integer
-- height: integer
-- created_at: timestamp
-- updated_at: timestamp
-```
-
-#### `default_images`
-```sql
-- id: uuid (PK)
-- name: text
-- storage_path: text (unique)
-- width: integer
-- height: integer
-- file_size: integer
-- tags: text[]
-- created_at: timestamp
-```
-
-#### `user_images`
-```sql
-- id: uuid (PK)
-- user_id: uuid (FK to profiles)
-- name: text
-- storage_path: text (unique)
-- width: integer
-- height: integer
-- file_size: integer
-- created_at: timestamp
-```
-
-## Performance Optimizations (2025-12-17)
-
-### Completed Improvements
-
-#### Emergency Fixes (Phase 0)
-- ✅ **Initial load time**: 30-120s → **3s** (90-97% improvement)
-- ✅ **Auto-save debounce**: 800ms → 2000ms (60% reduction in network requests)
-- ✅ **Thumbnail generation**: Generated only when leaving editor (no longer blocks auto-saves)
-- ✅ **React StrictMode**: Removed to prevent duplicate executions (4-5x → 1x queries)
-- ✅ **Profile caching**: SessionStorage cache for instant page reloads
-- ✅ **Optimistic UI**: Profile loading no longer blocks initial render
-
-#### React Query Implementation (Phase 1)
-- ✅ **Data fetching layer**: Replaced manual cache management with React Query
-- ✅ **Optimistic updates**: All mutations provide instant UI feedback
-- ✅ **Request deduplication**: Automatic prevention of duplicate network requests
-- ✅ **Code reduction**: 166 lines removed across components
-  - AuthContext: 184 → 107 lines (42% reduction)
-  - BannerEditor: 90 lines removed
-- ✅ **Cache hit rate**: Expected 80%+ for subsequent loads
-- ✅ **React Query DevTools**: Available for debugging (press button in bottom-right corner)
-
-#### Egress Optimization (2026-01-26)
-- ✅ **Thumbnail compression**: PNG 2-4MB → JPEG 400px 70% quality (~30-50KB, 95% reduction)
-- ✅ **staleTime optimization**: 0 → 5 minutes (reduces refetch frequency)
-- ✅ **Tab switch refetch removed**: No longer refetches on visibility change
-
-### React Query Cache Settings
-
-| Hook | staleTime | refetchOnMount | Description |
-|------|-----------|----------------|-------------|
-| `useBanners` | 5 min | true | Banner list (refetch if stale) |
-| `useBanner` | 5 min | - | Single banner detail |
-| `useTemplates` | 5 min | false | Template list (no auto-refetch) |
-| `useProfile` | - | - | User profile |
-
-**staleTime**: Duration that cached data is considered "fresh". Within this period, React Query returns cached data without server request.
-
-**Tuning Notes**:
-- Increase staleTime to reduce server requests (better for Egress)
-- Decrease staleTime for more real-time data (better for collaboration)
-- Current setting (5 min) balances Egress reduction with reasonable freshness
-
-### Performance Metrics
-
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| Initial load | 30-120s | 3s | **90-97%** |
-| Subsequent loads | 2-3s | **Instant (cache)** | **100%** |
-| Auto-save frequency | 800ms | 2000ms | 60% reduction |
-| Thumbnail generation | Every save | Only on exit | Major reduction |
-| Duplicate requests | Common | **Zero** | 100% eliminated |
-| UI update latency | Save wait | **Instant** | Optimistic updates |
-
-### Architecture Improvements
-
-#### Before (Manual Cache Management)
-```typescript
-// Manual cache with Map
-const cache = new Map();
-const data = cache.get(key) || await fetch();
-cache.set(key, data);
-// Manual invalidation needed everywhere
-cache.delete(key);
-```
-
-#### After (React Query)
-```typescript
-// Automatic cache management
-const { data } = useQuery(['key'], fetchFn);
-// Automatic invalidation, deduplication, and background updates
-const mutation = useMutation(updateFn, {
-  onSuccess: () => queryClient.invalidateQueries(['key'])
-});
-```
-
-### Root Causes Identified
-
-1. **Supabase Cold Start**: Database query itself is 2.357ms, but initial connection takes time
-2. **Network Latency**: First request has SSL/TLS handshake overhead
-3. **React StrictMode**: Caused 4-5x duplicate executions in development
-4. **Aggressive Auto-save**: 800ms was too frequent for network operations
-5. **No Request Deduplication**: Multiple components fetching same data simultaneously
-
----
+Proprietary - All rights reserved

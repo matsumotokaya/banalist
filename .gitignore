@@ -28,5 +28,4 @@ dist-ssr
 .env.local
 .env.*.local
 
-# Sensitive documentation
-docs/
+# Sensitive documentation (now removed, docs/ is for public documentation)

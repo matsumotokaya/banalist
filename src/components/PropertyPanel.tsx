@@ -22,10 +22,18 @@ interface PropertyPanelProps {
   onStrokeChange?: (color: string) => void;
   onStrokeWidthChange?: (width: number) => void;
   onStrokeEnabledChange?: (enabled: boolean) => void;
+
+  // Shadow handlers
+  onShadowEnabledChange?: (enabled: boolean) => void;
+  onShadowColorChange?: (color: string) => void;
+  onShadowBlurChange?: (blur: number) => void;
+  onShadowOffsetXChange?: (offset: number) => void;
+  onShadowOffsetYChange?: (offset: number) => void;
+  onShadowOpacityChange?: (opacity: number) => void;
 }
 
 
-export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, onSizeChange, onWeightChange, onLetterSpacingChange, onLineHeightChange, onOpacityChange, onBringToFront, onSendToBack, isMobile = false, onClose, onFillEnabledChange, onStrokeChange, onStrokeWidthChange, onStrokeEnabledChange }: PropertyPanelProps) => {
+export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, onSizeChange, onWeightChange, onLetterSpacingChange, onLineHeightChange, onOpacityChange, onBringToFront, onSendToBack, isMobile = false, onClose, onFillEnabledChange, onStrokeChange, onStrokeWidthChange, onStrokeEnabledChange, onShadowEnabledChange, onShadowColorChange, onShadowBlurChange, onShadowOffsetXChange, onShadowOffsetYChange, onShadowOpacityChange }: PropertyPanelProps) => {
   const { t } = useTranslation('editor');
   const getWeightLabel = (weight: number): string => {
     if (weight <= 100) return t('properties.fontWeights.thin');
@@ -340,6 +348,111 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
           </div>
         </>
       )}
+
+      {/* Shadow controls - all element types */}
+      <div className="mb-4 p-3 bg-[#2b2b2b] rounded-lg">
+        <div className="flex items-center justify-between mb-3">
+          <label className="text-xs font-semibold text-gray-300">{t('properties.shadow')}</label>
+          {onShadowEnabledChange && (
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={selectedElement.shadowEnabled ?? false}
+                onChange={(e) => onShadowEnabledChange(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-[#444444] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+            </label>
+          )}
+        </div>
+        {(selectedElement.shadowEnabled ?? false) && (
+          <>
+            {onShadowColorChange && (
+              <ColorSelector
+                selectedColor={selectedElement.shadowColor ?? '#000000'}
+                onColorChange={onShadowColorChange}
+                showInput={true}
+              />
+            )}
+            {onShadowBlurChange && (
+              <div className="mt-3">
+                <label className="block text-xs font-medium text-gray-300 mb-2">{t('properties.shadowBlur')}</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="0"
+                    max="50"
+                    step="1"
+                    value={selectedElement.shadowBlur ?? 4}
+                    onChange={(e) => onShadowBlurChange(Number(e.target.value))}
+                    className="flex-1 h-1.5 bg-[#444444] rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                  />
+                  <span className="text-xs font-medium text-gray-300 w-10 text-right">
+                    {selectedElement.shadowBlur ?? 4}px
+                  </span>
+                </div>
+              </div>
+            )}
+            {onShadowOffsetXChange && (
+              <div className="mt-3">
+                <label className="block text-xs font-medium text-gray-300 mb-2">{t('properties.shadowOffsetX')}</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="-50"
+                    max="50"
+                    step="1"
+                    value={selectedElement.shadowOffsetX ?? 2}
+                    onChange={(e) => onShadowOffsetXChange(Number(e.target.value))}
+                    className="flex-1 h-1.5 bg-[#444444] rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                  />
+                  <span className="text-xs font-medium text-gray-300 w-10 text-right">
+                    {selectedElement.shadowOffsetX ?? 2}px
+                  </span>
+                </div>
+              </div>
+            )}
+            {onShadowOffsetYChange && (
+              <div className="mt-3">
+                <label className="block text-xs font-medium text-gray-300 mb-2">{t('properties.shadowOffsetY')}</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="-50"
+                    max="50"
+                    step="1"
+                    value={selectedElement.shadowOffsetY ?? 2}
+                    onChange={(e) => onShadowOffsetYChange(Number(e.target.value))}
+                    className="flex-1 h-1.5 bg-[#444444] rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                  />
+                  <span className="text-xs font-medium text-gray-300 w-10 text-right">
+                    {selectedElement.shadowOffsetY ?? 2}px
+                  </span>
+                </div>
+              </div>
+            )}
+            {onShadowOpacityChange && (
+              <div className="mt-3">
+                <label className="block text-xs font-medium text-gray-300 mb-2">{t('properties.shadowOpacity')}</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={(selectedElement.shadowOpacity ?? 0.5) * 100}
+                    onChange={(e) => onShadowOpacityChange(Number(e.target.value) / 100)}
+                    className="flex-1 h-1.5 bg-[#444444] rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                  />
+                  <span className="text-xs font-medium text-gray-300 w-12 text-right">
+                    {Math.round((selectedElement.shadowOpacity ?? 0.5) * 100)}%
+                  </span>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
       {/* Opacity slider */}
       {onOpacityChange && (

@@ -29,6 +29,14 @@ export interface BaseElement {
   opacity?: number;
   locked?: boolean;
   visible?: boolean;
+
+  // Shadow properties
+  shadowEnabled?: boolean;
+  shadowColor?: string;
+  shadowBlur?: number;
+  shadowOffsetX?: number;
+  shadowOffsetY?: number;
+  shadowOpacity?: number;
 }
 
 export interface TextElement extends BaseElement {

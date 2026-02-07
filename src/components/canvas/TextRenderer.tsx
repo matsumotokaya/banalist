@@ -65,6 +65,12 @@ const TextRendererComponent = ({
       fill={textElement.fillEnabled ? textElement.fill : 'transparent'}
       stroke={textElement.strokeEnabled ? textElement.stroke : undefined}
       strokeWidth={textElement.strokeEnabled ? textElement.strokeWidth : 0}
+      shadowEnabled={textElement.shadowEnabled ?? false}
+      shadowColor={textElement.shadowColor ?? '#000000'}
+      shadowBlur={textElement.shadowBlur ?? 4}
+      shadowOffsetX={textElement.shadowOffsetX ?? 2}
+      shadowOffsetY={textElement.shadowOffsetY ?? 2}
+      shadowOpacity={textElement.shadowOpacity ?? 0.5}
       rotation={textElement.rotation || 0}
       opacity={textElement.opacity ?? 1}
       visible={textElement.visible ?? true}
@@ -165,6 +171,12 @@ export const TextRenderer = memo(TextRendererComponent, (prevProps, nextProps) =
     prevProps.textElement.strokeWidth === nextProps.textElement.strokeWidth &&
     prevProps.textElement.rotation === nextProps.textElement.rotation &&
     prevProps.textElement.visible === nextProps.textElement.visible &&
+    prevProps.textElement.shadowEnabled === nextProps.textElement.shadowEnabled &&
+    prevProps.textElement.shadowColor === nextProps.textElement.shadowColor &&
+    prevProps.textElement.shadowBlur === nextProps.textElement.shadowBlur &&
+    prevProps.textElement.shadowOffsetX === nextProps.textElement.shadowOffsetX &&
+    prevProps.textElement.shadowOffsetY === nextProps.textElement.shadowOffsetY &&
+    prevProps.textElement.shadowOpacity === nextProps.textElement.shadowOpacity &&
     prevProps.isShiftPressed === nextProps.isShiftPressed &&
     prevProps.isMultiDragging === nextProps.isMultiDragging &&
     prevProps.isMultiSelected === nextProps.isMultiSelected

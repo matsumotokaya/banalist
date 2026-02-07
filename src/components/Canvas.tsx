@@ -1,6 +1,6 @@
 import { useRef, forwardRef, useImperativeHandle, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Stage, Layer, Rect, Transformer } from 'react-konva';
+import { Stage, Layer, Group, Rect, Transformer } from 'react-konva';
 import type { Template, CanvasElement, TextElement, ShapeElement, ImageElement } from '../types/template';
 import type Konva from 'konva';
 import { ShapeRenderer } from './canvas/ShapeRenderer';
@@ -25,6 +25,10 @@ export interface CanvasRef {
   exportImage: () => string;
   exportThumbnail: () => string;
 }
+
+// Bleed area around artboard (canvas units) so elements/transformers
+// that extend beyond the artboard boundary remain visible.
+const BLEED = 200;
 
 export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   { template, elements, scale = 0.5, canvasColor, fileName = 'artwork-01.png', onTextChange, selectedElementIds = [], onSelectElement, onElementUpdate, onElementsUpdate, onImageDrop },
@@ -105,6 +109,10 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
       // e.g., if scale=0.5 (50%), pixelRatio=2 to get 100% size output
       try {
         const dataURL = stage.toDataURL({
+          x: BLEED * scale,
+          y: BLEED * scale,
+          width: template.width * scale,
+          height: template.height * scale,
           pixelRatio: 1 / scale,
           mimeType: 'image/png',
           quality: 1
@@ -170,6 +178,10 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
         const pixelRatio = thumbnailScale / scale;
 
         const dataURL = stage.toDataURL({
+          x: BLEED * scale,
+          y: BLEED * scale,
+          width: template.width * scale,
+          height: template.height * scale,
           pixelRatio,
           mimeType: 'image/jpeg',
           quality: 0.7
@@ -629,8 +641,8 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
     // Get drop position relative to canvas
     const stage = stageRef.current;
     const stageContainer = stage.container().getBoundingClientRect();
-    const baseDropX = (e.clientX - stageContainer.left) / scale;
-    const baseDropY = (e.clientY - stageContainer.top) / scale;
+    const baseDropX = (e.clientX - stageContainer.left) / scale - BLEED;
+    const baseDropY = (e.clientY - stageContainer.top) / scale - BLEED;
 
     // Process each image file
     imageFiles.forEach((imageFile, index) => {
@@ -676,13 +688,15 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
           </div>
         </div>
       )}
-      <div className="bg-white shadow-xl border border-gray-200">
+      <div>
         <Stage
           ref={stageRef}
-          width={template.width * scale}
-          height={template.height * scale}
+          width={(template.width + BLEED * 2) * scale}
+          height={(template.height + BLEED * 2) * scale}
           scaleX={scale}
           scaleY={scale}
+          x={BLEED * scale}
+          y={BLEED * scale}
           onClick={(e) => {
             // Deselect when clicking on empty area (stage or background rect)
             const isBackground = e.target === e.target.getStage() ||
@@ -811,6 +825,13 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
               fill={canvasColor}
               listening={false}
             />
+            {/* Clip elements to artboard — transformers stay outside */}
+            <Group
+              clipX={0}
+              clipY={0}
+              clipWidth={template.width}
+              clipHeight={template.height}
+            >
               {elements.map((element) => {
                 const nodeRefSetter = (node: Konva.Node | null, id: string) => {
                   if (node) {
@@ -873,6 +894,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                 }
                 return null;
               })}
+            </Group>
               {!isEditing && selectedElementIds.map(id => {
                 const element = elements.find(el => el.id === id);
                 if (!element) return null;
@@ -925,8 +947,8 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
               )}
               {selectionRect && (
                 <Rect
-                  x={selectionRect.x / scale}
-                  y={selectionRect.y / scale}
+                  x={selectionRect.x / scale - BLEED}
+                  y={selectionRect.y / scale - BLEED}
                   width={selectionRect.width / scale}
                   height={selectionRect.height / scale}
                   fill="rgba(79, 70, 229, 0.1)"
