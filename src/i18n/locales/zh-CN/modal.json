@@ -1,0 +1,65 @@
+{
+  "editTemplate": {
+    "title": "编辑模板",
+    "templateName": "模板名称",
+    "templateNamePlaceholder": "输入模板名称",
+    "planType": "方案类型",
+    "free": "免费",
+    "premium": "高级版",
+    "displayOrder": "显示顺序",
+    "displayOrderPlaceholder": "数字越小越靠前",
+    "displayOrderHint": "留空则按更新时间排序",
+    "size": "尺寸",
+    "cancel": "取消",
+    "save": "保存",
+    "saving": "保存中...",
+    "deleteTemplate": "删除模板",
+    "deleteConfirm": "确定要删除吗？此操作无法撤销。",
+    "deleting": "删除中...",
+    "delete": "删除",
+    "editButton": "编辑",
+    "errors": {
+      "nameEmpty": "请输入模板名称",
+      "saveFailed": "模板保存失败",
+      "deleteFailed": "模板删除失败"
+    }
+  },
+  "upgrade": {
+    "title": "高级版专属设计",
+    "description": "需要升级才能查看/编辑此设计",
+    "features": {
+      "access": {
+        "title": "访问所有高级版设计",
+        "desc": "无限使用高品质模板"
+      },
+      "support": {
+        "title": "无限设计文件",
+        "desc": "无限创建设计文件"
+      },
+      "earlyAccess": {
+        "title": "抢先体验新功能",
+        "desc": "优先使用AI功能"
+      }
+    },
+    "upgradeButton": "高级版方案（$8/月）",
+    "cancel": "取消",
+    "comingSoon": "升级功能即将推出"
+  },
+  "imageLibrary": {
+    "title": "图片库",
+    "tabs": {
+      "default": "默认",
+      "myLibrary": "我的图库"
+    },
+    "upload": "上传图片",
+    "uploading": "上传中...",
+    "adminAccess": "👑 管理员权限",
+    "noDefaultImages": "暂无默认图片",
+    "noUserImages": "请上传图片到图库",
+    "onlyImages": "请选择图片文件",
+    "loginRequired": "需要登录",
+    "uploadSuccess": "已上传 {{count}} 张图片",
+    "uploadPartialFail": "{{success}} 张成功，{{fail}} 张失败",
+    "uploadFailed": "上传失败"
+  }
+}

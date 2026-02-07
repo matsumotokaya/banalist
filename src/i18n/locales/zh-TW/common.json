@@ -1,0 +1,84 @@
+{
+  "button": {
+    "save": "儲存",
+    "cancel": "取消",
+    "delete": "刪除",
+    "duplicate": "複製",
+    "add": "新增",
+    "apply": "套用",
+    "close": "關閉",
+    "upload": "上傳",
+    "create": "建立",
+    "back": "返回",
+    "backToHome": "返回首頁"
+  },
+  "label": {
+    "width": "寬度",
+    "height": "高度",
+    "current": "目前",
+    "custom": "自訂",
+    "loading": "載入中...",
+    "admin": "管理員",
+    "premium": "進階版",
+    "free": "免費",
+    "private": "私人",
+    "public": "公開",
+    "name": "名稱",
+    "untitled": "未命名"
+  },
+  "status": {
+    "saving": "儲存中...",
+    "saved": "已儲存",
+    "loading": "載入中...",
+    "uploading": "上傳中...",
+    "creating": "建立中..."
+  },
+  "colorPicker": {
+    "open": "開啟取色器"
+  },
+  "cookie": {
+    "message": "本網站使用 Cookie 以提升服務品質。繼續使用本網站即表示您同意使用 Cookie。",
+    "accept": "同意",
+    "decline": "拒絕",
+    "privacyLink": "隱私權政策"
+  },
+  "showMore": "查看更多 ({{count}}個)",
+  "items": "{{count}}個",
+  "footer": {
+    "tagline": "Anime Aesthetic Design with WHATIF",
+    "homepage": "首頁",
+    "shop": "商店",
+    "aboutUs": "關於我們",
+    "legalInfo": "法律資訊",
+    "privacyPolicy": "隱私權政策",
+    "termsOfService": "服務條款",
+    "securityPolicy": "安全政策",
+    "contact": "聯絡我們",
+    "copyright": "© 2026 IMAGINE;. All rights reserved.",
+    "operatedBy": "營運方: Kaya Matsumoto"
+  },
+  "contact": {
+    "title": "聯絡我們",
+    "description": "如果您有任何問題或需求，請隨時與我們聯繫。",
+    "backToHome": "← 返回首頁",
+    "mailClientOpened": "郵件用戶端已啟動，請發送郵件。",
+    "name": "姓名",
+    "namePlaceholder": "王大明",
+    "email": "電子信箱",
+    "subject": "主旨",
+    "subjectPlaceholder": "請輸入詢問主旨",
+    "messageLabel": "詢問內容",
+    "messagePlaceholder": "請詳細描述您的詢問內容",
+    "notice": "點擊送出按鈕後將啟動您的郵件用戶端，請透過郵件應用程式完成發送。",
+    "noticeLabel": "注意：",
+    "openMailClient": "啟動郵件用戶端",
+    "directEmail": "直接發送郵件",
+    "directEmailDescription": "您也可以直接透過以下信箱地址聯繫我們：",
+    "businessHours": "營業時間",
+    "businessHoursDescription": "我們將在1-3個工作天內回覆您的詢問。",
+    "businessHoursNote": "（週末及國定假日除外）",
+    "mailBodyName": "姓名",
+    "mailBodyEmail": "信箱",
+    "mailBodyMessage": "詢問內容"
+  }
+}

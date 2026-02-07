@@ -422,7 +422,7 @@ export const BannerManager = () => {
                             onClick={() => navigate(`/banners/${category.key}`)}
                             className="px-6 py-2 text-sm font-medium text-indigo-400 hover:text-indigo-300 hover:bg-indigo-900/30 rounded-lg transition-colors"
                           >
-                            もっと見る ({filteredBanners.length - MAX_DISPLAY_COUNT}件)
+                            {t('common:showMore', { count: filteredBanners.length - MAX_DISPLAY_COUNT })}
                             <span className="ml-1">→</span>
                           </button>
                         </div>

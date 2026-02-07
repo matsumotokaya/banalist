@@ -2,8 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 export function Footer() {
-    const { i18n } = useTranslation();
-    const isJapanese = i18n.language === 'ja';
+    const { t } = useTranslation('common');
 
     return (
         <footer className="bg-[#101010] border-t border-gray-800 py-12 mt-auto">
@@ -12,7 +11,7 @@ export function Footer() {
                     <div className="flex flex-col items-center md:items-start">
                         <img src="/logo_imagine_white.svg" alt="IMAGINE" className="h-7 mb-2" />
                         <p className="text-gray-400 text-sm mb-4">
-                            Anime Aesthetic Design with WHATIF
+                            {t('footer.tagline')}
                         </p>
                         <div className="flex gap-4 items-center">
                             <a 
@@ -24,7 +23,7 @@ export function Footer() {
                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
                                 </svg>
-                                {isJapanese ? 'ホームページ' : 'Homepage'}
+                                {t('footer.homepage')}
                             </a>
                             <a 
                                 href="https://www.instagram.com/whatif.ep/" 
@@ -46,39 +45,39 @@ export function Footer() {
                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
                                 </svg>
-                                {isJapanese ? 'ショップ' : 'Shop'}
+                                {t('footer.shop')}
                             </a>
                         </div>
                     </div>
 
                     <div className="flex flex-wrap justify-center gap-x-8 gap-y-4">
                         <Link to="/about" className="text-gray-400 hover:text-white text-sm transition-colors">
-                            {isJapanese ? 'About Us' : 'About Us'}
+                            {t('footer.aboutUs')}
                         </Link>
                         <Link to="/legal/specified-commercial-transactions-act" className="text-gray-400 hover:text-white text-sm transition-colors">
-                            {isJapanese ? '特定商取引法に基づく表記' : 'Legal Information'}
+                            {t('footer.legalInfo')}
                         </Link>
                         <Link to="/legal/privacy" className="text-gray-400 hover:text-white text-sm transition-colors">
-                            {isJapanese ? 'プライバシーポリシー' : 'Privacy Policy'}
+                            {t('footer.privacyPolicy')}
                         </Link>
                         <Link to="/legal/terms" className="text-gray-400 hover:text-white text-sm transition-colors">
-                            {isJapanese ? '利用規約' : 'Terms of Service'}
+                            {t('footer.termsOfService')}
                         </Link>
                         <Link to="/legal/security" className="text-gray-400 hover:text-white text-sm transition-colors">
-                            {isJapanese ? 'セキュリティポリシー' : 'Security Policy'}
+                            {t('footer.securityPolicy')}
                         </Link>
                         <Link to="/contact" className="text-gray-400 hover:text-white text-sm transition-colors">
-                            {isJapanese ? 'お問い合わせ' : 'Contact'}
+                            {t('footer.contact')}
                         </Link>
                     </div>
                 </div>
 
                 <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
                     <p className="text-gray-500 text-xs">
-                        © 2026 IMAGINE;. All rights reserved.
+                        {t('footer.copyright')}
                     </p>
                     <p className="text-gray-500 text-xs">
-                        {isJapanese ? '運営: 松本 夏弥' : 'Operated by Kaya Matsumoto'}
+                        {t('footer.operatedBy')}
                     </p>
                 </div>
             </div>

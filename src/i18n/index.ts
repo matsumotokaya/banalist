@@ -17,6 +17,27 @@ import jaAuth from './locales/ja/auth.json';
 import jaModal from './locales/ja/modal.json';
 import jaMessage from './locales/ja/message.json';
 
+import zhCNCommon from './locales/zh-CN/common.json';
+import zhCNBanner from './locales/zh-CN/banner.json';
+import zhCNEditor from './locales/zh-CN/editor.json';
+import zhCNAuth from './locales/zh-CN/auth.json';
+import zhCNModal from './locales/zh-CN/modal.json';
+import zhCNMessage from './locales/zh-CN/message.json';
+
+import zhTWCommon from './locales/zh-TW/common.json';
+import zhTWBanner from './locales/zh-TW/banner.json';
+import zhTWEditor from './locales/zh-TW/editor.json';
+import zhTWAuth from './locales/zh-TW/auth.json';
+import zhTWModal from './locales/zh-TW/modal.json';
+import zhTWMessage from './locales/zh-TW/message.json';
+
+import koCommon from './locales/ko/common.json';
+import koBanner from './locales/ko/banner.json';
+import koEditor from './locales/ko/editor.json';
+import koAuth from './locales/ko/auth.json';
+import koModal from './locales/ko/modal.json';
+import koMessage from './locales/ko/message.json';
+
 // Resource bundle
 const resources = {
   en: {
@@ -34,6 +55,30 @@ const resources = {
     auth: jaAuth,
     modal: jaModal,
     message: jaMessage,
+  },
+  'zh-CN': {
+    common: zhCNCommon,
+    banner: zhCNBanner,
+    editor: zhCNEditor,
+    auth: zhCNAuth,
+    modal: zhCNModal,
+    message: zhCNMessage,
+  },
+  'zh-TW': {
+    common: zhTWCommon,
+    banner: zhTWBanner,
+    editor: zhTWEditor,
+    auth: zhTWAuth,
+    modal: zhTWModal,
+    message: zhTWMessage,
+  },
+  ko: {
+    common: koCommon,
+    banner: koBanner,
+    editor: koEditor,
+    auth: koAuth,
+    modal: koModal,
+    message: koMessage,
   },
 };
 

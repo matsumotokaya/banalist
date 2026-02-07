@@ -1,0 +1,84 @@
+{
+  "button": {
+    "save": "저장",
+    "cancel": "취소",
+    "delete": "삭제",
+    "duplicate": "복제",
+    "add": "추가",
+    "apply": "적용",
+    "close": "닫기",
+    "upload": "업로드",
+    "create": "만들기",
+    "back": "뒤로",
+    "backToHome": "홈으로 돌아가기"
+  },
+  "label": {
+    "width": "너비",
+    "height": "높이",
+    "current": "현재",
+    "custom": "사용자 정의",
+    "loading": "로딩 중...",
+    "admin": "관리자",
+    "premium": "프리미엄",
+    "free": "무료",
+    "private": "비공개",
+    "public": "공개",
+    "name": "이름",
+    "untitled": "제목 없음"
+  },
+  "status": {
+    "saving": "저장 중...",
+    "saved": "저장됨",
+    "loading": "로딩 중...",
+    "uploading": "업로드 중...",
+    "creating": "만드는 중..."
+  },
+  "colorPicker": {
+    "open": "색상 선택기 열기"
+  },
+  "cookie": {
+    "message": "본 웹사이트는 서비스 향상을 위해 쿠키를 사용합니다. 사이트를 계속 이용하면 쿠키 사용에 동의하는 것으로 간주합니다.",
+    "accept": "동의",
+    "decline": "거부",
+    "privacyLink": "개인정보처리방침"
+  },
+  "showMore": "더보기 ({{count}}개)",
+  "items": "{{count}}개",
+  "footer": {
+    "tagline": "Anime Aesthetic Design with WHATIF",
+    "homepage": "홈페이지",
+    "shop": "쇼핑",
+    "aboutUs": "소개",
+    "legalInfo": "법적 고지",
+    "privacyPolicy": "개인정보처리방침",
+    "termsOfService": "이용약관",
+    "securityPolicy": "보안 정책",
+    "contact": "문의하기",
+    "copyright": "© 2026 IMAGINE;. All rights reserved.",
+    "operatedBy": "운영: Kaya Matsumoto"
+  },
+  "contact": {
+    "title": "문의하기",
+    "description": "질문이나 요청 사항이 있으시면 언제든지 문의해 주세요.",
+    "backToHome": "← 홈으로 돌아가기",
+    "mailClientOpened": "이메일 클라이언트가 실행되었습니다. 이메일을 보내주세요.",
+    "name": "이름",
+    "namePlaceholder": "홍길동",
+    "email": "이메일 주소",
+    "subject": "제목",
+    "subjectPlaceholder": "문의 제목을 입력해 주세요",
+    "messageLabel": "문의 내용",
+    "messagePlaceholder": "문의 내용을 자세히 작성해 주세요",
+    "notice": "보내기 버튼을 누르면 이메일 클라이언트가 실행됩니다. 이메일 앱에서 발송을 완료해 주세요.",
+    "noticeLabel": "참고:",
+    "openMailClient": "이메일 클라이언트 실행",
+    "directEmail": "직접 이메일 보내기",
+    "directEmailDescription": "아래 이메일 주소로 직접 문의하실 수도 있습니다:",
+    "businessHours": "업무 시간",
+    "businessHoursDescription": "문의에 대한 답변은 보통 1-3영업일 이내에 이루어집니다.",
+    "businessHoursNote": "(주말 및 공휴일 제외)",
+    "mailBodyName": "이름",
+    "mailBodyEmail": "이메일",
+    "mailBodyMessage": "문의 내용"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "button": {
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "duplicate": "复制",
+    "add": "添加",
+    "apply": "应用",
+    "close": "关闭",
+    "upload": "上传",
+    "create": "创建",
+    "back": "返回",
+    "backToHome": "返回首页"
+  },
+  "label": {
+    "width": "宽度",
+    "height": "高度",
+    "current": "当前",
+    "custom": "自定义",
+    "loading": "加载中...",
+    "admin": "管理员",
+    "premium": "高级版",
+    "free": "免费",
+    "private": "私密",
+    "public": "公开",
+    "name": "名称",
+    "untitled": "未命名"
+  },
+  "status": {
+    "saving": "保存中...",
+    "saved": "已保存",
+    "loading": "加载中...",
+    "uploading": "上传中...",
+    "creating": "创建中..."
+  },
+  "colorPicker": {
+    "open": "打开取色器"
+  },
+  "cookie": {
+    "message": "本网站使用Cookie以提升服务质量。继续使用本网站即表示您同意使用Cookie。",
+    "accept": "同意",
+    "decline": "拒绝",
+    "privacyLink": "隐私政策"
+  },
+  "showMore": "查看更多 ({{count}}个)",
+  "items": "{{count}}个",
+  "footer": {
+    "tagline": "Anime Aesthetic Design with WHATIF",
+    "homepage": "主页",
+    "shop": "商店",
+    "aboutUs": "关于我们",
+    "legalInfo": "法律信息",
+    "privacyPolicy": "隐私政策",
+    "termsOfService": "服务条款",
+    "securityPolicy": "安全政策",
+    "contact": "联系我们",
+    "copyright": "© 2026 IMAGINE;. All rights reserved.",
+    "operatedBy": "运营方: Kaya Matsumoto"
+  },
+  "contact": {
+    "title": "联系我们",
+    "description": "如果您有任何问题或需求，请随时与我们联系。",
+    "backToHome": "← 返回首页",
+    "mailClientOpened": "邮件客户端已启动，请发送邮件。",
+    "name": "姓名",
+    "namePlaceholder": "张三",
+    "email": "邮箱地址",
+    "subject": "主题",
+    "subjectPlaceholder": "请输入咨询主题",
+    "messageLabel": "咨询内容",
+    "messagePlaceholder": "请详细描述您的咨询内容",
+    "notice": "点击发送按钮后将启动您的邮件客户端，请通过邮件应用完成发送。",
+    "noticeLabel": "注意：",
+    "openMailClient": "启动邮件客户端",
+    "directEmail": "直接发送邮件",
+    "directEmailDescription": "您也可以直接通过以下邮箱地址联系我们：",
+    "businessHours": "工作时间",
+    "businessHoursDescription": "我们将在1-3个工作日内回复您的咨询。",
+    "businessHoursNote": "（周末及节假日除外）",
+    "mailBodyName": "姓名",
+    "mailBodyEmail": "邮箱",
+    "mailBodyMessage": "咨询内容"
+  }
+}

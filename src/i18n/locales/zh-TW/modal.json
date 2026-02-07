@@ -1,0 +1,65 @@
+{
+  "editTemplate": {
+    "title": "編輯範本",
+    "templateName": "範本名稱",
+    "templateNamePlaceholder": "輸入範本名稱",
+    "planType": "方案類型",
+    "free": "免費",
+    "premium": "進階版",
+    "displayOrder": "顯示順序",
+    "displayOrderPlaceholder": "數字越小越靠前",
+    "displayOrderHint": "留空則按更新時間排序",
+    "size": "尺寸",
+    "cancel": "取消",
+    "save": "儲存",
+    "saving": "儲存中...",
+    "deleteTemplate": "刪除範本",
+    "deleteConfirm": "確定要刪除嗎？此操作無法復原。",
+    "deleting": "刪除中...",
+    "delete": "刪除",
+    "editButton": "編輯",
+    "errors": {
+      "nameEmpty": "請輸入範本名稱",
+      "saveFailed": "範本儲存失敗",
+      "deleteFailed": "範本刪除失敗"
+    }
+  },
+  "upgrade": {
+    "title": "進階版專屬設計",
+    "description": "需要升級才能查看/編輯此設計",
+    "features": {
+      "access": {
+        "title": "存取所有進階版設計",
+        "desc": "無限使用高品質範本"
+      },
+      "support": {
+        "title": "無限設計檔案",
+        "desc": "無限建立設計檔案"
+      },
+      "earlyAccess": {
+        "title": "搶先體驗新功能",
+        "desc": "優先使用 AI 功能"
+      }
+    },
+    "upgradeButton": "進階版方案（$8/月）",
+    "cancel": "取消",
+    "comingSoon": "升級功能即將推出"
+  },
+  "imageLibrary": {
+    "title": "圖片庫",
+    "tabs": {
+      "default": "預設",
+      "myLibrary": "我的圖庫"
+    },
+    "upload": "上傳圖片",
+    "uploading": "上傳中...",
+    "adminAccess": "👑 管理員權限",
+    "noDefaultImages": "尚無預設圖片",
+    "noUserImages": "請上傳圖片至圖庫",
+    "onlyImages": "請選擇圖片檔案",
+    "loginRequired": "需要登入",
+    "uploadSuccess": "已上傳 {{count}} 張圖片",
+    "uploadPartialFail": "{{success}} 張成功，{{fail}} 張失敗",
+    "uploadFailed": "上傳失敗"
+  }
+}

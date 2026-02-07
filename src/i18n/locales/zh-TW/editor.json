@@ -1,0 +1,120 @@
+{
+  "tabs": {
+    "tool": "工具",
+    "layer": "圖層"
+  },
+  "page": {
+    "canvasSettings": "畫布設定",
+    "canvasSize": "畫布尺寸",
+    "backgroundColor": "背景顏色",
+    "noLayers": "尚無圖層",
+    "addObjects": "請新增物件"
+  },
+  "canvasSizeSelector": {
+    "customSize": "自訂尺寸",
+    "closeCustomSize": "關閉自訂尺寸",
+    "width": "寬度",
+    "height": "高度",
+    "apply": "套用",
+    "currentSize": "目前",
+    "presets": {
+      "hdLandscape": "HD 橫式",
+      "hdPortrait": "HD 直式",
+      "youtube": "YouTube",
+      "ogp": "OGP Image",
+      "note": "note",
+      "instagramSquare": "Instagram 正方形",
+      "instagramFeed": "Instagram 動態",
+      "twitterHeader": "X 封面圖"
+    }
+  },
+  "imageUploader": {
+    "uploadImage": "上傳圖片",
+    "chooseFromLibrary": "從圖庫選擇",
+    "imageLibrary": "圖片庫",
+    "dragDropHint": "也可以拖放新增圖片",
+    "supportedFormats": "支援 JPG、PNG、GIF"
+  },
+  "object": {
+    "text": "文字",
+    "shapes": "圖形",
+    "image": "圖片",
+    "addText": "新增文字",
+    "addShape": "選擇圖形",
+    "templates": "範本"
+  },
+  "shapes": {
+    "rectangle": "矩形",
+    "circle": "圓形",
+    "triangle": "三角形",
+    "star": "星形",
+    "heart": "心形"
+  },
+  "properties": {
+    "title": "屬性",
+    "selectObject": "選擇物件",
+    "font": "字型",
+    "textSize": "字級",
+    "fontWeight": "字重",
+    "letterSpacing": "字距",
+    "lineHeight": "行高",
+    "fill": "填充",
+    "stroke": "描邊",
+    "strokeOnly": "僅描邊",
+    "strokeWidth": "描邊寬度",
+    "shadow": "陰影",
+    "shadowBlur": "模糊",
+    "shadowOffsetX": "水平偏移",
+    "shadowOffsetY": "垂直偏移",
+    "shadowOpacity": "不透明度",
+    "opacity": "不透明度",
+    "layer": "圖層",
+    "bringToFront": "移到最前",
+    "sendToBack": "移到最後",
+    "moveUp": "向前移動",
+    "moveDown": "向後移動",
+    "width": "寬度",
+    "height": "高度",
+    "delete": "刪除",
+    "fontCategories": {
+      "latinSans": "🔤 拉丁無襯線",
+      "latinSerif": "🔤 拉丁襯線",
+      "japaneseSans": "📝 日文無襯線",
+      "japaneseSerif": "📝 日文襯線"
+    },
+    "fontWeights": {
+      "thin": "Thin",
+      "extraLight": "Extra Light",
+      "light": "Light",
+      "regular": "Regular",
+      "medium": "Medium",
+      "semiBold": "Semi Bold",
+      "bold": "Bold",
+      "extraBold": "Extra Bold",
+      "black": "Black"
+    }
+  },
+  "textInput": {
+    "placeholder": "輸入文字...",
+    "add": "新增文字",
+    "clickCanvas": "點擊畫布放置"
+  },
+  "download": "下載",
+  "dropImage": "拖放圖片",
+  "zoom": "縮放",
+  "save": {
+    "save": "儲存",
+    "saving": "儲存中...",
+    "saved": "已儲存",
+    "unsaved": "未儲存的變更",
+    "error": "儲存失敗",
+    "retry": "重試"
+  },
+  "dragToReorder": "拖曳排序",
+  "layerVisibility": {
+    "show": "顯示",
+    "hide": "隱藏"
+  },
+  "lock": "鎖定",
+  "unlock": "解鎖"
+}
