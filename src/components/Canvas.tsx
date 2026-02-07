@@ -703,7 +703,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
           scaleY={scale}
           x={BLEED * scale}
           y={BLEED * scale}
-          listening={!entranceAnimationPhase || entranceAnimationPhase === 'complete'}
+          listening={entranceAnimationPhase !== 'loading' && entranceAnimationPhase !== 'animating'}
           onClick={(e) => {
             // Deselect when clicking on empty area (stage or background rect)
             const isBackground = e.target === e.target.getStage() ||
