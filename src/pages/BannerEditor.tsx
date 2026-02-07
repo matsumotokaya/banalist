@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo, type RefObject } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import debounce from 'lodash.debounce';
 import { Header } from '../components/Header';
@@ -17,6 +17,8 @@ import { useElementOperations } from '../hooks/useElementOperations';
 import { useAuth } from '../contexts/AuthContext';
 import { isDataUrlImage, uploadDataUrlToBucket, uploadFileToBucket } from '../utils/storage';
 import { templateStorage } from '../utils/templateStorage';
+import { useEntranceAnimation } from '../hooks/useEntranceAnimation';
+import { LoadingOverlay } from '../components/canvas/LoadingOverlay';
 
 export const BannerEditor = () => {
   const { id } = useParams<{ id: string }>();
@@ -59,10 +61,39 @@ export const BannerEditor = () => {
   // Track current banner ID to detect banner switches
   const [currentBannerId, setCurrentBannerId] = useState<string | null>(null);
 
+  // Entrance animation state
+  const [imageLoadStatus, setImageLoadStatus] = useState<Map<string, 'loaded' | 'error'>>(new Map());
+  const [totalImageCount, setTotalImageCount] = useState(0);
+  const isInitialLoadRef = useRef(false);
+
   // Track previous values to detect actual changes
   const prevElementsRef = useRef<string>('');
   const prevCanvasColorRef = useRef<string>('');
   const isMountedRef = useRef(false);
+
+  // Entrance animation callbacks
+  const handleImageLoad = useCallback((id: string, status: 'loaded' | 'error') => {
+    setImageLoadStatus(prev => {
+      const next = new Map(prev);
+      next.set(id, status);
+      return next;
+    });
+  }, []);
+
+  const { phase: animationPhase } = useEntranceAnimation({
+    elements,
+    canvasRef: canvasRef as RefObject<CanvasRef | null>,
+    imageLoadStatus,
+    totalImageCount,
+    enabled: isInitialLoadRef.current,
+  });
+
+  // Mark initial load as done when animation completes
+  useEffect(() => {
+    if (animationPhase === 'complete') {
+      isInitialLoadRef.current = false;
+    }
+  }, [animationPhase]);
 
   // Custom hooks
   const { resetHistory, saveToHistory, undo, redo } = useHistory();
@@ -136,9 +167,15 @@ export const BannerEditor = () => {
     if (guestState) {
       setGuestTemplate(guestState.template);
       setGuestName(guestState.name);
-      setElements(guestState.elements || []);
+      const guestElements = guestState.elements || [];
+      setElements(guestElements);
       setCanvasColor(guestState.canvasColor || '#FFFFFF');
-      resetHistory(guestState.elements || []);
+      resetHistory(guestElements);
+      // Initialize entrance animation tracking
+      const imageCount = guestElements.filter(el => el.type === 'image').length;
+      setTotalImageCount(imageCount);
+      setImageLoadStatus(new Map());
+      isInitialLoadRef.current = true;
       return;
     }
 
@@ -155,9 +192,15 @@ export const BannerEditor = () => {
         };
         setGuestTemplate(parsed.template);
         setGuestName(parsed.name);
-        setElements(parsed.elements || []);
+        const parsedElements = parsed.elements || [];
+        setElements(parsedElements);
         setCanvasColor(parsed.canvasColor || '#FFFFFF');
-        resetHistory(parsed.elements || []);
+        resetHistory(parsedElements);
+        // Initialize entrance animation tracking
+        const imageCount = parsedElements.filter(el => el.type === 'image').length;
+        setTotalImageCount(imageCount);
+        setImageLoadStatus(new Map());
+        isInitialLoadRef.current = true;
         if (parsed.createdAt) {
           guestCreatedAtRef.current = parsed.createdAt;
         }
@@ -241,6 +284,12 @@ export const BannerEditor = () => {
       setElements(migratedElements);
       setCanvasColor(banner.canvasColor);
       resetHistory(migratedElements);
+
+      // Initialize entrance animation tracking
+      const imageCount = migratedElements.filter(el => el.type === 'image').length;
+      setTotalImageCount(imageCount);
+      setImageLoadStatus(new Map());
+      isInitialLoadRef.current = true;
 
       // If new banner with no elements, add default text and save to DB immediately
       if (migratedElements.length === 0) {
@@ -1146,7 +1195,7 @@ export const BannerEditor = () => {
             }
           }}
         >
-          <div style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px)`, cursor: isPanning ? 'grabbing' : 'default' }}>
+          <div style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px)`, cursor: isPanning ? 'grabbing' : 'default' }} className="relative">
             <Canvas
                 ref={canvasRef}
                 template={banner.template}
@@ -1160,7 +1209,18 @@ export const BannerEditor = () => {
                 onElementUpdate={handleElementUpdate}
                 onElementsUpdate={handleElementsUpdate}
                 onImageDrop={handleImageDrop}
+                onImageLoad={handleImageLoad}
+                entranceAnimationPhase={animationPhase}
               />
+            {(animationPhase === 'loading' || animationPhase === 'animating') && (
+              <LoadingOverlay
+                elements={elements}
+                template={banner.template}
+                scale={zoom / 100}
+                phase={animationPhase}
+                canvasColor={canvasColor}
+              />
+            )}
           </div>
         </main>
 
@@ -1210,7 +1270,7 @@ export const BannerEditor = () => {
             }
           }}
         >
-          <div style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px)`, cursor: isPanning ? 'grabbing' : 'default' }}>
+          <div style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px)`, cursor: isPanning ? 'grabbing' : 'default' }} className="relative">
             <Canvas
                 ref={canvasRef}
                 template={banner.template}
@@ -1224,7 +1284,18 @@ export const BannerEditor = () => {
                 onElementUpdate={handleElementUpdate}
                 onElementsUpdate={handleElementsUpdate}
                 onImageDrop={handleImageDrop}
+                onImageLoad={handleImageLoad}
+                entranceAnimationPhase={animationPhase}
               />
+            {(animationPhase === 'loading' || animationPhase === 'animating') && (
+              <LoadingOverlay
+                elements={elements}
+                template={banner.template}
+                scale={zoom / 100}
+                phase={animationPhase}
+                canvasColor={canvasColor}
+              />
+            )}
           </div>
         </main>
 

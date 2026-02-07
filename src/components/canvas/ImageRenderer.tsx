@@ -14,6 +14,7 @@ interface ImageRendererProps {
   onDragMove?: (id: string, event: Konva.KonvaEventObject<DragEvent>) => void;
   onDragEnd?: (id: string, event: Konva.KonvaEventObject<DragEvent>) => boolean;
   nodeRef: (node: Konva.Image | null, id: string) => void;
+  onImageLoad?: (id: string, status: 'loaded' | 'error') => void;
 }
 
 const ImageRendererComponent = ({
@@ -27,6 +28,7 @@ const ImageRendererComponent = ({
   onDragMove,
   onDragEnd,
   nodeRef,
+  onImageLoad,
 }: ImageRendererProps) => {
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
@@ -95,9 +97,11 @@ const ImageRendererComponent = ({
 
       img.onload = () => {
         setImage(img);
+        onImageLoad?.(imageElement.id, 'loaded');
       };
       img.onerror = (error) => {
         console.error('Failed to load image:', imageElement.src, error);
+        onImageLoad?.(imageElement.id, 'error');
       };
     };
 

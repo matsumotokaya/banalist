@@ -19,11 +19,15 @@ interface CanvasProps {
   onElementUpdate?: (id: string, updates: Partial<CanvasElement>) => void;
   onElementsUpdate?: (ids: string[], updateFn: (element: CanvasElement) => Partial<CanvasElement>) => void;
   onImageDrop?: (file: File, x: number, y: number, width: number, height: number) => void;
+  onImageLoad?: (id: string, status: 'loaded' | 'error') => void;
+  entranceAnimationPhase?: 'idle' | 'loading' | 'animating' | 'complete';
 }
 
 export interface CanvasRef {
   exportImage: () => string;
   exportThumbnail: () => string;
+  getNodesMap: () => Map<string, Konva.Node>;
+  getLayerNode: () => Konva.Layer | null;
 }
 
 // Bleed area around artboard (canvas units) so elements/transformers
@@ -31,7 +35,7 @@ export interface CanvasRef {
 const BLEED = 200;
 
 export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
-  { template, elements, scale = 0.5, canvasColor, fileName = 'artwork-01.png', onTextChange, selectedElementIds = [], onSelectElement, onElementUpdate, onElementsUpdate, onImageDrop },
+  { template, elements, scale = 0.5, canvasColor, fileName = 'artwork-01.png', onTextChange, selectedElementIds = [], onSelectElement, onElementUpdate, onElementsUpdate, onImageDrop, onImageLoad, entranceAnimationPhase },
   ref
 ) {
   const { t } = useTranslation('editor');
@@ -195,6 +199,8 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
         return '';
       }
     },
+    getNodesMap: () => nodesRef.current,
+    getLayerNode: () => stageRef.current?.getLayers()[0] ?? null,
   }), [scale, selectedElementIds, isEditing, template.width, template.height]);
 
   // Update individual transformers and reset multi-drag when selection changes
@@ -697,6 +703,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
           scaleY={scale}
           x={BLEED * scale}
           y={BLEED * scale}
+          listening={!entranceAnimationPhase || entranceAnimationPhase === 'complete'}
           onClick={(e) => {
             // Deselect when clicking on empty area (stage or background rect)
             const isBackground = e.target === e.target.getStage() ||
@@ -889,6 +896,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                       onDragMove={handleElementDragMove}
                       onDragEnd={handleElementDragEnd}
                       nodeRef={nodeRefSetter}
+                      onImageLoad={onImageLoad}
                     />
                   );
                 }
