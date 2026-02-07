@@ -46,7 +46,7 @@
   "items": "{{count}}개",
   "footer": {
     "tagline": "Anime Aesthetic Design with WHATIF",
-    "homepage": "홈페이지",
+    "brandSite": "브랜드 사이트",
     "shop": "쇼핑",
     "aboutUs": "소개",
     "legalInfo": "법적 고지",
@@ -57,11 +57,17 @@
     "copyright": "© 2026 IMAGINE;. All rights reserved.",
     "operatedBy": "운영: Kaya Matsumoto"
   },
+  "hero": {
+    "headline1": "Your design is",
+    "headline2": "99% done.",
+    "headline3": "You just finish it.",
+    "description": "스마트폰 배경화면, SNS 헤더, 나만의 아이콘과 썸네일. 간단한 디자인 도구 IMAGINE으로 '만들기'를 더 자유롭게, 더 쉽게.",
+    "downloadButton": "아트워크를 완성하면 다운로드해보세요😎"
+  },
   "contact": {
     "title": "문의하기",
     "description": "질문이나 요청 사항이 있으시면 언제든지 문의해 주세요.",
     "backToHome": "← 홈으로 돌아가기",
-    "mailClientOpened": "이메일 클라이언트가 실행되었습니다. 이메일을 보내주세요.",
     "name": "이름",
     "namePlaceholder": "홍길동",
     "email": "이메일 주소",
@@ -69,16 +75,16 @@
     "subjectPlaceholder": "문의 제목을 입력해 주세요",
     "messageLabel": "문의 내용",
     "messagePlaceholder": "문의 내용을 자세히 작성해 주세요",
-    "notice": "보내기 버튼을 누르면 이메일 클라이언트가 실행됩니다. 이메일 앱에서 발송을 완료해 주세요.",
-    "noticeLabel": "참고:",
-    "openMailClient": "이메일 클라이언트 실행",
+    "submitButton": "보내기",
+    "sending": "전송 중...",
+    "successTitle": "전송 완료",
+    "successMessage": "문의해 주셔서 감사합니다. 1-3영업일 이내에 답변드리겠습니다.",
+    "errorTitle": "전송 실패",
+    "errorMessage": "전송에 실패했습니다. 잠시 후 다시 시도해 주세요.",
     "directEmail": "직접 이메일 보내기",
     "directEmailDescription": "아래 이메일 주소로 직접 문의하실 수도 있습니다:",
     "businessHours": "업무 시간",
     "businessHoursDescription": "문의에 대한 답변은 보통 1-3영업일 이내에 이루어집니다.",
-    "businessHoursNote": "(주말 및 공휴일 제외)",
-    "mailBodyName": "이름",
-    "mailBodyEmail": "이메일",
-    "mailBodyMessage": "문의 내용"
+    "businessHoursNote": "(주말 및 공휴일 제외)"
   }
 }

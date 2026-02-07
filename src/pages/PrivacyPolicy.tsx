@@ -17,7 +17,7 @@ export function PrivacyPolicy() {
                         {isJapanese ? 'プライバシーポリシー' : 'Privacy Policy'}
                     </h1>
                     <p className="text-gray-600 mt-2">
-                        {isJapanese ? '最終更新日: 2026年1月28日' : 'Last Updated: January 28, 2026'}
+                        {isJapanese ? '最終更新日: 2026年2月8日' : 'Last Updated: February 8, 2026'}
                     </p>
                 </div>
 
@@ -27,7 +27,7 @@ export function PrivacyPolicy() {
                         <>
                             <Section title="1. はじめに">
                                 <p>
-                                    WHATIF（以下「当サービス」）は、松本夏弥（以下「運営者」）が提供するバナーデザインアシスタントツールです。
+                                    IMAGINE(イマジン)（以下「当サービス」）は、松本夏弥（以下「運営者」）が提供するバナーデザインアシスタントツールです。
                                     本プライバシーポリシーは、当サービスにおける個人情報の取扱いについて説明するものです。
                                 </p>
                             </Section>
@@ -107,7 +107,7 @@ export function PrivacyPolicy() {
                                     <li>アカウントの削除</li>
                                 </ul>
                                 <p className="mt-3 text-gray-700">
-                                    これらの権利を行使する場合は、matsumotokaya@gmail.com までご連絡ください。
+                                    これらの権利を行使する場合は、contact@whatif-ep.xyz までご連絡ください。
                                 </p>
                             </Section>
 
@@ -137,7 +137,7 @@ export function PrivacyPolicy() {
                                     本プライバシーポリシーに関するご質問は、以下までお問い合わせください：
                                 </p>
                                 <p className="mt-2 text-gray-700">
-                                    メールアドレス: matsumotokaya@gmail.com<br />
+                                    メールアドレス: contact@whatif-ep.xyz<br />
                                     運営者: 松本夏弥
                                 </p>
                             </Section>
@@ -146,7 +146,7 @@ export function PrivacyPolicy() {
                         <>
                             <Section title="1. Introduction">
                                 <p>
-                                    WHATIF (the "Service") is a banner design assistant tool provided by Kaya Matsumoto (the "Operator").
+                                    IMAGINE (the "Service") is a banner design assistant tool provided by Kaya Matsumoto (the "Operator").
                                     This Privacy Policy explains how we handle personal information in our Service.
                                 </p>
                             </Section>
@@ -227,7 +227,7 @@ export function PrivacyPolicy() {
                                     <li>Delete your account</li>
                                 </ul>
                                 <p className="mt-3 text-gray-700">
-                                    To exercise these rights, please contact us at matsumotokaya@gmail.com.
+                                    To exercise these rights, please contact us at contact@whatif-ep.xyz.
                                 </p>
                             </Section>
 
@@ -257,7 +257,7 @@ export function PrivacyPolicy() {
                                     For questions about this Privacy Policy, please contact:
                                 </p>
                                 <p className="mt-2 text-gray-700">
-                                    Email: matsumotokaya@gmail.com<br />
+                                    Email: contact@whatif-ep.xyz<br />
                                     Operator: Kaya Matsumoto
                                 </p>
                             </Section>

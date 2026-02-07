@@ -8,26 +8,47 @@ export function Contact() {
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setStatus('sending');
 
-    const mailtoLink = `mailto:matsumotokaya@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
-      `${t('contact.mailBodyName')}: ${name}\n${t('contact.mailBodyEmail')}: ${email}\n\n${t('contact.mailBodyMessage')}:\n${message}`
-    )}`;
-    
-    window.location.href = mailtoLink;
-    setSubmitted(true);
-    
-    // フォームをリセット
-    setTimeout(() => {
-      setName('');
-      setEmail('');
-      setSubject('');
-      setMessage('');
-      setSubmitted(false);
-    }, 3000);
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY,
+          name,
+          email,
+          subject,
+          message,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setStatus('success');
+        setName('');
+        setEmail('');
+        setSubject('');
+        setMessage('');
+
+        // Reset status after 5 seconds
+        setTimeout(() => setStatus('idle'), 5000);
+      } else {
+        setStatus('error');
+        setTimeout(() => setStatus('idle'), 5000);
+      }
+    } catch (error) {
+      console.error('Form submission error:', error);
+      setStatus('error');
+      setTimeout(() => setStatus('idle'), 5000);
+    }
   };
 
   return (
@@ -48,10 +69,20 @@ export function Contact() {
 
         {/* Content */}
         <div className="bg-white rounded-lg shadow-sm p-8">
-          {submitted && (
+          {status === 'success' && (
             <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <h3 className="font-semibold text-green-900 mb-1">{t('contact.successTitle')}</h3>
               <p className="text-green-800">
-                {t('contact.mailClientOpened')}
+                {t('contact.successMessage')}
+              </p>
+            </div>
+          )}
+
+          {status === 'error' && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <h3 className="font-semibold text-red-900 mb-1">{t('contact.errorTitle')}</h3>
+              <p className="text-red-800">
+                {t('contact.errorMessage')}
               </p>
             </div>
           )}
@@ -117,17 +148,12 @@ export function Contact() {
               />
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-800">
-                <strong>{t('contact.noticeLabel')}</strong> {t('contact.notice')}
-              </p>
-            </div>
-
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              disabled={status === 'sending'}
+              className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {t('contact.openMailClient')}
+              {status === 'sending' ? t('contact.sending') : t('contact.submitButton')}
             </button>
           </form>
 
@@ -137,10 +163,10 @@ export function Contact() {
               {t('contact.directEmailDescription')}
             </p>
             <a
-              href="mailto:matsumotokaya@gmail.com"
+              href="mailto:contact@whatif-ep.xyz"
               className="text-blue-600 hover:underline font-medium"
             >
-              matsumotokaya@gmail.com
+              contact@whatif-ep.xyz
             </a>
           </div>
 

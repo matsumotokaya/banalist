@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Canvas } from './Canvas';
 import type { CanvasRef } from './Canvas';
 import type { Template, CanvasElement } from '../types/template';
@@ -149,6 +150,7 @@ interface DemoCanvasProps {
 }
 
 export const DemoCanvas = ({ scale = 0.45 }: DemoCanvasProps) => {
+  const { t } = useTranslation('common');
   const [elements, setElements] = useState<CanvasElement[]>(INITIAL_ELEMENTS);
   const [selectedIds, setSelectedIds] = useState<string[]>(['default-text']);
   const canvasRef = useRef<CanvasRef>(null);
@@ -300,7 +302,7 @@ export const DemoCanvas = ({ scale = 0.45 }: DemoCanvasProps) => {
         className="absolute bottom-4 right-4 px-4 md:px-6 py-2 md:py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all font-medium text-xs md:text-sm flex items-center gap-1.5 md:gap-2 shadow-lg"
       >
         <span className="material-symbols-outlined text-[18px] md:text-[20px]">download</span>
-        Download
+        {t('hero.downloadButton')}
       </button>
     </div>
   );

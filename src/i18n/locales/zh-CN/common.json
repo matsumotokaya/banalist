@@ -46,7 +46,7 @@
   "items": "{{count}}个",
   "footer": {
     "tagline": "Anime Aesthetic Design with WHATIF",
-    "homepage": "主页",
+    "brandSite": "品牌网站",
     "shop": "商店",
     "aboutUs": "关于我们",
     "legalInfo": "法律信息",
@@ -57,11 +57,17 @@
     "copyright": "© 2026 IMAGINE;. All rights reserved.",
     "operatedBy": "运营方: Kaya Matsumoto"
   },
+  "hero": {
+    "headline1": "Your design is",
+    "headline2": "99% done.",
+    "headline3": "You just finish it.",
+    "description": "手机壁纸、社交媒体横幅、专属头像和缩略图。简单设计工具IMAGINE让创作更自由、更简单。",
+    "downloadButton": "完成艺术作品后试着下载吧😎"
+  },
   "contact": {
     "title": "联系我们",
     "description": "如果您有任何问题或需求，请随时与我们联系。",
     "backToHome": "← 返回首页",
-    "mailClientOpened": "邮件客户端已启动，请发送邮件。",
     "name": "姓名",
     "namePlaceholder": "张三",
     "email": "邮箱地址",
@@ -69,16 +75,16 @@
     "subjectPlaceholder": "请输入咨询主题",
     "messageLabel": "咨询内容",
     "messagePlaceholder": "请详细描述您的咨询内容",
-    "notice": "点击发送按钮后将启动您的邮件客户端，请通过邮件应用完成发送。",
-    "noticeLabel": "注意：",
-    "openMailClient": "启动邮件客户端",
+    "submitButton": "发送",
+    "sending": "发送中...",
+    "successTitle": "发送成功",
+    "successMessage": "感谢您的咨询。我们将在1-3个工作日内回复。",
+    "errorTitle": "发送失败",
+    "errorMessage": "发送失败，请稍后重试。",
     "directEmail": "直接发送邮件",
     "directEmailDescription": "您也可以直接通过以下邮箱地址联系我们：",
     "businessHours": "工作时间",
     "businessHoursDescription": "我们将在1-3个工作日内回复您的咨询。",
-    "businessHoursNote": "（周末及节假日除外）",
-    "mailBodyName": "姓名",
-    "mailBodyEmail": "邮箱",
-    "mailBodyMessage": "咨询内容"
+    "businessHoursNote": "（周末及节假日除外）"
   }
 }

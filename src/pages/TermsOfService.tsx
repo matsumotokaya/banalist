@@ -17,7 +17,7 @@ export function TermsOfService() {
                         {isJapanese ? '利用規約' : 'Terms of Service'}
                     </h1>
                     <p className="text-gray-600 mt-2">
-                        {isJapanese ? '最終更新日: 2026年1月28日' : 'Last Updated: January 28, 2026'}
+                        {isJapanese ? '最終更新日: 2026年2月8日' : 'Last Updated: February 8, 2026'}
                     </p>
                 </div>
 
@@ -27,7 +27,7 @@ export function TermsOfService() {
                         <>
                             <Section title="第1条（適用）">
                                 <p>
-                                    本規約は、松本夏弥（以下「運営者」）が提供するWHATIF（以下「本サービス」）の利用条件を定めるものです。
+                                    本規約は、松本夏弥（以下「運営者」）が提供するIMAGINE(イマジン)（以下「本サービス」）の利用条件を定めるものです。
                                     ユーザーは、本サービスを利用することにより、本規約に同意したものとみなされます。
                                 </p>
                             </Section>
@@ -170,7 +170,7 @@ export function TermsOfService() {
                                     本規約に関するご質問は、以下までお問い合わせください：
                                 </p>
                                 <p className="mt-2 text-gray-700">
-                                    メールアドレス: matsumotokaya@gmail.com<br />
+                                    メールアドレス: contact@whatif-ep.xyz<br />
                                     運営者: 松本夏弥
                                 </p>
                             </Section>
@@ -179,7 +179,7 @@ export function TermsOfService() {
                         <>
                             <Section title="Article 1 (Application)">
                                 <p>
-                                    These Terms of Service ("Terms") govern the use of WHATIF ("Service") provided by Kaya Matsumoto ("Operator").
+                                    These Terms of Service ("Terms") govern the use of IMAGINE ("Service") provided by Kaya Matsumoto ("Operator").
                                     By using the Service, users agree to be bound by these Terms.
                                 </p>
                             </Section>
@@ -322,7 +322,7 @@ export function TermsOfService() {
                                     For questions about these Terms, please contact:
                                 </p>
                                 <p className="mt-2 text-gray-700">
-                                    Email: matsumotokaya@gmail.com<br />
+                                    Email: contact@whatif-ep.xyz<br />
                                     Operator: Kaya Matsumoto
                                 </p>
                             </Section>

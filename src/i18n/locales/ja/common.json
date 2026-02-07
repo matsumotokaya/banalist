@@ -46,7 +46,7 @@
   "items": "{{count}}件",
   "footer": {
     "tagline": "Anime Aesthetic Design with WHATIF",
-    "homepage": "ホームページ",
+    "brandSite": "ブランドサイト",
     "shop": "ショップ",
     "aboutUs": "About Us",
     "legalInfo": "特定商取引法に基づく表記",
@@ -57,11 +57,17 @@
     "copyright": "© 2026 IMAGINE;. All rights reserved.",
     "operatedBy": "運営: 松本 夏弥"
   },
+  "hero": {
+    "headline1": "Your design is",
+    "headline2": "99% done.",
+    "headline3": "You just finish it.",
+    "description": "スマホの壁紙、SNSのヘッダー、自分専用のアイコンやサムネイル。簡単デザインツールIMAGINEで「作る」を、もっと自由に、もっと簡単に。",
+    "downloadButton": "アートワークを完成させたらダウンロードしてみよう😎"
+  },
   "contact": {
     "title": "お問い合わせ",
     "description": "ご質問やご要望がございましたら、お気軽にお問い合わせください。",
     "backToHome": "← ホームに戻る",
-    "mailClientOpened": "メールクライアントが起動しました。メールを送信してください。",
     "name": "お名前",
     "namePlaceholder": "山田 太郎",
     "email": "メールアドレス",
@@ -69,16 +75,16 @@
     "subjectPlaceholder": "お問い合わせの件名を入力してください",
     "messageLabel": "お問い合わせ内容",
     "messagePlaceholder": "お問い合わせ内容を詳しくご記入ください",
-    "notice": "送信ボタンを押すと、お使いのメールクライアントが起動します。メールアプリから送信を完了してください。",
-    "noticeLabel": "ご注意:",
-    "openMailClient": "メールクライアントを起動",
+    "submitButton": "送信",
+    "sending": "送信中...",
+    "successTitle": "送信完了",
+    "successMessage": "お問い合わせありがとうございます。1〜3営業日以内にご返信いたします。",
+    "errorTitle": "送信エラー",
+    "errorMessage": "送信に失敗しました。しばらくしてからもう一度お試しください。",
     "directEmail": "直接メールで送信",
     "directEmailDescription": "下記のメールアドレスに直接お問い合わせいただくことも可能です：",
     "businessHours": "営業時間",
     "businessHoursDescription": "お問い合わせへの回答は、通常1〜3営業日以内に行います。",
-    "businessHoursNote": "（土日祝日を除く）",
-    "mailBodyName": "お名前",
-    "mailBodyEmail": "メールアドレス",
-    "mailBodyMessage": "お問い合わせ内容"
+    "businessHoursNote": "（土日祝日を除く）"
   }
 }

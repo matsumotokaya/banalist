@@ -17,7 +17,7 @@ export function Tokushoho() {
             {isJapanese ? '特定商取引法に基づく表記' : 'Specified Commercial Transactions Act'}
           </h1>
           <p className="text-gray-600 mt-2">
-            {isJapanese ? '最終更新日: 2026年1月31日' : 'Last Updated: January 31, 2026'}
+            {isJapanese ? '最終更新日: 2026年2月8日' : 'Last Updated: February 8, 2026'}
           </p>
         </div>
 
@@ -39,7 +39,7 @@ export function Tokushoho() {
           </Section>
 
           <Section title="連絡先">
-            <p>メールアドレス: matsumotokaya@gmail.com</p>
+            <p>メールアドレス: contact@whatif-ep.xyz</p>
             <p>電話番号: 090-4238-3149</p>
             <p className="text-sm text-gray-600 mt-2">
               ※お問い合わせは、原則としてメールにて受け付けております。
@@ -47,7 +47,7 @@ export function Tokushoho() {
           </Section>
 
           <Section title="サービス名">
-            <p>WHATIF - デザイン制作アシスタントツール</p>
+            <p>IMAGINE(イマジン) - デザイン制作アシスタントツール</p>
           </Section>
 
           <Section title="販売価格">
@@ -141,7 +141,7 @@ export function Tokushoho() {
               </Section>
 
               <Section title="Contact">
-                <p>Email: matsumotokaya@gmail.com</p>
+                <p>Email: contact@whatif-ep.xyz</p>
                 <p>Phone: 090-4238-3149</p>
                 <p className="text-sm text-gray-600 mt-2">
                   ※Inquiries are primarily handled via email.
@@ -149,7 +149,7 @@ export function Tokushoho() {
               </Section>
 
               <Section title="Service Name">
-                <p>WHATIF - Design Creation Assistant Tool</p>
+                <p>IMAGINE - Design Creation Assistant Tool</p>
               </Section>
 
               <Section title="Price">

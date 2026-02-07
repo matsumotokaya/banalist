@@ -46,7 +46,7 @@
   "items": "{{count}}個",
   "footer": {
     "tagline": "Anime Aesthetic Design with WHATIF",
-    "homepage": "首頁",
+    "brandSite": "品牌網站",
     "shop": "商店",
     "aboutUs": "關於我們",
     "legalInfo": "法律資訊",
@@ -57,11 +57,17 @@
     "copyright": "© 2026 IMAGINE;. All rights reserved.",
     "operatedBy": "營運方: Kaya Matsumoto"
   },
+  "hero": {
+    "headline1": "Your design is",
+    "headline2": "99% done.",
+    "headline3": "You just finish it.",
+    "description": "手機桌布、社群媒體橫幅、專屬頭像與縮圖。簡單設計工具IMAGINE讓創作更自由、更簡單。",
+    "downloadButton": "完成藝術作品後試著下載吧😎"
+  },
   "contact": {
     "title": "聯絡我們",
     "description": "如果您有任何問題或需求，請隨時與我們聯繫。",
     "backToHome": "← 返回首頁",
-    "mailClientOpened": "郵件用戶端已啟動，請發送郵件。",
     "name": "姓名",
     "namePlaceholder": "王大明",
     "email": "電子信箱",
@@ -69,16 +75,16 @@
     "subjectPlaceholder": "請輸入詢問主旨",
     "messageLabel": "詢問內容",
     "messagePlaceholder": "請詳細描述您的詢問內容",
-    "notice": "點擊送出按鈕後將啟動您的郵件用戶端，請透過郵件應用程式完成發送。",
-    "noticeLabel": "注意：",
-    "openMailClient": "啟動郵件用戶端",
+    "submitButton": "送出",
+    "sending": "發送中...",
+    "successTitle": "發送成功",
+    "successMessage": "感謝您的詢問。我們將在1-3個工作天內回覆。",
+    "errorTitle": "發送失敗",
+    "errorMessage": "發送失敗，請稍後重試。",
     "directEmail": "直接發送郵件",
     "directEmailDescription": "您也可以直接透過以下信箱地址聯繫我們：",
     "businessHours": "營業時間",
     "businessHoursDescription": "我們將在1-3個工作天內回覆您的詢問。",
-    "businessHoursNote": "（週末及國定假日除外）",
-    "mailBodyName": "姓名",
-    "mailBodyEmail": "信箱",
-    "mailBodyMessage": "詢問內容"
+    "businessHoursNote": "（週末及國定假日除外）"
   }
 }

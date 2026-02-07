@@ -27,13 +27,13 @@ export function AboutUs() {
             <>
               <Section title="IMAGINE; Anime Aesthetic Design with WHATIF">
             <p className="mb-4">
-              デザインツールIMAGINE; で「作る」を、もっと自由に、もっと簡単に。
+              スマホの壁紙、SNSのヘッダー、自分専用のアイコンやサムネイル。"IMAGINE"で「作る」を、もっと自由に、もっと簡単に。
             </p>
             <p className="mb-4">
-              Gen-AIを活用したスタイルが人気のWHATIFによるアートワークが、そのままあなたのデザインテンプレートになります。高度なテクニックはいりません。デザインの99%は既に用意されています。
+              生成AIを取り入れたビジュアルデザインで人気のWHATIFが提供する圧倒的なデザインアセットをベースに、あなたの直感的な「エディット」を加えるだけで、世界に一つだけのアートが生まれます。
             </p>
             <p className="mb-4">
-              スマホの壁紙、SNSのヘッダー、自分専用のアイコン。インスピレーションを形にするのに、もう時間はかかりません。WHATIFの美学を、今すぐあなたのデバイスへ。
+              インスピレーションを形にするのに、もう時間はかかりません。デザインの99%は既に用意されています。
             </p>
           </Section>
 
@@ -63,7 +63,7 @@ export function AboutUs() {
             <div className="space-y-2">
               <p><strong>運営者</strong>: 松本 夏弥（Kaya Matsumoto）</p>
               <p><strong>所在地</strong>: 〒221-0003 神奈川県横浜市神奈川区大口仲町203-40</p>
-              <p><strong>メール</strong>: matsumotokaya@gmail.com</p>
+              <p><strong>メール</strong>: contact@whatif-ep.xyz</p>
             </div>
           </Section>
 
@@ -102,13 +102,13 @@ export function AboutUs() {
             <>
               <Section title="IMAGINE; Anime Aesthetic Design with WHATIF">
                 <p className="mb-4">
-                  With the design tool IMAGINE;, create more freely, more easily.
+                  Phone wallpapers, SNS headers, custom icons and thumbnails. Create freely and easily with "IMAGINE", the simple design tool.
                 </p>
                 <p className="mb-4">
-                  Artwork by WHATIF, known for its popular Gen-AI powered style, becomes your design template. No advanced techniques required. 99% of the design is already done for you.
+                  Based on the powerful design assets provided by WHATIF, popular for its visual design incorporating generative AI, simply add your intuitive "edits" to create one-of-a-kind art.
                 </p>
                 <p className="mb-4">
-                  Phone wallpapers, social media headers, your own custom icons. It no longer takes time to turn inspiration into reality. Bring WHATIF's aesthetic to your device today.
+                  It no longer takes time to turn inspiration into reality. 99% of the design is already done for you.
                 </p>
               </Section>
 
@@ -138,7 +138,7 @@ export function AboutUs() {
                 <div className="space-y-2">
                   <p><strong>Operator</strong>: Kaya Matsumoto</p>
                   <p><strong>Address</strong>: 〒221-0003 203-40 Oguchinakacho, Kanagawa-ku, Yokohama, Kanagawa, Japan</p>
-                  <p><strong>Email</strong>: matsumotokaya@gmail.com</p>
+                  <p><strong>Email</strong>: contact@whatif-ep.xyz</p>
                 </div>
               </Section>
 

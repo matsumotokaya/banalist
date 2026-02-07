@@ -13,7 +13,7 @@ export function SecurityPolicy() {
             セキュリティポリシー
           </h1>
           <p className="text-gray-600 mt-2">
-            最終更新日: 2026年1月31日
+            最終更新日: 2026年2月8日
           </p>
         </div>
 
@@ -21,7 +21,7 @@ export function SecurityPolicy() {
         <div className="bg-white rounded-lg shadow-sm p-8 space-y-6">
           <Section title="1. はじめに">
             <p>
-              WHATIF（以下「当サービス」）は、ユーザーの皆様の情報セキュリティを最優先事項として、
+              IMAGINE(イマジン)（以下「当サービス」）は、ユーザーの皆様の情報セキュリティを最優先事項として、
               適切な技術的・組織的対策を講じています。
             </p>
           </Section>
@@ -120,7 +120,7 @@ export function SecurityPolicy() {
               <Link to="/contact" className="text-blue-600 hover:underline mx-1">
                 お問い合わせページ
               </Link>
-              または matsumotokaya@gmail.com までご連絡ください。
+              または contact@whatif-ep.xyz までご連絡ください。
             </p>
           </Section>
         </div>
