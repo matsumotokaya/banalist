@@ -254,6 +254,7 @@ export const BannerEditor = () => {
             strokeWidth: shape.strokeWidth || 2,
             strokeEnabled: shape.strokeEnabled !== undefined ? shape.strokeEnabled : false,
             visible: shape.visible ?? true,
+            locked: shape.locked ?? false,
           } as ShapeElement;
         }
         if (el.type === 'text') {
@@ -268,6 +269,7 @@ export const BannerEditor = () => {
             strokeEnabled: text.strokeEnabled !== undefined ? text.strokeEnabled : (strokeOnly || false),
             letterSpacing: text.letterSpacing ?? 0,
             visible: text.visible ?? true,
+            locked: text.locked ?? false,
           } as TextElement;
         }
         if (el.type === 'image') {
@@ -275,6 +277,7 @@ export const BannerEditor = () => {
           return {
             ...image,
             visible: image.visible ?? true,
+            locked: image.locked ?? false,
           } as ImageElement;
         }
         return el;
@@ -290,6 +293,19 @@ export const BannerEditor = () => {
       setTotalImageCount(imageCount);
       setImageLoadStatus(new Map());
       isInitialLoadRef.current = true;
+
+      // Check if migration was needed and save to DB
+      const originalJSON = JSON.stringify(banner.elements);
+      const migratedJSON = JSON.stringify(migratedElements);
+      if (originalJSON !== migratedJSON) {
+        console.log('[BannerEditor] Migration detected, saving to DB to persist changes');
+        batchSave.mutateAsync({
+          elements: migratedElements,
+          canvasColor: banner.canvasColor,
+        }).catch((error) => {
+          console.error('[BannerEditor] Failed to save migrated data:', error);
+        });
+      }
 
       // If new banner with no elements, add default text and save to DB immediately
       if (migratedElements.length === 0) {
