@@ -11,7 +11,7 @@ export const TextEditor = ({ onAddText, isActive }: TextEditorProps) => {
   return (
     <button
       onClick={onAddText}
-      className={`px-3 py-2 text-xs font-medium rounded transition-colors flex items-center justify-center gap-1 ${
+      className={`w-full px-3 py-2 text-xs font-medium rounded transition-colors flex items-center justify-center gap-1 ${
         isActive
           ? 'bg-indigo-600 text-white'
           : 'text-gray-300 bg-[#333333] hover:bg-[#444444]'

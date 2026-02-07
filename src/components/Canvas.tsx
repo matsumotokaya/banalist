@@ -54,6 +54,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   const [isEditing, setIsEditing] = useState(false);
   const [selectionRect, setSelectionRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const selectionStartRef = useRef<{ x: number; y: number } | null>(null);
+  const lassoJustFinishedRef = useRef(false);
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [isMultiDragging, setIsMultiDragging] = useState(false);
@@ -594,7 +595,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
     textarea.style.padding = '2px 4px';
     textarea.style.margin = '0px';
     textarea.style.overflow = 'hidden';
-    textarea.style.background = 'rgba(255, 255, 255, 0.9)';
+    textarea.style.background = 'none';
     textarea.style.outline = 'none';
     textarea.style.resize = 'none';
     textarea.style.lineHeight = '1';
@@ -605,7 +606,6 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
     textarea.style.whiteSpace = 'pre';
     textarea.style.wordWrap = 'normal';
     textarea.style.maxHeight = `${template.height * scale}px`;
-    textarea.style.overflow = 'auto';
 
     // Auto-resize function (only on input, not on init)
     const autoResize = () => {
@@ -731,6 +731,12 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
           y={BLEED * scale}
           listening={entranceAnimationPhase !== 'loading' && entranceAnimationPhase !== 'animating'}
           onClick={(e) => {
+            // Skip click that fires immediately after lasso selection
+            if (lassoJustFinishedRef.current) {
+              lassoJustFinishedRef.current = false;
+              return;
+            }
+
             const isBackground = e.target === e.target.getStage() ||
                                  (e.target.getClassName() === 'Rect' && e.target.attrs.fill === canvasColor);
 
@@ -835,6 +841,9 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
             console.log('Lasso selection:', selectionRect);
 
             elements.forEach((element) => {
+              // Skip locked or hidden elements (consistent with click selection)
+              if (element.locked || !(element.visible ?? true)) return;
+
               const node = nodesRef.current.get(element.id);
               if (!node) return;
 
@@ -860,6 +869,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
             console.log('Selected elements:', selected);
             if (selected.length > 0) {
               onSelectElement(selected);
+              lassoJustFinishedRef.current = true;
             }
 
             selectionStartRef.current = null;

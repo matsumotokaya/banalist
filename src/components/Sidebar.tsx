@@ -283,25 +283,27 @@ export const Sidebar = ({
   return (
     <aside className="w-60 bg-[#1a1a1a] border-r border-[#2b2b2b] flex flex-col">
       {/* Tabs */}
-      <div className="flex border-b border-[#2b2b2b]">
+      <div className="flex bg-[#111111] p-1 gap-0.5">
         <button
           onClick={() => setActiveTab('tool')}
-          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+          className={`flex-1 py-1.5 text-xs font-medium rounded transition-colors flex items-center justify-center gap-1.5 ${
             activeTab === 'tool'
-              ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
-              : 'text-gray-400 hover:text-gray-100 hover:bg-[#2b2b2b]'
+              ? 'bg-[#2b2b2b] text-gray-100'
+              : 'text-gray-500 hover:text-gray-300'
           }`}
         >
+          <span className="material-symbols-outlined text-[14px]">build</span>
           {t('tabs.tool')}
         </button>
         <button
           onClick={() => setActiveTab('layer')}
-          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+          className={`flex-1 py-1.5 text-xs font-medium rounded transition-colors flex items-center justify-center gap-1.5 ${
             activeTab === 'layer'
-              ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
-              : 'text-gray-400 hover:text-gray-100 hover:bg-[#2b2b2b]'
+              ? 'bg-[#2b2b2b] text-gray-100'
+              : 'text-gray-500 hover:text-gray-300'
           }`}
         >
+          <span className="material-symbols-outlined text-[14px]">layers</span>
           {t('tabs.layer')}
         </button>
       </div>
@@ -320,7 +322,7 @@ export const Sidebar = ({
                 <ImageUploader onAddImage={onAddImage} />
                 <button
                   onClick={() => setShowImageLibrary(true)}
-                  className="px-3 py-2 text-xs font-medium text-gray-300 bg-[#333333] hover:bg-[#444444] rounded transition-colors flex items-center justify-center gap-1"
+                  className="w-full px-3 py-2 text-xs font-medium text-gray-300 bg-[#333333] hover:bg-[#444444] rounded transition-colors flex items-center justify-center gap-1"
                   title={t('imageUploader.chooseFromLibrary')}
                 >
                   <span className="material-symbols-outlined text-[16px]">photo_library</span>

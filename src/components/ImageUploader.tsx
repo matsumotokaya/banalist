@@ -44,7 +44,7 @@ export const ImageUploader = ({ onAddImage }: ImageUploaderProps) => {
       />
       <button
         onClick={() => fileInputRef.current?.click()}
-        className="px-3 py-2 text-xs font-medium text-gray-300 bg-[#333333] hover:bg-[#444444] rounded transition-colors flex items-center justify-center gap-1"
+        className="w-full px-3 py-2 text-xs font-medium text-gray-300 bg-[#333333] hover:bg-[#444444] rounded transition-colors flex items-center justify-center gap-1"
         title={t('imageUploader.uploadImage')}
       >
         <span className="material-symbols-outlined text-[16px]">upload</span>

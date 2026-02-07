@@ -61,7 +61,7 @@ export const ShapeSelector = ({ onAddShape }: ShapeSelectorProps) => {
         ref={buttonRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`px-3 py-2 text-xs font-medium rounded transition-colors flex items-center justify-center gap-1 ${
+        className={`w-full px-3 py-2 text-xs font-medium rounded transition-colors flex items-center justify-center gap-1 ${
           isOpen
             ? 'bg-indigo-600 text-white'
             : 'text-gray-300 bg-[#333333] hover:bg-[#444444]'
