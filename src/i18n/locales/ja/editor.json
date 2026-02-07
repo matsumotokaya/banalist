@@ -1,10 +1,10 @@
 {
   "tabs": {
-    "page": "ページ",
-    "object": "オブジェクト",
+    "tool": "ツール",
     "layer": "レイヤー"
   },
   "page": {
+    "canvasSettings": "キャンバス設定",
     "canvasSize": "キャンバスサイズ",
     "backgroundColor": "背景色",
     "noLayers": "レイヤーがありません",

@@ -265,37 +265,41 @@ export const DemoCanvas = ({ scale = 0.45 }: DemoCanvasProps) => {
     document.body.removeChild(link);
   };
 
+  // BLEED must match the value in Canvas.tsx (200 canvas units)
+  const BLEED = 200;
+  const bleedPx = BLEED * scale;
+  const artboardWidth = DEMO_TEMPLATE.width * scale;
+  const artboardHeight = DEMO_TEMPLATE.height * scale;
+
   return (
-    <div className="relative">
-      {/* Canvas container with border */}
-      <div className="rounded-[2rem] border border-gray-700/50 shadow-2xl shadow-black/50 overflow-hidden bg-gray-900">
-        <Canvas
-          ref={canvasRef}
-          template={DEMO_TEMPLATE}
-          elements={elements}
-          selectedElementIds={selectedIds}
-          canvasColor={canvasColor}
-          scale={scale}
-          onSelectElement={handleUserSelect}
-          onElementUpdate={handleElementUpdate}
-          onElementsUpdate={handleElementsUpdate}
-          onTextChange={handleTextChange}
-        />
+    <div className="relative inline-block">
+      {/* Clip to artboard only — hide BLEED overflow */}
+      <div
+        className="overflow-hidden"
+        style={{ width: artboardWidth, height: artboardHeight }}
+      >
+        <div style={{ marginLeft: -bleedPx, marginTop: -bleedPx }}>
+          <Canvas
+            ref={canvasRef}
+            template={DEMO_TEMPLATE}
+            elements={elements}
+            selectedElementIds={selectedIds}
+            canvasColor={canvasColor}
+            scale={scale}
+            onSelectElement={handleUserSelect}
+            onElementUpdate={handleElementUpdate}
+            onElementsUpdate={handleElementsUpdate}
+            onTextChange={handleTextChange}
+          />
+        </div>
       </div>
 
-      {/* Download button - bottom right */}
+      {/* Download button - floating bottom right of artboard */}
       <button
         onClick={handleExport}
-        className="absolute bottom-4 right-4 px-4 py-2 bg-white/90 hover:bg-white text-gray-900 font-medium text-sm rounded-lg shadow-lg transition-all hover:scale-105 flex items-center gap-2"
+        className="absolute bottom-4 right-4 px-4 md:px-6 py-2 md:py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all font-medium text-xs md:text-sm flex items-center gap-1.5 md:gap-2 shadow-lg"
       >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-          />
-        </svg>
+        <span className="material-symbols-outlined text-[18px] md:text-[20px]">download</span>
         Download
       </button>
     </div>

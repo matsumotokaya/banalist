@@ -67,8 +67,10 @@ export const BottomBar = ({
           )}
         </div>
 
-        {/* Save status indicator in the center */}
-        <div className="flex-1 flex justify-center items-center">
+        <div className="flex-1" />
+
+        <div className="flex items-center gap-3 md:gap-4">
+          {/* Save status */}
           {saveStatus === 'saving' && (
             <div className="flex items-center gap-2 text-gray-500">
               <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -110,9 +112,7 @@ export const BottomBar = ({
               )}
             </div>
           )}
-        </div>
 
-        <div className="flex items-center gap-2 md:gap-3">
           {/* Download button */}
           <button
             onClick={onExport}

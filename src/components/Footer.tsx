@@ -10,11 +10,9 @@ export function Footer() {
             <div className="max-w-7xl mx-auto px-6">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-8">
                     <div className="flex flex-col items-center md:items-start">
-                        <h2 className="text-xl font-bold text-white mb-2">IMAGINE;</h2>
+                        <img src="/logo_imagine_white.svg" alt="IMAGINE" className="h-7 mb-2" />
                         <p className="text-gray-400 text-sm mb-4">
-                            {isJapanese
-                                ? 'ブラウザベースのデザインアシスタントツール'
-                                : 'Browser-based design assistant tool'}
+                            Anime Aesthetic Design with WHATIF
                         </p>
                         <div className="flex gap-4 items-center">
                             <a 

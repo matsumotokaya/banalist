@@ -37,7 +37,7 @@ export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChan
   };
 
   return (
-    <header className="h-14 md:h-16 bg-[#1a1a1a] border-b border-[#2b2b2b] flex items-center justify-between px-3 md:px-6">
+    <header className="h-14 md:h-16 bg-[#231b2f] border-b border-[#2b2b2b] flex items-center justify-between px-3 md:px-6">
       <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
         {onBackToManager && (
           <button
@@ -50,12 +50,7 @@ export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChan
             </svg>
           </button>
         )}
-        <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
-          <h1 className="text-white text-lg whitespace-nowrap" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
-            <span className="font-bold">IMAGINE;</span>
-            <span className="hidden sm:inline font-normal text-white/70 ml-1">Anime Aesthetic Design with WHATIF</span>
-          </h1>
-        </div>
+        <img src="/logo_imagine_white.svg" alt="imagine" className="h-6 md:h-7 flex-shrink-0" />
         {bannerName && (
           <>
             <span className="hidden sm:inline text-white/50">|</span>

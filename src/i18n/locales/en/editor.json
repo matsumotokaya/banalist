@@ -1,10 +1,10 @@
 {
   "tabs": {
-    "page": "Page",
-    "object": "Object",
+    "tool": "Tool",
     "layer": "Layer"
   },
   "page": {
+    "canvasSettings": "Canvas Settings",
     "canvasSize": "Canvas Size",
     "backgroundColor": "Background Color",
     "noLayers": "No layers",

@@ -44,7 +44,7 @@ interface SidebarProps {
   isMobile?: boolean;
 }
 
-type TabType = 'page' | 'object' | 'layer';
+type TabType = 'tool' | 'layer';
 
 // Get layer name for display (will be called from component with t function)
 const getLayerName = (element: CanvasElement, t: (key: string) => string): string => {
@@ -205,7 +205,7 @@ export const Sidebar = ({
   textPlacementMode = false,
 }: SidebarProps) => {
   const { t } = useTranslation('editor');
-  const [activeTab, setActiveTab] = useState<TabType>('object');
+  const [activeTab, setActiveTab] = useState<TabType>('tool');
   const [showImageLibrary, setShowImageLibrary] = useState(false);
 
   const sensors = useSensors(
@@ -285,24 +285,14 @@ export const Sidebar = ({
       {/* Tabs */}
       <div className="flex border-b border-[#2b2b2b]">
         <button
-          onClick={() => setActiveTab('page')}
+          onClick={() => setActiveTab('tool')}
           className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-            activeTab === 'page'
+            activeTab === 'tool'
               ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
               : 'text-gray-400 hover:text-gray-100 hover:bg-[#2b2b2b]'
           }`}
         >
-          {t('tabs.page')}
-        </button>
-        <button
-          onClick={() => setActiveTab('object')}
-          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-            activeTab === 'object'
-              ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
-              : 'text-gray-400 hover:text-gray-100 hover:bg-[#2b2b2b]'
-          }`}
-        >
-          {t('tabs.object')}
+          {t('tabs.tool')}
         </button>
         <button
           onClick={() => setActiveTab('layer')}
@@ -318,63 +308,45 @@ export const Sidebar = ({
 
       {/* Tab Content */}
       <div className="flex-1 overflow-y-auto">
-        {activeTab === 'page' && (
+        {activeTab === 'tool' && (
           <div className="p-4 space-y-6">
             <div className="pb-6 border-b border-[#2b2b2b]">
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                {t('page.canvasSize')}
+                {t('tabs.tool')}
               </h2>
-              <CanvasSizeSelector
-                width={canvasWidth}
-                height={canvasHeight}
-                onSizeChange={onCanvasSizeChange}
-              />
+              <div className="space-y-4">
+                <TextEditor onAddText={onAddText} isActive={textPlacementMode} />
+                <ShapeSelector onAddShape={onAddShape} />
+                <ImageUploader onAddImage={onAddImage} />
+                <button
+                  onClick={() => setShowImageLibrary(true)}
+                  className="px-3 py-2 text-xs font-medium text-gray-300 bg-[#333333] hover:bg-[#444444] rounded transition-colors flex items-center justify-center gap-1"
+                  title={t('imageUploader.chooseFromLibrary')}
+                >
+                  <span className="material-symbols-outlined text-[16px]">photo_library</span>
+                  <span>{t('imageUploader.chooseFromLibrary')}</span>
+                </button>
+              </div>
             </div>
 
             <div className="pb-6">
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                {t('page.backgroundColor')}
+                {t('page.canvasSettings')}
               </h2>
-              <ColorSelector selectedColor={canvasColor} onColorChange={onSelectColor} showInput={true} />
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'object' && (
-          <div className="p-4 space-y-6">
-            <div className="pb-6 border-b border-[#2b2b2b]">
-              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                {t('object.text')}
-              </h2>
-              <TextEditor onAddText={onAddText} isActive={textPlacementMode} />
-            </div>
-
-            <div className="pb-6 border-b border-[#2b2b2b]">
-              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                {t('object.shapes')}
-              </h2>
-              <ShapeSelector onAddShape={onAddShape} />
-            </div>
-
-            <div className="pb-6 border-b border-[#2b2b2b]">
-              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                {t('object.image')}
-              </h2>
-              <ImageUploader onAddImage={onAddImage} />
-            </div>
-
-            <div className="pb-6">
-              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                {t('imageUploader.imageLibrary')}
-              </h2>
-              <button
-                onClick={() => setShowImageLibrary(true)}
-                className="px-3 py-2 text-xs font-medium text-gray-300 bg-[#333333] hover:bg-[#444444] rounded transition-colors flex items-center justify-center gap-1"
-                title={t('imageUploader.chooseFromLibrary')}
-              >
-                <span className="material-symbols-outlined text-[16px]">photo_library</span>
-                <span>{t('imageUploader.chooseFromLibrary')}</span>
-              </button>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-xs text-gray-500 mb-2">{t('page.canvasSize')}</h3>
+                  <CanvasSizeSelector
+                    width={canvasWidth}
+                    height={canvasHeight}
+                    onSizeChange={onCanvasSizeChange}
+                  />
+                </div>
+                <div>
+                  <h3 className="text-xs text-gray-500 mb-2">{t('page.backgroundColor')}</h3>
+                  <ColorSelector selectedColor={canvasColor} onColorChange={onSelectColor} showInput={true} />
+                </div>
+              </div>
             </div>
           </div>
         )}

@@ -45,6 +45,11 @@ export const CanvasSizeSelector = ({ width, height, onSizeChange }: CanvasSizeSe
 
   return (
     <div className="space-y-3">
+      {/* Current size display */}
+      <div className="text-xs text-gray-500">
+        {t('canvasSizeSelector.currentSize')}: {width} × {height}px
+      </div>
+
       {/* Preset buttons */}
       <div className="grid grid-cols-2 gap-2">
         {SIZE_PRESETS.map((preset) => (
@@ -54,7 +59,7 @@ export const CanvasSizeSelector = ({ width, height, onSizeChange }: CanvasSizeSe
             className={`px-2 py-1.5 text-xs font-medium rounded transition-colors ${
               width === preset.width && height === preset.height
                 ? 'bg-indigo-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                : 'bg-[#333333] text-gray-300 hover:bg-[#444444]'
             }`}
             title={`${preset.width} × ${preset.height}px`}
           >
@@ -66,35 +71,35 @@ export const CanvasSizeSelector = ({ width, height, onSizeChange }: CanvasSizeSe
       {/* Custom size toggle button */}
       <button
         onClick={() => setShowCustom(!showCustom)}
-        className="w-full px-3 py-2 text-xs font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+        className="w-full px-3 py-2 text-xs font-medium text-gray-300 bg-[#333333] rounded hover:bg-[#444444] transition-colors"
       >
         {showCustom ? t('canvasSizeSelector.closeCustomSize') : t('canvasSizeSelector.customSize')}
       </button>
 
       {/* Custom size inputs */}
       {showCustom && (
-        <div className="space-y-3 pt-2 border-t border-gray-200">
+        <div className="space-y-3 pt-2 border-t border-[#2b2b2b]">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-medium text-gray-700">{t('canvasSizeSelector.width')}</label>
+            <label className="text-xs font-medium text-gray-300">{t('canvasSizeSelector.width')}</label>
             <input
               type="number"
               min="1"
               max="10000"
               value={localWidth}
               onChange={(e) => setLocalWidth(Number(e.target.value))}
-              className="w-24 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-24 px-2 py-1 text-sm border border-[#444444] bg-[#2b2b2b] text-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
           <div className="flex items-center justify-between">
-            <label className="text-xs font-medium text-gray-700">{t('canvasSizeSelector.height')}</label>
+            <label className="text-xs font-medium text-gray-300">{t('canvasSizeSelector.height')}</label>
             <input
               type="number"
               min="1"
               max="10000"
               value={localHeight}
               onChange={(e) => setLocalHeight(Number(e.target.value))}
-              className="w-24 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-24 px-2 py-1 text-sm border border-[#444444] bg-[#2b2b2b] text-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
@@ -106,11 +111,6 @@ export const CanvasSizeSelector = ({ width, height, onSizeChange }: CanvasSizeSe
           </button>
         </div>
       )}
-
-      {/* Current size display */}
-      <div className="text-xs text-gray-500 text-center pt-1">
-        {t('canvasSizeSelector.currentSize')}: {width} × {height}px
-      </div>
     </div>
   );
 };
