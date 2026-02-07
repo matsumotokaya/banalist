@@ -31,6 +31,8 @@
   "imageUploader": {
     "uploadImage": "Upload Image",
     "chooseFromLibrary": "Choose from Library",
+    "imageLibrary": "Image Library",
+    "dragDropHint": "You can also drag & drop images",
     "supportedFormats": "Supports JPG, PNG, GIF"
   },
   "object": {
@@ -38,6 +40,7 @@
     "shapes": "Shapes",
     "image": "Image",
     "addText": "Add Text",
+    "addShape": "Add Shape",
     "templates": "Templates"
   },
   "shapes": {
@@ -93,7 +96,8 @@
   },
   "textInput": {
     "placeholder": "Enter text...",
-    "add": "Add"
+    "add": "Add Text",
+    "clickCanvas": "Click on canvas to place"
   },
   "download": "Download",
   "dropImage": "Drop image here",

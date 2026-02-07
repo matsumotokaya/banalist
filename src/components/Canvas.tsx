@@ -21,6 +21,8 @@ interface CanvasProps {
   onImageDrop?: (file: File, x: number, y: number, width: number, height: number) => void;
   onImageLoad?: (id: string, status: 'loaded' | 'error') => void;
   entranceAnimationPhase?: 'idle' | 'loading' | 'animating' | 'complete';
+  textPlacementMode?: boolean;
+  onPlaceText?: (x: number, y: number) => string;
 }
 
 export interface CanvasRef {
@@ -34,8 +36,14 @@ export interface CanvasRef {
 // that extend beyond the artboard boundary remain visible.
 const BLEED = 200;
 
+// Custom "T" cursor SVG for text placement mode
+const TEXT_PLACEMENT_CURSOR = (() => {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><path d='M6 3h12M12 3v18' stroke='white' stroke-width='3' stroke-linecap='round' fill='none'/><path d='M6 3h12M12 3v18' stroke='%23333' stroke-width='1.5' stroke-linecap='round' fill='none'/></svg>`;
+  return `url("data:image/svg+xml,${svg}") 12 3, text`;
+})();
+
 export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
-  { template, elements, scale = 0.5, canvasColor, fileName = 'artwork-01.png', onTextChange, selectedElementIds = [], onSelectElement, onElementUpdate, onElementsUpdate, onImageDrop, onImageLoad, entranceAnimationPhase },
+  { template, elements, scale = 0.5, canvasColor, fileName = 'artwork-01.png', onTextChange, selectedElementIds = [], onSelectElement, onElementUpdate, onElementsUpdate, onImageDrop, onImageLoad, entranceAnimationPhase, textPlacementMode, onPlaceText },
   ref
 ) {
   const { t } = useTranslation('editor');
@@ -49,6 +57,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [isMultiDragging, setIsMultiDragging] = useState(false);
+  const pendingEditIdRef = useRef<string | null>(null);
   const multiDragRef = useRef<{
     active: boolean;
     draggedId: string | null;
@@ -631,6 +640,23 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
     textarea.addEventListener('blur', handleSubmit);
   };
 
+  // Auto-trigger inline editing after text placement
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!pendingEditIdRef.current) return;
+    const id = pendingEditIdRef.current;
+    const node = nodesRef.current.get(id);
+    if (node) {
+      const textEl = elements.find(el => el.id === id) as TextElement | undefined;
+      if (textEl) {
+        pendingEditIdRef.current = null;
+        setTimeout(() => {
+          handleTextDoubleClick(textEl, node as Konva.Text);
+        }, 50);
+      }
+    }
+  }, [elements]);
+
   // Handle file drop on canvas
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -683,7 +709,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   };
 
   return (
-    <div className="relative" onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave}>
+    <div className="relative" style={textPlacementMode ? { cursor: TEXT_PLACEMENT_CURSOR } : undefined} onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave}>
       <div className="absolute -top-8 left-0 text-sm font-medium text-gray-700">
         {fileName}
       </div>
@@ -705,9 +731,26 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
           y={BLEED * scale}
           listening={entranceAnimationPhase !== 'loading' && entranceAnimationPhase !== 'animating'}
           onClick={(e) => {
-            // Deselect when clicking on empty area (stage or background rect)
             const isBackground = e.target === e.target.getStage() ||
                                  (e.target.getClassName() === 'Rect' && e.target.attrs.fill === canvasColor);
+
+            // Text placement mode: place text at click position
+            if (textPlacementMode && onPlaceText && isBackground) {
+              const stage = e.target.getStage();
+              if (!stage) return;
+              const pointer = stage.getPointerPosition();
+              if (!pointer) return;
+              // Convert stage coordinates to canvas coordinates (remove BLEED offset)
+              const x = pointer.x / scale - BLEED;
+              const y = pointer.y / scale - BLEED;
+              // Only allow placement within the canvas bounds
+              if (x < 0 || y < 0 || x > template.width || y > template.height) return;
+              const newId = onPlaceText(x, y);
+              if (newId) pendingEditIdRef.current = newId;
+              return;
+            }
+
+            // Deselect when clicking on empty area
             if (isBackground && onSelectElement) {
               onSelectElement([]);
             }
@@ -728,7 +771,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
               isEditing
             });
 
-            if ((isStage || isBackgroundRect) && !isEditing) {
+            if ((isStage || isBackgroundRect) && !isEditing && !textPlacementMode) {
               // Get mouse position in canvas coordinates (accounting for scale)
               const stage = e.target.getStage();
               if (!stage) return;
@@ -838,6 +881,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
               clipY={0}
               clipWidth={template.width}
               clipHeight={template.height}
+              listening={!textPlacementMode}
             >
               {elements.map((element) => {
                 const nodeRefSetter = (node: Konva.Node | null, id: string) => {

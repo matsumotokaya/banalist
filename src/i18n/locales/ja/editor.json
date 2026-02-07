@@ -31,6 +31,8 @@
   "imageUploader": {
     "uploadImage": "画像をアップロード",
     "chooseFromLibrary": "ライブラリから選ぶ",
+    "imageLibrary": "画像ライブラリ",
+    "dragDropHint": "ドラッグ＆ドロップでも追加できます",
     "supportedFormats": "JPG, PNG, GIF対応"
   },
   "object": {
@@ -38,6 +40,7 @@
     "shapes": "図形",
     "image": "画像",
     "addText": "テキスト追加",
+    "addShape": "図形を選ぶ",
     "templates": "テンプレート"
   },
   "shapes": {
@@ -93,7 +96,8 @@
   },
   "textInput": {
     "placeholder": "テキストを入力...",
-    "add": "追加"
+    "add": "テキストを追加",
+    "clickCanvas": "キャンバスをクリックして配置"
   },
   "download": "ダウンロード",
   "dropImage": "画像をドロップ",

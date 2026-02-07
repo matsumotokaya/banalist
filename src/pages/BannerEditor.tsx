@@ -51,6 +51,7 @@ export const BannerEditor = () => {
   const [selectedTextColor, setSelectedTextColor] = useState<string>('#000000');
   const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]);
   const [copiedElements, setCopiedElements] = useState<CanvasElement[]>([]);
+  const [textPlacementMode, setTextPlacementMode] = useState(false);
   const canvasRef = useRef<CanvasRef>(null);
   const mainRef = useRef<HTMLDivElement>(null);
   const guestCreatedAtRef = useRef<string>(new Date().toISOString());
@@ -702,25 +703,15 @@ export const BannerEditor = () => {
     onMoveRight: handleMoveRight,
   });
 
-  if (!banner) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-[#101010]">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          <p className="mt-4 text-gray-600">読み込み中...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const handleAddText = (text: string) => {
+  const handleCanvasPlaceText = useCallback((x: number, y: number): string => {
+    setTextPlacementMode(false);
     const newId = `text-${Date.now()}`;
     const newElement: TextElement = {
       id: newId,
       type: 'text',
-      text,
-      x: 50,
-      y: 50,
+      text: 'Text',
+      x,
+      y,
       fontSize: selectedSize,
       fontFamily: selectedFont,
       letterSpacing: selectedLetterSpacing,
@@ -735,9 +726,33 @@ export const BannerEditor = () => {
     };
     elementOps.addElement(newElement);
     setSelectedElementIds([newId]);
-
-    // Immediate save for element addition
     immediateSave();
+    return newId;
+  }, [selectedSize, selectedFont, selectedLetterSpacing, selectedLineHeight, selectedTextColor, selectedWeight, elementOps, immediateSave]);
+
+  // Cancel text placement mode on Escape
+  useEffect(() => {
+    if (!textPlacementMode) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setTextPlacementMode(false);
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [textPlacementMode]);
+
+  if (!banner) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-[#1e1e1e]">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <p className="mt-4 text-gray-600">読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const handleAddText = () => {
+    setTextPlacementMode(prev => !prev);
   };
 
   const handleAddShape = (shapeType: 'rectangle' | 'triangle' | 'star' | 'circle' | 'heart') => {
@@ -1088,7 +1103,7 @@ export const BannerEditor = () => {
   const isBannerLoading = !isGuest && (isLoading || !banner);
   if (isBannerLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-[#101010]">
+      <div className="h-screen flex items-center justify-center bg-[#1e1e1e]">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           <p className="mt-4 text-gray-600">読み込み中...</p>
@@ -1165,7 +1180,7 @@ export const BannerEditor = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-[#101010]">
+    <div className="h-screen flex flex-col bg-[#1e1e1e]">
       <Header
         onBackToManager={handleBackToManager}
         bannerName={banner.name}
@@ -1193,12 +1208,13 @@ export const BannerEditor = () => {
           onReorderElements={handleReorderElements}
           onToggleLock={handleToggleLock}
           onToggleVisibility={handleToggleVisibility}
+          textPlacementMode={textPlacementMode}
         />
 
         <main
           ref={mainRef}
-          className="flex-1 overflow-hidden bg-[#101010] flex items-center justify-center"
-          style={{ touchAction: 'none', cursor: isPanning ? 'grabbing' : 'grab' }}
+          className="flex-1 overflow-hidden bg-[#1e1e1e] flex items-center justify-center"
+          style={{ touchAction: 'none', cursor: textPlacementMode ? 'text' : isPanning ? 'grabbing' : 'grab' }}
           onMouseDown={handlePanMouseDown}
           onMouseMove={handlePanMouseMove}
           onMouseUp={handlePanMouseUp}
@@ -1231,6 +1247,8 @@ export const BannerEditor = () => {
                 onImageDrop={handleImageDrop}
                 onImageLoad={handleImageLoad}
                 entranceAnimationPhase={animationPhase}
+                textPlacementMode={textPlacementMode}
+                onPlaceText={handleCanvasPlaceText}
               />
             {(animationPhase === 'loading' || animationPhase === 'animating') && (
               <LoadingOverlay
@@ -1272,8 +1290,8 @@ export const BannerEditor = () => {
       <div className="flex md:hidden flex-1 flex-col overflow-hidden">
         <main
           ref={mainRef}
-          className="flex-1 overflow-hidden bg-[#101010] flex items-center justify-center"
-          style={{ touchAction: 'none', cursor: isPanning ? 'grabbing' : 'grab' }}
+          className="flex-1 overflow-hidden bg-[#1e1e1e] flex items-center justify-center"
+          style={{ touchAction: 'none', cursor: textPlacementMode ? 'text' : isPanning ? 'grabbing' : 'grab' }}
           onMouseDown={handlePanMouseDown}
           onMouseMove={handlePanMouseMove}
           onMouseUp={handlePanMouseUp}
@@ -1306,6 +1324,8 @@ export const BannerEditor = () => {
                 onImageDrop={handleImageDrop}
                 onImageLoad={handleImageLoad}
                 entranceAnimationPhase={animationPhase}
+                textPlacementMode={textPlacementMode}
+                onPlaceText={handleCanvasPlaceText}
               />
             {(animationPhase === 'loading' || animationPhase === 'animating') && (
               <LoadingOverlay
@@ -1336,6 +1356,7 @@ export const BannerEditor = () => {
           onToggleLock={handleToggleLock}
           onToggleVisibility={handleToggleVisibility}
           isMobile={true}
+          textPlacementMode={textPlacementMode}
         />
 
         {/* Mobile PropertyPanel - Modal */}
