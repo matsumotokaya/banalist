@@ -938,7 +938,11 @@ export const BannerEditor = () => {
   const handleToggleLock = (id: string) => {
     const element = elements.find(el => el.id === id);
     if (element) {
-      elementOps.updateElement(id, { locked: !element.locked });
+      const willLock = !element.locked;
+      elementOps.updateElement(id, { locked: willLock });
+      if (willLock) {
+        setSelectedElementIds(prev => prev.filter(sid => sid !== id));
+      }
     }
   };
 
