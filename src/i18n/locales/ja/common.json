@@ -33,6 +33,12 @@
     "uploading": "アップロード中...",
     "creating": "作成中..."
   },
+  "thumbnail": {
+    "loading": "読み込み中...",
+    "noThumbnail": "サムネイルなし",
+    "generating": "サムネイル生成中...",
+    "pleaseWait": "しばらくお待ちください"
+  },
   "colorPicker": {
     "open": "カラーピッカーを開く"
   },
@@ -45,10 +51,10 @@
   "showMore": "もっと見る ({{count}}件)",
   "items": "{{count}}件",
   "footer": {
-    "tagline": "Anime Aesthetic Design with WHATIF",
+    "tagline": "99%完成済みデザインキット",
     "brandSite": "ブランドサイト",
     "shop": "ショップ",
-    "aboutUs": "About Us",
+    "aboutUs": "サービスについて",
     "legalInfo": "特定商取引法に基づく表記",
     "privacyPolicy": "プライバシーポリシー",
     "termsOfService": "利用規約",

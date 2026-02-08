@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo, type RefObject } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import debounce from 'lodash.debounce';
 import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
@@ -25,6 +26,7 @@ export const BannerEditor = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, user } = useAuth();
+  const { t } = useTranslation('common');
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showSaveAsTemplateModal, setShowSaveAsTemplateModal] = useState(false);
   const isGuest = !id;
@@ -1418,8 +1420,8 @@ export const BannerEditor = () => {
           <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-4 shadow-2xl">
             <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600"></div>
             <div className="text-center">
-              <p className="text-base font-semibold text-gray-800">サムネイル生成中...</p>
-              <p className="text-sm text-gray-500 mt-1">しばらくお待ちください</p>
+              <p className="text-base font-semibold text-gray-800">{t('thumbnail.generating')}</p>
+              <p className="text-sm text-gray-500 mt-1">{t('thumbnail.pleaseWait')}</p>
             </div>
           </div>
         </div>

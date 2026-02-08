@@ -33,6 +33,12 @@
     "uploading": "上传中...",
     "creating": "创建中..."
   },
+  "thumbnail": {
+    "loading": "加载中...",
+    "noThumbnail": "无缩略图",
+    "generating": "正在生成缩略图...",
+    "pleaseWait": "请稍候"
+  },
   "colorPicker": {
     "open": "打开取色器"
   },
@@ -45,7 +51,7 @@
   "showMore": "查看更多 ({{count}}个)",
   "items": "{{count}}个",
   "footer": {
-    "tagline": "Anime Aesthetic Design with WHATIF",
+    "tagline": "99%完成设计工具包",
     "brandSite": "品牌网站",
     "shop": "商店",
     "aboutUs": "关于我们",

@@ -33,6 +33,12 @@
     "uploading": "업로드 중...",
     "creating": "만드는 중..."
   },
+  "thumbnail": {
+    "loading": "로딩 중...",
+    "noThumbnail": "썸네일 없음",
+    "generating": "썸네일 생성 중...",
+    "pleaseWait": "잠시만 기다려 주세요"
+  },
   "colorPicker": {
     "open": "색상 선택기 열기"
   },
@@ -45,7 +51,7 @@
   "showMore": "더보기 ({{count}}개)",
   "items": "{{count}}개",
   "footer": {
-    "tagline": "Anime Aesthetic Design with WHATIF",
+    "tagline": "99% 완성 디자인 키트",
     "brandSite": "브랜드 사이트",
     "shop": "쇼핑",
     "aboutUs": "소개",

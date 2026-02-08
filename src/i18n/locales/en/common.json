@@ -33,6 +33,12 @@
     "uploading": "Uploading...",
     "creating": "Creating..."
   },
+  "thumbnail": {
+    "loading": "Loading...",
+    "noThumbnail": "No thumbnail",
+    "generating": "Generating thumbnail...",
+    "pleaseWait": "Please wait a moment"
+  },
   "colorPicker": {
     "open": "Open color picker"
   },
@@ -45,7 +51,7 @@
   "showMore": "Show more ({{count}})",
   "items": "{{count}} items",
   "footer": {
-    "tagline": "Anime Aesthetic Design with WHATIF",
+    "tagline": "99% Ready Design Kit",
     "brandSite": "Brand site",
     "shop": "Shop",
     "aboutUs": "About Us",
