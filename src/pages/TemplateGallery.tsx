@@ -285,8 +285,17 @@ export const TemplateGallery = () => {
             </p>
 
             {/* Interactive Demo Canvas */}
-            <div className="max-w-5xl mx-auto">
-              <DemoCanvas scale={0.45} />
+            <div className="max-w-5xl mx-auto flex justify-center">
+              {/* Mobile: scale=0.22, Tablet: scale=0.35, Desktop: scale=0.45 */}
+              <div className="md:hidden">
+                <DemoCanvas scale={0.22} />
+              </div>
+              <div className="hidden md:block lg:hidden">
+                <DemoCanvas scale={0.35} />
+              </div>
+              <div className="hidden lg:block">
+                <DemoCanvas scale={0.45} />
+              </div>
             </div>
           </div>
         </section>
