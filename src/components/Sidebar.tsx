@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../contexts/AuthContext';
 import {
   DndContext,
   closestCenter,
@@ -23,6 +24,7 @@ import { ImageUploader } from './ImageUploader';
 import { ImageLibraryModal } from './ImageLibraryModal';
 import { ShapeSelector } from './ShapeSelector';
 import { CanvasSizeSelector } from './CanvasSizeSelector';
+import { UpgradeModal } from './UpgradeModal';
 import type { CanvasElement } from '../types/template';
 
 interface SidebarProps {
@@ -205,8 +207,20 @@ export const Sidebar = ({
   textPlacementMode = false,
 }: SidebarProps) => {
   const { t } = useTranslation('editor');
+  const { profile } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('tool');
   const [showImageLibrary, setShowImageLibrary] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  const isPremium = profile?.subscriptionTier === 'premium';
+
+  const handleImageLibraryClick = () => {
+    if (!isPremium) {
+      setShowUpgradeModal(true);
+    } else {
+      setShowImageLibrary(true);
+    }
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -255,11 +269,14 @@ export const Sidebar = ({
           <div className="flex flex-col items-center gap-2 min-w-[80px]">
             <h3 className="text-[10px] font-semibold text-gray-400 uppercase">{t('imageUploader.imageLibrary')}</h3>
             <button
-              onClick={() => setShowImageLibrary(true)}
-              className="p-2 hover:bg-[#333333] rounded transition-colors"
-              title={t('imageUploader.chooseFromLibrary')}
+              onClick={handleImageLibraryClick}
+              className={`p-2 rounded transition-colors relative ${isPremium ? 'hover:bg-[#333333]' : 'hover:bg-[#333333] opacity-60'}`}
+              title={isPremium ? t('imageUploader.chooseFromLibrary') : 'Premium members only'}
             >
               <span className="material-symbols-outlined text-[24px] text-gray-300">photo_library</span>
+              {!isPremium && (
+                <span className="material-symbols-outlined text-[12px] text-yellow-400 absolute top-0 right-0">lock</span>
+              )}
             </button>
           </div>
 
@@ -275,6 +292,10 @@ export const Sidebar = ({
           onClose={() => setShowImageLibrary(false)}
           onSelectImage={onAddImage}
           initialTab="default"
+        />
+        <UpgradeModal
+          isOpen={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
         />
       </aside>
     );
@@ -321,12 +342,15 @@ export const Sidebar = ({
                 <ShapeSelector onAddShape={onAddShape} />
                 <ImageUploader onAddImage={onAddImage} />
                 <button
-                  onClick={() => setShowImageLibrary(true)}
-                  className="w-full px-3 py-2 text-xs font-medium text-gray-300 bg-[#333333] hover:bg-[#444444] rounded transition-colors flex items-center justify-center gap-1"
-                  title={t('imageUploader.chooseFromLibrary')}
+                  onClick={handleImageLibraryClick}
+                  className={`w-full px-3 py-2 text-xs font-medium text-gray-300 bg-[#333333] hover:bg-[#444444] rounded transition-colors flex items-center justify-center gap-1 relative ${!isPremium ? 'opacity-60' : ''}`}
+                  title={isPremium ? t('imageUploader.chooseFromLibrary') : 'Premium members only'}
                 >
                   <span className="material-symbols-outlined text-[16px]">photo_library</span>
                   <span>{t('imageUploader.chooseFromLibrary')}</span>
+                  {!isPremium && (
+                    <span className="material-symbols-outlined text-[14px] text-yellow-400 ml-1">lock</span>
+                  )}
                 </button>
               </div>
             </div>
@@ -414,6 +438,10 @@ export const Sidebar = ({
         onClose={() => setShowImageLibrary(false)}
         onSelectImage={onAddImage}
         initialTab="default"
+      />
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
       />
     </aside>
   );
