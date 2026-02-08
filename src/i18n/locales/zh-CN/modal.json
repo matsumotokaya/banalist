@@ -25,8 +25,8 @@
     }
   },
   "upgrade": {
-    "title": "高级版专属设计",
-    "description": "需要升级才能查看/编辑此设计",
+    "title": "高级版专属",
+    "description": "需要升级才能查看/编辑此设计或功能",
     "features": {
       "access": {
         "title": "访问所有高级版设计",
@@ -37,8 +37,8 @@
         "desc": "无限创建设计文件"
       },
       "earlyAccess": {
-        "title": "抢先体验新功能",
-        "desc": "优先使用AI功能"
+        "title": "访问设计素材库",
+        "desc": "无限使用高级素材"
       }
     },
     "upgradeButton": "高级版方案（$8/月）",

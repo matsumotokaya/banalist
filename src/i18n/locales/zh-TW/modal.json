@@ -25,8 +25,8 @@
     }
   },
   "upgrade": {
-    "title": "進階版專屬設計",
-    "description": "需要升級才能查看/編輯此設計",
+    "title": "進階版專屬",
+    "description": "需要升級才能查看/編輯此設計或功能",
     "features": {
       "access": {
         "title": "存取所有進階版設計",
@@ -37,8 +37,8 @@
         "desc": "無限建立設計檔案"
       },
       "earlyAccess": {
-        "title": "搶先體驗新功能",
-        "desc": "優先使用 AI 功能"
+        "title": "存取設計素材庫",
+        "desc": "無限使用進階素材"
       }
     },
     "upgradeButton": "進階版方案（$8/月）",

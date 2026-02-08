@@ -25,8 +25,8 @@
     }
   },
   "upgrade": {
-    "title": "Premium-only Design",
-    "description": "Upgrade required to view/edit this design",
+    "title": "Premium Only",
+    "description": "Upgrade required to view/edit this design or feature",
     "features": {
       "access": {
         "title": "Access to all Premium designs",
@@ -37,8 +37,8 @@
         "desc": "Create unlimited design files"
       },
       "earlyAccess": {
-        "title": "Early access to new features",
-        "desc": "Priority use of AI features"
+        "title": "Design Asset Library Access",
+        "desc": "Unlimited use of premium materials"
       }
     },
     "upgradeButton": "Premium Plan ($8 / month)",
