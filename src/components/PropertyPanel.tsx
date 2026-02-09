@@ -508,11 +508,11 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
     return (
       <>
         {/* Backdrop */}
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={onClose} />
+        <div className="fixed inset-0 bg-black/70 z-40" onClick={onClose} />
 
-        {/* Modal */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl z-50 max-h-[80vh] overflow-y-auto">
-          <div className="p-4">
+        {/* Drawer */}
+        <div className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-[#2b2b2b] rounded-t-2xl shadow-2xl z-50 max-h-[75vh] overflow-y-auto">
+          <div className="p-5">
             {panelContent}
           </div>
         </div>
