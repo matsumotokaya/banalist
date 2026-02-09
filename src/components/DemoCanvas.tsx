@@ -313,7 +313,7 @@ export const DemoCanvas = ({ scale = 0.45 }: DemoCanvasProps) => {
         className="md:hidden px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all font-medium text-sm flex items-center gap-2 shadow-lg"
       >
         <span className="material-symbols-outlined text-[20px]">download</span>
-        PNGでダウンロードする
+        {t('hero.downloadButton')}
       </button>
     </div>
   );
