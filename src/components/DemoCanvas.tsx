@@ -296,10 +296,10 @@ export const DemoCanvas = ({ scale = 0.45 }: DemoCanvasProps) => {
         </div>
       </div>
 
-      {/* Download button - floating bottom right of artboard */}
+      {/* Download button - mobile: outside bottom-right, desktop: inside bottom-right */}
       <button
         onClick={handleExport}
-        className="absolute bottom-4 right-4 px-4 md:px-6 py-2 md:py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all font-medium text-xs md:text-sm flex items-center gap-1.5 md:gap-2 shadow-lg"
+        className="absolute -bottom-14 right-0 md:bottom-4 md:right-4 px-4 md:px-6 py-2 md:py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all font-medium text-xs md:text-sm flex items-center gap-1.5 md:gap-2 shadow-lg"
       >
         <span className="material-symbols-outlined text-[18px] md:text-[20px]">download</span>
         {t('hero.downloadButton')}
