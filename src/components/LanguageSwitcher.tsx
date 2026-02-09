@@ -30,17 +30,17 @@ export const LanguageSwitcher = () => {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+        className="flex items-center gap-1.5 px-2 md:px-2.5 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
       >
-        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+        <svg className="w-4 h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
           <circle cx="12" cy="12" r="10" />
           <ellipse cx="12" cy="12" rx="4" ry="10" />
           <path d="M2 12h20" />
           <path d="M4.5 7h15" />
           <path d="M4.5 17h15" />
         </svg>
-        <span className="text-white hidden md:inline" style={{ fontSize: '0.75rem' }}>{currentLang.label}</span>
-        <svg className="w-3 h-3 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <span className="text-white text-xs hidden md:inline">{currentLang.label}</span>
+        <svg className="w-3 h-3 text-white/70 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
@@ -51,11 +51,11 @@ export const LanguageSwitcher = () => {
             <button
               key={lang.code}
               onClick={() => handleLanguageChange(lang.code)}
-              className={`w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors flex items-center gap-2 ${
+              className={`w-full px-4 py-2 text-left text-xs hover:bg-gray-50 transition-colors flex items-center gap-2 ${
                 currentLang.code === lang.code ? 'bg-indigo-50' : ''
               }`}
             >
-              <span style={{ fontSize: '0.75rem' }}>{lang.label}</span>
+              <span>{lang.label}</span>
             </button>
           ))}
         </div>
