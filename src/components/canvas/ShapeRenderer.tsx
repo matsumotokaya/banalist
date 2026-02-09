@@ -8,7 +8,7 @@ interface ShapeRendererProps {
   isShiftPressed: boolean;
   isMultiDragging: boolean;
   isMultiSelected: boolean;
-  onSelect: (id: string, event: Konva.KonvaEventObject<MouseEvent>) => void;
+  onSelect: (id: string, event: Konva.KonvaEventObject<MouseEvent | Event>) => void;
   onUpdate?: (id: string, updates: Partial<ShapeElement>) => void;
   onDragStart?: (id: string, event: Konva.KonvaEventObject<DragEvent>) => void;
   onDragMove?: (id: string, event: Konva.KonvaEventObject<DragEvent>) => void;
@@ -74,6 +74,7 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, isMultiDragging, isMult
     draggable: !shape.locked && (shape.visible ?? true),
     listening: !shape.locked && (shape.visible ?? true),
     onMouseDown: (e: Konva.KonvaEventObject<MouseEvent>) => onSelect(shape.id, e),
+    onTap: (e: Konva.KonvaEventObject<MouseEvent>) => onSelect(shape.id, e),
     onDragStart: (e: Konva.KonvaEventObject<DragEvent>) => {
       dragStartPosRef.current = toLogicalPos({ x: e.target.x(), y: e.target.y() });
       lockAxisRef.current = null;

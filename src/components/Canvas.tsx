@@ -259,11 +259,11 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   // Handle element selection (single or multi with Shift)
   // Uses selectedIdsRef to always read the latest selection,
   // avoiding stale-closure bugs when clicks happen in rapid succession.
-  const handleElementClick = (id: string, event: Konva.KonvaEventObject<MouseEvent>) => {
+  const handleElementClick = (id: string, event: Konva.KonvaEventObject<MouseEvent | Event>) => {
     if (!onSelectElement) return;
 
     const current = selectedIdsRef.current;
-    const isShiftPressed = event.evt.shiftKey;
+    const isShiftPressed = 'shiftKey' in event.evt ? event.evt.shiftKey : false;
     const isAlreadySelected = current.includes(id);
 
     if (isShiftPressed) {

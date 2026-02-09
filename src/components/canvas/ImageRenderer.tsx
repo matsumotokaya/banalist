@@ -8,7 +8,7 @@ interface ImageRendererProps {
   isShiftPressed: boolean;
   isMultiDragging: boolean;
   isMultiSelected: boolean;
-  onSelect: (id: string, event: Konva.KonvaEventObject<MouseEvent>) => void;
+  onSelect: (id: string, event: Konva.KonvaEventObject<MouseEvent | Event>) => void;
   onUpdate?: (id: string, updates: Partial<ImageElement>) => void;
   onDragStart?: (id: string, event: Konva.KonvaEventObject<DragEvent>) => void;
   onDragMove?: (id: string, event: Konva.KonvaEventObject<DragEvent>) => void;
@@ -131,6 +131,7 @@ const ImageRendererComponent = ({
       draggable={!imageElement.locked && (imageElement.visible ?? true)}
       listening={!imageElement.locked && (imageElement.visible ?? true)}
       onMouseDown={(e) => onSelect(imageElement.id, e)}
+      onTap={(e) => onSelect(imageElement.id, e)}
       onDragStart={(e) => {
         dragStartPosRef.current = { x: e.target.x(), y: e.target.y() };
         lockAxisRef.current = null;

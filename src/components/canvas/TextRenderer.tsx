@@ -8,7 +8,7 @@ interface TextRendererProps {
   isShiftPressed: boolean;
   isMultiDragging: boolean;
   isMultiSelected: boolean;
-  onSelect: (id: string, event: Konva.KonvaEventObject<MouseEvent>) => void;
+  onSelect: (id: string, event: Konva.KonvaEventObject<MouseEvent | Event>) => void;
   onDoubleClick: (element: TextElement, textNode: Konva.Text) => void;
   onUpdate?: (id: string, updates: Partial<TextElement>) => void;
   onDragStart?: (id: string, event: Konva.KonvaEventObject<DragEvent>) => void;
@@ -77,6 +77,7 @@ const TextRendererComponent = ({
       draggable={!textElement.locked && (textElement.visible ?? true)}
       listening={!textElement.locked && (textElement.visible ?? true)}
       onMouseDown={(e) => onSelect(textElement.id, e)}
+      onTap={(e) => onSelect(textElement.id, e)}
       onDblClick={(e) => {
         const textNode = e.target as Konva.Text;
         onDoubleClick(textElement, textNode);
