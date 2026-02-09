@@ -82,6 +82,10 @@ const TextRendererComponent = ({
         const textNode = e.target as Konva.Text;
         onDoubleClick(textElement, textNode);
       }}
+      onDblTap={(e) => {
+        const textNode = e.target as Konva.Text;
+        onDoubleClick(textElement, textNode);
+      }}
       onDragStart={(e) => {
         dragStartPosRef.current = { x: e.target.x(), y: e.target.y() };
         lockAxisRef.current = null;
