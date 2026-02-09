@@ -22,7 +22,8 @@ export const BottomBar = ({
   return (
     <div className="h-14 md:h-16 bg-[#1a1a1a] border-t border-[#2b2b2b] overflow-x-auto overflow-y-hidden">
       <div className="flex items-center justify-between px-3 md:px-6 h-full min-w-max">
-        <div className="flex items-center gap-3 md:gap-4">
+        {/* Zoom controls - Desktop only (mobile uses pinch zoom) */}
+        <div className="hidden md:flex items-center gap-3 md:gap-4">
           <div className="flex items-center gap-2 md:gap-3">
             <button
               onClick={() => onZoomChange(Math.max(25, zoom - 10))}
