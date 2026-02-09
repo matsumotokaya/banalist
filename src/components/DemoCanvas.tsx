@@ -274,34 +274,45 @@ export const DemoCanvas = ({ scale = 0.45 }: DemoCanvasProps) => {
   const artboardHeight = DEMO_TEMPLATE.height * scale;
 
   return (
-    <div className="relative inline-block">
-      {/* Clip to artboard only — hide BLEED overflow */}
-      <div
-        className="overflow-hidden"
-        style={{ width: artboardWidth, height: artboardHeight }}
-      >
-        <div style={{ marginLeft: -bleedPx, marginTop: -bleedPx }}>
-          <Canvas
-            ref={canvasRef}
-            template={DEMO_TEMPLATE}
-            elements={elements}
-            selectedElementIds={selectedIds}
-            canvasColor={canvasColor}
-            scale={scale}
-            onSelectElement={handleUserSelect}
-            onElementUpdate={handleElementUpdate}
-            onElementsUpdate={handleElementsUpdate}
-            onTextChange={handleTextChange}
-          />
+    <div className="flex flex-col items-center gap-4">
+      <div className="relative inline-block">
+        {/* Clip to artboard only — hide BLEED overflow */}
+        <div
+          className="overflow-hidden"
+          style={{ width: artboardWidth, height: artboardHeight }}
+        >
+          <div style={{ marginLeft: -bleedPx, marginTop: -bleedPx }}>
+            <Canvas
+              ref={canvasRef}
+              template={DEMO_TEMPLATE}
+              elements={elements}
+              selectedElementIds={selectedIds}
+              canvasColor={canvasColor}
+              scale={scale}
+              onSelectElement={handleUserSelect}
+              onElementUpdate={handleElementUpdate}
+              onElementsUpdate={handleElementsUpdate}
+              onTextChange={handleTextChange}
+            />
+          </div>
         </div>
+
+        {/* Download button - Desktop only: floating inside artboard */}
+        <button
+          onClick={handleExport}
+          className="hidden md:flex absolute bottom-4 right-4 px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all font-medium text-sm items-center gap-2 shadow-lg"
+        >
+          <span className="material-symbols-outlined text-[20px]">download</span>
+          {t('hero.downloadButton')}
+        </button>
       </div>
 
-      {/* Download button - mobile: outside bottom-right, desktop: inside bottom-right */}
+      {/* Download button - Mobile only: centered below artboard */}
       <button
         onClick={handleExport}
-        className="absolute -bottom-14 right-0 md:bottom-4 md:right-4 px-4 md:px-6 py-2 md:py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all font-medium text-xs md:text-sm flex items-center gap-1.5 md:gap-2 shadow-lg"
+        className="md:hidden px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all font-medium text-sm flex items-center gap-2 shadow-lg"
       >
-        <span className="material-symbols-outlined text-[18px] md:text-[20px]">download</span>
+        <span className="material-symbols-outlined text-[20px]">download</span>
         {t('hero.downloadButton')}
       </button>
     </div>
