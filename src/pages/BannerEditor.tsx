@@ -6,6 +6,7 @@ import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
 import { PropertyPanel } from '../components/PropertyPanel';
 import { BottomBar } from '../components/BottomBar';
+import { MobileToolbar } from '../components/MobileToolbar';
 import { Canvas, type CanvasRef } from '../components/Canvas';
 import { UpgradeModal } from '../components/UpgradeModal';
 import { SaveAsTemplateModal } from '../components/SaveAsTemplateModal';
@@ -1341,13 +1342,10 @@ export const BannerEditor = () => {
           </div>
         </main>
 
-        {/* Mobile Sidebar - Bottom horizontal scrollable */}
-        <Sidebar
+        {/* Mobile Toolbar - Floating buttons + Drawer */}
+        <MobileToolbar
           canvasColor={canvasColor}
-          canvasWidth={banner.template.width}
-          canvasHeight={banner.template.height}
           onSelectColor={setCanvasColor}
-          onCanvasSizeChange={handleCanvasSizeChange}
           onAddText={handleAddText}
           onAddShape={handleAddShape}
           onAddImage={handleAddImage}
@@ -1357,7 +1355,6 @@ export const BannerEditor = () => {
           onReorderElements={handleReorderElements}
           onToggleLock={handleToggleLock}
           onToggleVisibility={handleToggleVisibility}
-          isMobile={true}
           textPlacementMode={textPlacementMode}
         />
 
