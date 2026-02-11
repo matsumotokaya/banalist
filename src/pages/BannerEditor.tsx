@@ -317,7 +317,7 @@ export const BannerEditor = () => {
         const defaultText: TextElement = {
           id: `text-${Date.now()}-${Math.random()}`, // Unique ID with random component
           type: 'text',
-          text: 'BANALISTでバナーをつくろう。',
+          text: 'IMAGINEでバナーをつくろう。',
           x: banner.template.width / 2 - 550,
           y: banner.template.height / 2 - 40,
           fontSize: 80,

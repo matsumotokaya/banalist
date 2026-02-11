@@ -12,7 +12,7 @@
     "uploadComplete": "已成功上傳 {{count}} 張圖片",
     "uploadPartial": "{{success}} 張成功，{{fail}} 張失敗",
     "upgradeComplete": "升級完成！",
-    "welcomePremium": "歡迎使用 BANALIST Premium！所有進階功能現已可用。",
+    "welcomePremium": "歡迎使用 IMAGINE Premium！所有進階功能現已可用。",
     "premiumFeatures": "進階功能",
     "feature1": "存取所有進階版橫幅",
     "feature2": "無限使用高品質範本",
@@ -23,7 +23,7 @@
     "deleteBanner": "確定要刪除此橫幅嗎？"
   },
   "placeholder": {
-    "defaultBannerText": "使用 BANALIST 建立橫幅。",
+    "defaultBannerText": "使用 IMAGINE 建立橫幅。",
     "enterText": "輸入文字...",
     "untitledBanner": "未命名橫幅"
   }

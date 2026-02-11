@@ -12,7 +12,7 @@
     "uploadComplete": "已成功上传 {{count}} 张图片",
     "uploadPartial": "{{success}} 张成功，{{fail}} 张失败",
     "upgradeComplete": "升级完成！",
-    "welcomePremium": "欢迎使用 BANALIST Premium！所有高级功能现已可用。",
+    "welcomePremium": "欢迎使用 IMAGINE Premium！所有高级功能现已可用。",
     "premiumFeatures": "高级功能",
     "feature1": "访问所有高级版横幅",
     "feature2": "无限使用高品质模板",
@@ -23,7 +23,7 @@
     "deleteBanner": "确定要删除此横幅吗？"
   },
   "placeholder": {
-    "defaultBannerText": "使用 BANALIST 创建横幅。",
+    "defaultBannerText": "使用 IMAGINE 创建横幅。",
     "enterText": "输入文字...",
     "untitledBanner": "未命名横幅"
   }
