@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '../components/Header';
@@ -26,8 +26,9 @@ export const TemplateGallery = () => {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<TemplateRecord | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
-  const { user, profile, signInWithGoogle } = useAuth();
+  const { user, profile } = useAuth();
   const isGuest = !user;
   const isAdmin = profile?.role === 'admin';
   const guestTemplateId = 'd9c4fee2-8e9c-4703-a507-57f3bde5d2b3';
@@ -219,7 +220,7 @@ export const TemplateGallery = () => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    signInWithGoogle();
+                    navigate('/auth?redirect=' + encodeURIComponent(location.pathname));
                   }}
                   className="w-28 py-2 bg-white/95 text-gray-900 text-xs font-semibold rounded shadow-sm"
                 >

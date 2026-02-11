@@ -7,6 +7,8 @@ import { TemplateGallery } from './pages/TemplateGallery';
 import { TemplatesBySize } from './pages/TemplatesBySize';
 import { BannerEditor } from './pages/BannerEditor';
 import { PaymentSuccess } from './pages/PaymentSuccess';
+import { AuthPage } from './pages/AuthPage';
+import { AuthCallback } from './pages/AuthCallback';
 import { Tokushoho } from './pages/Tokushoho';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { TermsOfService } from './pages/TermsOfService';
@@ -30,6 +32,8 @@ function App() {
             <Route path="/banners/:sizeKey" element={<BannersBySize />} />
             <Route path="/banner/:id" element={<BannerEditor />} />
             <Route path="/banner" element={<BannerEditor />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/success" element={<PaymentSuccess />} />
             <Route path="/about" element={<AboutUs />} />
             <Route path="/legal/specified-commercial-transactions-act" element={<Tokushoho />} />

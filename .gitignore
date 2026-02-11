@@ -29,3 +29,6 @@ dist-ssr
 .env.*.local
 
 # Sensitive documentation (now removed, docs/ is for public documentation)
+
+# Apple private keys
+*.p8

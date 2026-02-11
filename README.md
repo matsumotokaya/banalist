@@ -1,4 +1,4 @@
-# WHATIF
+# IMAGINE
 
 Browser-based banner design tool with template and rule-based image generation.
 
