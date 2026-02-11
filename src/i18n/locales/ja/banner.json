@@ -22,5 +22,15 @@
   "createFromScratch": "白紙から作成",
   "emptyStateMessage": "無料テンプレートからデザインを作りましょう",
   "viewTemplates": "テンプレートを見る",
-  "unlockWithLogin": "ログインしてアンロック"
+  "unlockWithLogin": "ログインしてアンロック",
+  "createNew": "新規作成",
+  "noMatchingDesigns": "該当するデザインはありません",
+  "noMatchingTemplates": "該当するテンプレートはありません",
+  "categoryNotFound": "カテゴリが見つかりません",
+  "backToTemplates": "テンプレート一覧に戻る",
+  "backToDesigns": "デザイン一覧に戻る",
+  "noTemplatesForSize": "このサイズのテンプレートはありません",
+  "noDesignsForSize": "このサイズのデザインはありません",
+  "createDesignFromTemplate": "テンプレートから新しいデザインを作成してください",
+  "templateLoadFailed": "テンプレートの読み込みに失敗しました"
 }

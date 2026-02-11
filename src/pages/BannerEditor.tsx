@@ -27,7 +27,7 @@ export const BannerEditor = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, user } = useAuth();
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(['common', 'message']);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showSaveAsTemplateModal, setShowSaveAsTemplateModal] = useState(false);
   const isGuest = !id;
@@ -397,7 +397,7 @@ export const BannerEditor = () => {
       } catch (error) {
         console.error('[BannerEditor] Guest save failed:', error);
         setSaveStatus('error');
-        setLastSaveError(error instanceof Error ? error.message : '保存に失敗しました');
+        setLastSaveError(error instanceof Error ? error.message : t('message:error.saveFailed'));
       }
       return;
     }
@@ -434,7 +434,7 @@ export const BannerEditor = () => {
     } catch (error) {
       console.error('[BannerEditor] Save failed:', error);
       setSaveStatus('error');
-      setLastSaveError(error instanceof Error ? error.message : '保存に失敗しました');
+      setLastSaveError(error instanceof Error ? error.message : t('message:error.saveFailed'));
       // Don't show alert for auto-save failures, just show in status indicator
     }
   };
@@ -748,7 +748,7 @@ export const BannerEditor = () => {
       <div className="h-screen flex items-center justify-center bg-[#1e1e1e]">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          <p className="mt-4 text-gray-600">読み込み中...</p>
+          <p className="mt-4 text-gray-600">{t('common:status.loading')}</p>
         </div>
       </div>
     );
@@ -788,7 +788,7 @@ export const BannerEditor = () => {
 
     if (isDataUrlImage(src)) {
       if (!user) {
-        alert('画像を追加するにはログインが必要です。');
+        alert(t('message:error.imageLoginRequired'));
         return;
       }
       try {
@@ -796,7 +796,7 @@ export const BannerEditor = () => {
         finalSrc = await uploadDataUrlToBucket(src, 'user-images', fileBase);
       } catch (error) {
         console.error('Image upload failed:', error);
-        alert('画像のアップロードに失敗しました。');
+        alert(t('message:error.imageUploadFailed'));
         return;
       }
     }
@@ -828,7 +828,7 @@ export const BannerEditor = () => {
   const handleImageDrop = async (file: File, x: number, y: number, width: number, height: number) => {
     const newId = `image-${Date.now()}-${Math.random()}`;
     if (!user) {
-      alert('画像を追加するにはログインが必要です。');
+      alert(t('message:error.imageLoginRequired'));
       return;
     }
 
@@ -838,7 +838,7 @@ export const BannerEditor = () => {
       publicUrl = await uploadFileToBucket(file, 'user-images', fileBase);
     } catch (error) {
       console.error('Image upload failed:', error);
-      alert('画像のアップロードに失敗しました。');
+      alert(t('message:error.imageUploadFailed'));
       return;
     }
 
@@ -1085,7 +1085,7 @@ export const BannerEditor = () => {
       const dataURL = canvasRef.current.exportImage();
 
       if (!dataURL || dataURL.length < 100) {
-        alert('画像の生成に失敗しました。もう一度お試しください。');
+        alert(t('message:error.imageGenerationFailed'));
         console.error('Export failed: invalid data URL');
         return;
       }
@@ -1099,7 +1099,7 @@ export const BannerEditor = () => {
       console.log('Export successful, size:', dataURL.length);
     } catch (error) {
       console.error('Error exporting image:', error);
-      alert('画像のエクスポートに失敗しました。');
+      alert(t('message:error.exportFailed'));
     }
   };
 
@@ -1109,7 +1109,7 @@ export const BannerEditor = () => {
       <div className="h-screen flex items-center justify-center bg-[#1e1e1e]">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          <p className="mt-4 text-gray-600">読み込み中...</p>
+          <p className="mt-4 text-gray-600">{t('common:status.loading')}</p>
         </div>
       </div>
     );

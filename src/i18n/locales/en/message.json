@@ -6,7 +6,11 @@
     "bannerCreationFailed": "Failed to create banner",
     "uploadFailed": "Upload failed",
     "onlyImageFiles": "Please select image files only",
-    "upgradeComingSoon": "Upgrade feature coming soon"
+    "upgradeComingSoon": "Upgrade feature coming soon",
+    "upgradeError": "Upgrade failed. Please try again.",
+    "saveFailed": "Save failed",
+    "imageLoginRequired": "Login required to add images.",
+    "imageUploadFailed": "Image upload failed."
   },
   "success": {
     "uploadComplete": "{{count}} image(s) uploaded successfully",

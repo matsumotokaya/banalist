@@ -6,7 +6,11 @@
     "bannerCreationFailed": "横幅创建失败",
     "uploadFailed": "上传失败",
     "onlyImageFiles": "请选择图片文件",
-    "upgradeComingSoon": "升级功能即将推出"
+    "upgradeComingSoon": "升级功能即将推出",
+    "upgradeError": "升级失败，请重试。",
+    "saveFailed": "保存失败",
+    "imageLoginRequired": "添加图片需要登录。",
+    "imageUploadFailed": "图片上传失败。"
   },
   "success": {
     "uploadComplete": "已成功上传 {{count}} 张图片",

@@ -405,13 +405,13 @@ export const BannerManager = () => {
                       ({category.width}×{category.height})
                     </span>
                     <span className="text-sm font-normal text-gray-500">
-                      — {filteredBanners.length}件
+                      — {t('common:items', { count: filteredBanners.length })}
                     </span>
                   </h3>
 
                   {filteredBanners.length === 0 ? (
                     <div className="py-8 text-center text-gray-500 bg-gray-800/30 rounded-lg border border-gray-700/50">
-                      該当するデザインはありません
+                      {t('banner:noMatchingDesigns')}
                     </div>
                   ) : (
                     <>
@@ -442,7 +442,7 @@ export const BannerManager = () => {
             {/* Add new banner card - shown at bottom */}
             {!isGuest && (
               <section>
-                <h3 className="text-lg font-semibold text-gray-100 mb-4">新規作成</h3>
+                <h3 className="text-lg font-semibold text-gray-100 mb-4">{t('banner:createNew')}</h3>
                 <div
                   onClick={handleCreateBanner}
                   className="group bg-white rounded-lg border-2 border-dashed border-gray-300 hover:border-indigo-400 hover:shadow-lg transition-all overflow-hidden cursor-pointer w-48"

@@ -72,7 +72,7 @@ export const bannerStorage = {
   async createFromTemplate(template: TemplateRecord, editorTemplate: Template): Promise<Banner | null> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      alert('ログインが必要です');
+      alert('Login required');
       return null;
     }
 
@@ -93,7 +93,7 @@ export const bannerStorage = {
 
     if (error) {
       console.error('Error creating banner from template:', error);
-      alert('バナーの作成に失敗しました');
+      alert('Failed to create banner');
       return null;
     }
 
@@ -178,7 +178,7 @@ export const bannerStorage = {
   async create(name: string, template: Template): Promise<Banner | null> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      alert('ログインが必要です');
+      alert('Login required');
       return null;
     }
 
@@ -197,7 +197,7 @@ export const bannerStorage = {
 
     if (error) {
       console.error('Error creating banner:', error);
-      alert('バナーの作成に失敗しました');
+      alert('Failed to create banner');
       return null;
     }
 

@@ -22,5 +22,15 @@
   "createFromScratch": "从空白画布开始",
   "emptyStateMessage": "从免费模板开始创建设计",
   "viewTemplates": "查看模板",
-  "unlockWithLogin": "登录解锁"
+  "unlockWithLogin": "登录解锁",
+  "createNew": "新建",
+  "noMatchingDesigns": "没有匹配的设计",
+  "noMatchingTemplates": "没有匹配的模板",
+  "categoryNotFound": "未找到类别",
+  "backToTemplates": "返回模板列表",
+  "backToDesigns": "返回设计列表",
+  "noTemplatesForSize": "此尺寸暂无模板",
+  "noDesignsForSize": "此尺寸暂无设计",
+  "createDesignFromTemplate": "请从模板创建新设计",
+  "templateLoadFailed": "模板加载失败"
 }

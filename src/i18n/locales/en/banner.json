@@ -22,5 +22,15 @@
   "createFromScratch": "Start from blank canvas",
   "emptyStateMessage": "Create a design from free templates",
   "viewTemplates": "View Templates",
-  "unlockWithLogin": "Login to unlock"
+  "unlockWithLogin": "Login to unlock",
+  "createNew": "Create New",
+  "noMatchingDesigns": "No matching designs",
+  "noMatchingTemplates": "No matching templates",
+  "categoryNotFound": "Category not found",
+  "backToTemplates": "Back to Templates",
+  "backToDesigns": "Back to Designs",
+  "noTemplatesForSize": "No templates for this size",
+  "noDesignsForSize": "No designs for this size",
+  "createDesignFromTemplate": "Create a new design from a template",
+  "templateLoadFailed": "Failed to load template"
 }

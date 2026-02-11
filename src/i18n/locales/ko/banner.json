@@ -22,5 +22,15 @@
   "createFromScratch": "빈 캔버스에서 시작",
   "emptyStateMessage": "무료 템플릿으로 디자인을 만들어 보세요",
   "viewTemplates": "템플릿 보기",
-  "unlockWithLogin": "로그인하여 잠금 해제"
+  "unlockWithLogin": "로그인하여 잠금 해제",
+  "createNew": "새로 만들기",
+  "noMatchingDesigns": "일치하는 디자인이 없습니다",
+  "noMatchingTemplates": "일치하는 템플릿이 없습니다",
+  "categoryNotFound": "카테고리를 찾을 수 없습니다",
+  "backToTemplates": "템플릿 목록으로 돌아가기",
+  "backToDesigns": "디자인 목록으로 돌아가기",
+  "noTemplatesForSize": "이 크기의 템플릿이 없습니다",
+  "noDesignsForSize": "이 크기의 디자인이 없습니다",
+  "createDesignFromTemplate": "템플릿에서 새 디자인을 만들어 주세요",
+  "templateLoadFailed": "템플릿 로드에 실패했습니다"
 }

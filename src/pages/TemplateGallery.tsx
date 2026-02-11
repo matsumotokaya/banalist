@@ -87,7 +87,7 @@ export const TemplateGallery = () => {
       ? template
       : await templateStorage.getById(template.id);
     if (!resolvedTemplate?.elements) {
-      alert('テンプレートの読み込みに失敗しました');
+      alert(t('banner:templateLoadFailed'));
       return;
     }
 
@@ -152,7 +152,7 @@ export const TemplateGallery = () => {
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
                   <div className="flex flex-col items-center gap-2">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                    <span className="text-xs text-gray-500">読み込み中...</span>
+                    <span className="text-xs text-gray-500">{t('common:status.loading')}</span>
                   </div>
                 </div>
               )}
@@ -187,7 +187,7 @@ export const TemplateGallery = () => {
                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                <span className="text-xs text-gray-400">サムネイルなし</span>
+                <span className="text-xs text-gray-400">{t('common:thumbnail.noThumbnail')}</span>
               </div>
             </div>
           )}
@@ -344,13 +344,13 @@ export const TemplateGallery = () => {
                       ({category.width}×{category.height})
                     </span>
                     <span className="text-sm font-normal text-gray-500">
-                      — {filteredTemplates.length}件
+                      — {t('common:items', { count: filteredTemplates.length })}
                     </span>
                   </h3>
 
                   {filteredTemplates.length === 0 ? (
                     <div className="py-8 text-center text-gray-500 bg-gray-800/30 rounded-lg border border-gray-700/50">
-                      該当するテンプレートはありません
+                      {t('banner:noMatchingTemplates')}
                     </div>
                   ) : (
                     <>
