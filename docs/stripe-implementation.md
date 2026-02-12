@@ -53,6 +53,7 @@ STRIPE_WEBHOOK_SECRET=whsec_xxx
 ### デプロイ
 ```bash
 supabase functions deploy create-checkout-session
+supabase functions deploy create-portal-session
 supabase functions deploy stripe-webhook
 ```
 
@@ -95,9 +96,13 @@ const STRIPE_PRICE_ID = import.meta.env.VITE_STRIPE_PRICE_ID;
 
 ### Webhook処理 (Edge Function)
 - 署名検証: `stripe.webhooks.constructEvent(body, sig, secret)`
-- `checkout.session.completed`: 初回決済成功 → profiles更新
-- `customer.subscription.updated`: サブスク更新
-- `customer.subscription.deleted`: サブスク解約 → tier を free に戻す
+- `checkout.session.completed`: 初回決済成功 → profiles更新 (`subscription_status = 'active'`)
+- `customer.subscription.updated`: サブスク更新、`cancel_at_period_end` 検知 → `subscription_status = 'canceling'`
+- `customer.subscription.deleted`: サブスク解約 → tier を free、status を canceled に戻す
+
+### Billing Portal (サブスク管理)
+- `create-portal-session`: Stripe Customer Portal セッション作成
+- ユーザーはPortalでキャンセル・支払い方法変更が可能
 
 ---
 
@@ -140,6 +145,25 @@ const STRIPE_PRICE_ID = import.meta.env.VITE_STRIPE_PRICE_ID;
 
 ---
 
+## profiles テーブル
+
+### 必須カラム
+```sql
+ALTER TABLE public.profiles
+ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
+
+ALTER TABLE public.profiles
+ADD COLUMN IF NOT EXISTS subscription_status TEXT
+CHECK (subscription_status IN ('active', 'canceling', 'canceled'));
+```
+
+### ステータス
+- `active`: アクティブ、自動更新予定
+- `canceling`: キャンセル済み、期間終了まで利用可能
+- `canceled`: 完全終了
+
+---
+
 ## ファイル構成
 
 ```
@@ -147,13 +171,16 @@ src/
 ├── components/
 │   └── UpgradeModal.tsx      # 決済ボタンUI
 ├── pages/
-│   └── PaymentSuccess.tsx    # 決済成功ページ
+│   ├── PaymentSuccess.tsx    # 決済成功ページ
+│   └── MyPage.tsx            # マイページ（サブスク状態表示）
 └── utils/
     └── supabase.ts           # Supabaseクライアント
 
 supabase/functions/
 ├── create-checkout-session/
 │   └── index.ts              # Checkout Session作成
+├── create-portal-session/
+│   └── index.ts              # Billing Portal セッション作成
 └── stripe-webhook/
     └── index.ts              # Webhook処理
 ```
