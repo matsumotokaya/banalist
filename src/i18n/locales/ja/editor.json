@@ -11,6 +11,7 @@
     "addObjects": "オブジェクトを追加してください"
   },
   "canvasSizeSelector": {
+    "allSizes": "その他のサイズ",
     "customSize": "カスタムサイズ",
     "closeCustomSize": "カスタムサイズを閉じる",
     "width": "幅",

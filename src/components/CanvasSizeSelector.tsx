@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { DEFAULT_SIZES } from '../utils/sizeCategories';
+import { SizePresetModal } from './SizePresetModal';
 
 interface CanvasSizeSelectorProps {
   width: number;
@@ -7,33 +9,24 @@ interface CanvasSizeSelectorProps {
   onSizeChange: (width: number, height: number) => void;
 }
 
-interface SizePreset {
-  key: string;
-  width: number;
-  height: number;
-}
-
-const SIZE_PRESETS: SizePreset[] = [
-  { key: 'hdLandscape', width: 1920, height: 1080 },
-  { key: 'hdPortrait', width: 1080, height: 1920 },
-  { key: 'youtube', width: 1280, height: 720 },
-  { key: 'ogp', width: 1200, height: 630 },
-  { key: 'note', width: 1280, height: 670 },
-  { key: 'instagramSquare', width: 1080, height: 1080 },
-  { key: 'instagramFeed', width: 1080, height: 1350 },
-  { key: 'twitterHeader', width: 1500, height: 500 },
-];
-
 export const CanvasSizeSelector = ({ width, height, onSizeChange }: CanvasSizeSelectorProps) => {
   const { t } = useTranslation('editor');
   const [showCustom, setShowCustom] = useState(false);
+  const [showAllSizes, setShowAllSizes] = useState(false);
   const [localWidth, setLocalWidth] = useState(width);
   const [localHeight, setLocalHeight] = useState(height);
 
-  const handlePresetClick = (preset: SizePreset) => {
+  const handlePresetClick = (preset: { width: number; height: number }) => {
     onSizeChange(preset.width, preset.height);
     setLocalWidth(preset.width);
     setLocalHeight(preset.height);
+    setShowCustom(false);
+  };
+
+  const handleModalSelect = (w: number, h: number) => {
+    onSizeChange(w, h);
+    setLocalWidth(w);
+    setLocalHeight(h);
     setShowCustom(false);
   };
 
@@ -50,23 +43,33 @@ export const CanvasSizeSelector = ({ width, height, onSizeChange }: CanvasSizeSe
         {t('canvasSizeSelector.currentSize')}: {width} × {height}px
       </div>
 
-      {/* Preset buttons */}
-      <div className="grid grid-cols-2 gap-2">
-        {SIZE_PRESETS.map((preset) => (
+      {/* Default preset buttons */}
+      <div className="flex flex-col gap-1.5">
+        {DEFAULT_SIZES.map((category) => (
           <button
-            key={preset.key}
-            onClick={() => handlePresetClick(preset)}
-            className={`px-2 py-1.5 text-xs font-medium rounded transition-colors ${
-              width === preset.width && height === preset.height
+            key={category.key}
+            onClick={() => handlePresetClick(category)}
+            className={`w-full px-3 py-2 text-xs font-medium rounded transition-colors text-left ${
+              width === category.width && height === category.height
                 ? 'bg-indigo-600 text-white'
                 : 'bg-[#333333] text-gray-300 hover:bg-[#444444]'
             }`}
-            title={`${preset.width} × ${preset.height}px`}
           >
-            {t(`canvasSizeSelector.presets.${preset.key}`)}
+            <span className="font-mono">{category.width}×{category.height}</span>
+            <span className="mx-2 opacity-40">|</span>
+            {category.label}
           </button>
         ))}
       </div>
+
+      {/* All sizes button */}
+      <button
+        onClick={() => setShowAllSizes(true)}
+        className="w-full px-3 py-2 text-xs font-medium text-indigo-400 bg-[#333333] rounded hover:bg-[#444444] transition-colors flex items-center justify-center gap-1"
+      >
+        <span className="material-symbols-outlined text-[14px]">apps</span>
+        {t('canvasSizeSelector.allSizes')}
+      </button>
 
       {/* Custom size toggle button */}
       <button
@@ -111,6 +114,15 @@ export const CanvasSizeSelector = ({ width, height, onSizeChange }: CanvasSizeSe
           </button>
         </div>
       )}
+
+      {/* All sizes modal */}
+      <SizePresetModal
+        isOpen={showAllSizes}
+        onClose={() => setShowAllSizes(false)}
+        onSelect={handleModalSelect}
+        currentWidth={width}
+        currentHeight={height}
+      />
     </div>
   );
 };

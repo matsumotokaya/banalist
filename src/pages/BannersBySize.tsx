@@ -15,7 +15,7 @@ import {
 } from '../hooks/useBanners';
 import type { BannerListItem, CanvasElement, Template } from '../types/template';
 import { useAuth } from '../contexts/AuthContext';
-import { SIZE_CATEGORIES } from './BannerManager';
+import { SIZE_CATEGORIES, filterBySize, getAspectClass, getGridCols } from '../utils/sizeCategories';
 
 export const BannersBySize = () => {
   const { sizeKey } = useParams<{ sizeKey: string }>();
@@ -141,9 +141,7 @@ export const BannersBySize = () => {
 
   // Filter banners by the current category size
   const filteredBanners = category
-    ? displayedBanners.filter(
-        (banner) => banner.width === category.width && banner.height === category.height
-      )
+    ? filterBySize(displayedBanners, category.width, category.height)
     : [];
 
   // Handle reorder for banners (used by SortableGrid)
@@ -161,21 +159,9 @@ export const BannersBySize = () => {
     }
   };
 
-  // Get aspect ratio class based on banner dimensions
-  const getAspectClass = (width?: number, height?: number) => {
-    if (!width || !height) return 'aspect-[9/16]';
-    if (width > height) return 'aspect-[16/9]';
-    if (width === height) return 'aspect-square';
-    return 'aspect-[9/16]';
-  };
-
   // Grid columns based on aspect ratio
   const gridCols = category
-    ? category.width > category.height
-      ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-      : category.width === category.height
-      ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
-      : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+    ? getGridCols(category.width, category.height)
     : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
 
   // Render a single banner card

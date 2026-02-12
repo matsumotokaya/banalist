@@ -13,7 +13,7 @@ import type { Template, TemplateRecord } from '../types/template';
 import { useAuth } from '../contexts/AuthContext';
 import { bannerStorage } from '../utils/bannerStorage';
 import { templateStorage } from '../utils/templateStorage';
-import { SIZE_CATEGORIES } from './BannerManager';
+import { SIZE_CATEGORIES, getAspectClass, getGridCols } from '../utils/sizeCategories';
 
 export const TemplatesBySize = () => {
   const { sizeKey } = useParams<{ sizeKey: string }>();
@@ -59,21 +59,9 @@ export const TemplatesBySize = () => {
     }
   };
 
-  // Get aspect ratio class based on template dimensions
-  const getAspectClass = (width?: number, height?: number) => {
-    if (!width || !height) return 'aspect-[9/16]';
-    if (width > height) return 'aspect-[16/9]';
-    if (width === height) return 'aspect-square';
-    return 'aspect-[9/16]';
-  };
-
   // Grid columns based on aspect ratio
   const gridCols = category
-    ? category.width > category.height
-      ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-      : category.width === category.height
-      ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
-      : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+    ? getGridCols(category.width, category.height)
     : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
 
   const buildEditorTemplate = (template: TemplateRecord): Template => {

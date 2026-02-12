@@ -19,13 +19,7 @@ import {
 import { DEFAULT_TEMPLATES } from '../templates/defaultTemplates';
 import type { BannerListItem, CanvasElement, Template } from '../types/template';
 import { useAuth } from '../contexts/AuthContext';
-
-// Size category definitions (exported for use in BannersBySize page)
-export const SIZE_CATEGORIES = [
-  { key: 'phone', label: 'PHONE WALLPAPER', width: 1080, height: 1920 },
-  { key: 'pc', label: 'PC WALLPAPER', width: 1920, height: 1080 },
-  { key: 'square', label: 'SQUARE', width: 1080, height: 1080 },
-] as const;
+import { SIZE_CATEGORIES, filterBySize, getAspectClass, getGridCols } from '../utils/sizeCategories';
 
 const MAX_DISPLAY_COUNT = 10;
 
@@ -165,9 +159,7 @@ export const BannerManager = () => {
 
   // Filter banners by size category
   const filterBannersBySize = (targetWidth: number, targetHeight: number) => {
-    return displayedBanners.filter(
-      (banner) => banner.width === targetWidth && banner.height === targetHeight
-    );
+    return filterBySize(displayedBanners, targetWidth, targetHeight);
   };
 
   // Handle reorder for banners (used by SortableGrid)
@@ -185,13 +177,6 @@ export const BannerManager = () => {
     }
   };
 
-  // Get aspect ratio class based on banner dimensions
-  const getAspectClass = (width?: number, height?: number) => {
-    if (!width || !height) return 'aspect-[9/16]';
-    if (width > height) return 'aspect-[16/9]';
-    if (width === height) return 'aspect-square';
-    return 'aspect-[9/16]';
-  };
 
   // Render a single banner card
   const renderBannerCard = (banner: BannerListItem) => {
@@ -383,14 +368,10 @@ export const BannerManager = () => {
           <div className="space-y-10">
             {SIZE_CATEGORIES.map((category) => {
               const filteredBanners = filterBannersBySize(category.width, category.height);
+              if (filteredBanners.length === 0) return null;
               const displayBanners = filteredBanners.slice(0, MAX_DISPLAY_COUNT);
               const hasMore = filteredBanners.length > MAX_DISPLAY_COUNT;
-              const gridCols =
-                category.width > category.height
-                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-                  : category.width === category.height
-                  ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
-                  : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
+              const gridCols = getGridCols(category.width, category.height);
 
               return (
                 <section key={category.key}>
@@ -409,31 +390,23 @@ export const BannerManager = () => {
                     </span>
                   </h3>
 
-                  {filteredBanners.length === 0 ? (
-                    <div className="py-8 text-center text-gray-500 bg-gray-800/30 rounded-lg border border-gray-700/50">
-                      {t('banner:noMatchingDesigns')}
+                  <SortableGrid
+                    items={displayBanners}
+                    disabled={isGuest}
+                    gridClassName={`grid ${gridCols} gap-4`}
+                    onReorder={handleReorderBanners}
+                    renderItem={renderBannerCard}
+                  />
+                  {hasMore && (
+                    <div className="mt-4 text-center">
+                      <button
+                        onClick={() => navigate(`/banners/${category.key}`)}
+                        className="px-6 py-2 text-sm font-medium text-indigo-400 hover:text-indigo-300 hover:bg-indigo-900/30 rounded-lg transition-colors"
+                      >
+                        {t('common:showMore', { count: filteredBanners.length - MAX_DISPLAY_COUNT })}
+                        <span className="ml-1">→</span>
+                      </button>
                     </div>
-                  ) : (
-                    <>
-                      <SortableGrid
-                        items={displayBanners}
-                        disabled={isGuest}
-                        gridClassName={`grid ${gridCols} gap-4`}
-                        onReorder={handleReorderBanners}
-                        renderItem={renderBannerCard}
-                      />
-                      {hasMore && (
-                        <div className="mt-4 text-center">
-                          <button
-                            onClick={() => navigate(`/banners/${category.key}`)}
-                            className="px-6 py-2 text-sm font-medium text-indigo-400 hover:text-indigo-300 hover:bg-indigo-900/30 rounded-lg transition-colors"
-                          >
-                            {t('common:showMore', { count: filteredBanners.length - MAX_DISPLAY_COUNT })}
-                            <span className="ml-1">→</span>
-                          </button>
-                        </div>
-                      )}
-                    </>
                   )}
                 </section>
               );

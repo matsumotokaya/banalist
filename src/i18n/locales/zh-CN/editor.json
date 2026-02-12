@@ -11,6 +11,7 @@
     "addObjects": "请添加对象"
   },
   "canvasSizeSelector": {
+    "allSizes": "所有尺寸",
     "customSize": "自定义尺寸",
     "closeCustomSize": "关闭自定义尺寸",
     "width": "宽度",
