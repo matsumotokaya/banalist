@@ -83,9 +83,6 @@ export function Footer() {
                             </Link>
                         </div>
                         <div className="flex flex-col gap-4 items-center md:items-start">
-                            <Link to="/legal/specified-commercial-transactions-act" className="text-gray-400 hover:text-white text-sm transition-colors">
-                                {t('footer.legalInfo')}
-                            </Link>
                             <Link to="/legal/privacy" className="text-gray-400 hover:text-white text-sm transition-colors">
                                 {t('footer.privacyPolicy')}
                             </Link>
@@ -99,10 +96,13 @@ export function Footer() {
                     </div>
                 </div>
 
-                <div className="border-t border-gray-800 mt-8 pt-8 flex justify-center items-center">
+                <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-center items-center gap-4">
                     <p className="text-gray-500 text-xs">
                         {t('footer.copyright')}
                     </p>
+                    <Link to="/legal/specified-commercial-transactions-act" className="text-gray-500 hover:text-gray-300 text-xs transition-colors">
+                        {t('footer.legalInfo')}
+                    </Link>
                 </div>
             </div>
         </footer>
