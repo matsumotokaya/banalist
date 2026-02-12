@@ -10,6 +10,7 @@ interface UserProfile {
   subscriptionTier: 'free' | 'premium';
   subscriptionExpiresAt?: string;
   stripeCustomerId?: string;
+  subscriptionStatus?: 'active' | 'canceling' | 'canceled' | null;
 }
 
 // Query keys
@@ -25,7 +26,7 @@ async function fetchProfile(userId: string): Promise<UserProfile> {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, email, full_name, avatar_url, role, subscription_tier, subscription_expires_at, stripe_customer_id')
+      .select('id, email, full_name, avatar_url, role, subscription_tier, subscription_expires_at, stripe_customer_id, subscription_status')
       .eq('id', userId)
       .single();
 
@@ -50,6 +51,7 @@ async function fetchProfile(userId: string): Promise<UserProfile> {
       subscriptionTier: (data.subscription_tier || 'free') as 'free' | 'premium',
       subscriptionExpiresAt: data.subscription_expires_at || undefined,
       stripeCustomerId: data.stripe_customer_id || undefined,
+      subscriptionStatus: data.subscription_status as 'active' | 'canceling' | 'canceled' | null || null,
     };
 
     return userProfile;

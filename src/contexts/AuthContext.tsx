@@ -12,6 +12,7 @@ interface UserProfile {
   subscriptionTier: 'free' | 'premium';
   subscriptionExpiresAt?: string;
   stripeCustomerId?: string;
+  subscriptionStatus?: 'active' | 'canceling' | 'canceled' | null;
 }
 
 interface AuthContextType {

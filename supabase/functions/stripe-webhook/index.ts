@@ -49,6 +49,7 @@ serve(async (req) => {
             subscription_tier: 'premium',
             subscription_expires_at: expiresAt.toISOString(),
             stripe_customer_id: session.customer as string,
+            subscription_status: 'active',
             updated_at: new Date().toISOString(),
           })
           .eq('id', userId)
@@ -72,11 +73,22 @@ serve(async (req) => {
 
         const expiresAt = new Date(subscription.current_period_end * 1000)
 
+        // Determine subscription status
+        let subscriptionStatus: 'active' | 'canceling' | 'canceled'
+        if (subscription.cancel_at_period_end) {
+          subscriptionStatus = 'canceling'
+        } else if (subscription.status === 'active') {
+          subscriptionStatus = 'active'
+        } else {
+          subscriptionStatus = 'canceled'
+        }
+
         const { error } = await supabase
           .from('profiles')
           .update({
             subscription_tier: subscription.status === 'active' ? 'premium' : 'free',
             subscription_expires_at: expiresAt.toISOString(),
+            subscription_status: subscriptionStatus,
             updated_at: new Date().toISOString(),
           })
           .eq('id', userId)
@@ -84,7 +96,7 @@ serve(async (req) => {
         if (error) {
           console.error('Error updating subscription:', error)
         } else {
-          console.log(`Subscription updated for user ${userId}`)
+          console.log(`Subscription updated for user ${userId} with status ${subscriptionStatus}`)
         }
         break
       }
@@ -104,6 +116,7 @@ serve(async (req) => {
           .update({
             subscription_tier: 'free',
             subscription_expires_at: null,
+            subscription_status: 'canceled',
             updated_at: new Date().toISOString(),
           })
           .eq('id', userId)
