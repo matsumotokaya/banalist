@@ -48,6 +48,7 @@ serve(async (req) => {
           .update({
             subscription_tier: 'premium',
             subscription_expires_at: expiresAt.toISOString(),
+            stripe_customer_id: session.customer as string,
             updated_at: new Date().toISOString(),
           })
           .eq('id', userId)

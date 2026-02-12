@@ -32,3 +32,6 @@ dist-ssr
 
 # Apple private keys
 *.p8
+
+# Screenshots
+screenshot/

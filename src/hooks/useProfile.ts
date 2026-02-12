@@ -8,6 +8,8 @@ interface UserProfile {
   avatarUrl?: string;
   role: 'admin' | 'user';
   subscriptionTier: 'free' | 'premium';
+  subscriptionExpiresAt?: string;
+  stripeCustomerId?: string;
 }
 
 // Query keys
@@ -23,7 +25,7 @@ async function fetchProfile(userId: string): Promise<UserProfile> {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, email, full_name, avatar_url, role, subscription_tier')
+      .select('id, email, full_name, avatar_url, role, subscription_tier, subscription_expires_at, stripe_customer_id')
       .eq('id', userId)
       .single();
 
@@ -46,6 +48,8 @@ async function fetchProfile(userId: string): Promise<UserProfile> {
       avatarUrl: data.avatar_url || undefined,
       role: (data.role || 'user') as 'admin' | 'user',
       subscriptionTier: (data.subscription_tier || 'free') as 'free' | 'premium',
+      subscriptionExpiresAt: data.subscription_expires_at || undefined,
+      stripeCustomerId: data.stripe_customer_id || undefined,
     };
 
     return userProfile;

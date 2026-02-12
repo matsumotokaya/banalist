@@ -15,6 +15,7 @@ import { TermsOfService } from './pages/TermsOfService';
 import { SecurityPolicy } from './pages/SecurityPolicy';
 import { AboutUs } from './pages/AboutUs';
 import { Contact } from './pages/Contact';
+import { MyPage } from './pages/MyPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { CookieConsent } from './components/CookieConsent';
 import { queryClient } from './lib/queryClient';
@@ -41,6 +42,7 @@ function App() {
             <Route path="/legal/terms" element={<TermsOfService />} />
             <Route path="/legal/security" element={<SecurityPolicy />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/mypage" element={<MyPage />} />
           </Routes>
           <CookieConsent />
         </BrowserRouter>

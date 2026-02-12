@@ -10,6 +10,8 @@ interface UserProfile {
   avatarUrl?: string;
   role: 'admin' | 'user';
   subscriptionTier: 'free' | 'premium';
+  subscriptionExpiresAt?: string;
+  stripeCustomerId?: string;
 }
 
 interface AuthContextType {
