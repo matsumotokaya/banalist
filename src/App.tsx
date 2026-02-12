@@ -18,6 +18,7 @@ import { Contact } from './pages/Contact';
 import { MyPage } from './pages/MyPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { CookieConsent } from './components/CookieConsent';
+import { ScrollToTop } from './components/ScrollToTop';
 import { queryClient } from './lib/queryClient';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             <Route path="/" element={<TemplateGallery />} />
             <Route path="/templates/:sizeKey" element={<TemplatesBySize />} />
