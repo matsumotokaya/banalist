@@ -45,12 +45,14 @@ export const filterBySize = <T extends { width?: number; height?: number }>(
 
 // Default sizes shown in the sidebar (most commonly used)
 export const DEFAULT_SIZES: readonly SizeCategory[] = [
-  { key: 'phone', label: 'PHONE WALLPAPER', width: 1080, height: 1920 },
+  { key: 'phone', label: 'MOBILE WALLPAPER', width: 1080, height: 1920 },
   { key: 'pc', label: 'PC WALLPAPER', width: 1920, height: 1080 },
-  { key: 'youtube', label: 'YOUTUBE', width: 1280, height: 720 },
-  { key: 'square', label: 'INSTAGRAM SQUARE', width: 1080, height: 1080 },
-  { key: 'instagramFeed', label: 'INSTAGRAM FEED', width: 1080, height: 1350 },
-  { key: 'ogp', label: 'OGP', width: 1200, height: 630 },
+  { key: 'youtube', label: 'YOUTUBE THUMBNAIL', width: 1280, height: 720 },
+  { key: 'x-post', label: 'X POST', width: 1600, height: 900 },
+  { key: 'ig-stories', label: 'INSTAGRAM STORIES', width: 1080, height: 1920 },
+  { key: 'fb-post', label: 'FACEBOOK POST', width: 1200, height: 630 },
+  { key: 'tiktok', label: 'TIKTOK', width: 1080, height: 1920 },
+  { key: 'ogp', label: 'OGP IMAGE', width: 1200, height: 630 },
 ];
 
 // All size presets grouped by platform/use case (for modal)

@@ -11,7 +11,7 @@
     "addObjects": "Add objects to get started"
   },
   "canvasSizeSelector": {
-    "allSizes": "All Sizes",
+    "allSizes": "More Sizes...",
     "customSize": "Custom Size",
     "closeCustomSize": "Close Custom Size",
     "width": "Width",

@@ -11,7 +11,7 @@
     "addObjects": "오브젝트를 추가하세요"
   },
   "canvasSizeSelector": {
-    "allSizes": "모든 크기",
+    "allSizes": "다른 크기 선택...",
     "customSize": "사용자 정의 크기",
     "closeCustomSize": "사용자 정의 크기 닫기",
     "width": "너비",

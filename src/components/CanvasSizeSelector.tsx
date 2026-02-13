@@ -1,7 +1,20 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { FaYoutube, FaXTwitter, FaInstagram, FaFacebookF, FaTiktok } from 'react-icons/fa6';
+import { MdSmartphone, MdMonitor, MdLanguage } from 'react-icons/md';
 import { DEFAULT_SIZES } from '../utils/sizeCategories';
 import { SizePresetModal } from './SizePresetModal';
+
+const PRESET_ICONS: Record<string, { icon: React.ReactNode; color: string }> = {
+  phone: { icon: <MdSmartphone size={14} />, color: '#9ca3af' },
+  pc: { icon: <MdMonitor size={14} />, color: '#9ca3af' },
+  youtube: { icon: <FaYoutube size={13} />, color: '#FF0000' },
+  'x-post': { icon: <FaXTwitter size={12} />, color: '#ffffff' },
+  'ig-stories': { icon: <FaInstagram size={13} />, color: '#E4405F' },
+  'fb-post': { icon: <FaFacebookF size={12} />, color: '#1877F2' },
+  tiktok: { icon: <FaTiktok size={12} />, color: '#ffffff' },
+  ogp: { icon: <MdLanguage size={14} />, color: '#9ca3af' },
+};
 
 interface CanvasSizeSelectorProps {
   width: number;
@@ -45,21 +58,32 @@ export const CanvasSizeSelector = ({ width, height, onSizeChange }: CanvasSizeSe
 
       {/* Default preset buttons */}
       <div className="flex flex-col gap-1.5">
-        {DEFAULT_SIZES.map((category) => (
-          <button
-            key={category.key}
-            onClick={() => handlePresetClick(category)}
-            className={`w-full px-3 py-2 text-xs font-medium rounded transition-colors text-left ${
-              width === category.width && height === category.height
-                ? 'bg-indigo-600 text-white'
-                : 'bg-[#333333] text-gray-300 hover:bg-[#444444]'
-            }`}
-          >
-            <span className="font-mono">{category.width}×{category.height}</span>
-            <span className="mx-2 opacity-40">|</span>
-            {category.label}
-          </button>
-        ))}
+        {DEFAULT_SIZES.map((category) => {
+          const isActive = width === category.width && height === category.height;
+          const preset = PRESET_ICONS[category.key];
+          return (
+            <button
+              key={category.key}
+              onClick={() => handlePresetClick(category)}
+              className={`w-full px-3 py-2 text-xs font-medium rounded transition-colors text-left flex items-center gap-2 ${
+                isActive
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-[#333333] text-gray-300 hover:bg-[#444444]'
+              }`}
+            >
+              {preset && (
+                <span className="flex-shrink-0 w-4 flex items-center justify-center" style={{ color: isActive ? '#ffffff' : preset.color }}>
+                  {preset.icon}
+                </span>
+              )}
+              <span className="truncate">
+                <span className="font-mono">{category.width}×{category.height}</span>
+                <span className="mx-1.5 opacity-40">|</span>
+                {category.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* All sizes button */}
