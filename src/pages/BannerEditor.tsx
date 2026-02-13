@@ -1267,7 +1267,7 @@ export const BannerEditor = () => {
 
         <main
           ref={mainRef}
-          className="flex-1 overflow-hidden bg-[#1e1e1e] flex items-center justify-center"
+          className="flex-1 overflow-hidden bg-[#151515] flex items-center justify-center"
           style={{ touchAction: 'none', cursor: textPlacementMode ? 'text' : isPanning ? 'grabbing' : 'grab' }}
           onMouseDown={handlePanMouseDown}
           onMouseMove={handlePanMouseMove}
@@ -1346,7 +1346,7 @@ export const BannerEditor = () => {
       <div className="flex md:hidden flex-1 flex-col overflow-hidden">
         <main
           ref={mainRef}
-          className="flex-1 overflow-hidden bg-[#1e1e1e] flex items-center justify-center"
+          className="flex-1 overflow-hidden bg-[#151515] flex items-center justify-center"
           style={{ touchAction: 'none', cursor: textPlacementMode ? 'text' : isPanning ? 'grabbing' : 'grab' }}
           onMouseDown={handlePanMouseDown}
           onMouseMove={handlePanMouseMove}
