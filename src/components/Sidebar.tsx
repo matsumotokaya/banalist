@@ -212,11 +212,11 @@ export const Sidebar = ({
   const [showImageLibrary, setShowImageLibrary] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-  const isPremium = profile?.subscriptionTier === 'premium';
+  const isPremium = !!profile && profile.subscriptionTier !== 'free';
 
   const handleImageLibraryClick = () => {
     if (loading) return;
-    if (!isPremium) {
+    if (!profile || profile.subscriptionTier === 'free') {
       setShowUpgradeModal(true);
     } else {
       setShowImageLibrary(true);
