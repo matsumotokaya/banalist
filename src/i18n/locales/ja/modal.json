@@ -66,6 +66,8 @@
     "loginRequired": "ログインが必要です",
     "uploadSuccess": "{{count}}個の画像をアップロードしました",
     "uploadPartialFail": "{{success}}個成功、{{fail}}個失敗",
-    "uploadFailed": "アップロードに失敗しました"
+    "uploadFailed": "アップロードに失敗しました",
+    "deleteConfirm": "「{{name}}」を削除しますか？",
+    "deleteFailed": "画像の削除に失敗しました"
   }
 }

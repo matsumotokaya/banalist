@@ -1465,6 +1465,7 @@ export const BannerEditor = () => {
             onShadowOpacityChange={handleShadowOpacityChange}
             isMobile={true}
             onClose={() => handleSelectElement([])}
+            onDelete={handleDelete}
           />
         )}
       </div>

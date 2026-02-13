@@ -66,6 +66,8 @@
     "loginRequired": "Login required",
     "uploadSuccess": "{{count}} image(s) uploaded",
     "uploadPartialFail": "{{success}} succeeded, {{fail}} failed",
-    "uploadFailed": "Upload failed"
+    "uploadFailed": "Upload failed",
+    "deleteConfirm": "Delete \"{{name}}\"?",
+    "deleteFailed": "Failed to delete image"
   }
 }

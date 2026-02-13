@@ -66,6 +66,8 @@
     "loginRequired": "需要登入",
     "uploadSuccess": "已上傳 {{count}} 張圖片",
     "uploadPartialFail": "{{success}} 張成功，{{fail}} 張失敗",
-    "uploadFailed": "上傳失敗"
+    "uploadFailed": "上傳失敗",
+    "deleteConfirm": "確定刪除「{{name}}」嗎？",
+    "deleteFailed": "圖片刪除失敗"
   }
 }

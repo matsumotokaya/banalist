@@ -66,6 +66,8 @@
     "loginRequired": "需要登录",
     "uploadSuccess": "已上传 {{count}} 张图片",
     "uploadPartialFail": "{{success}} 张成功，{{fail}} 张失败",
-    "uploadFailed": "上传失败"
+    "uploadFailed": "上传失败",
+    "deleteConfirm": "确定删除「{{name}}」吗？",
+    "deleteFailed": "图片删除失败"
   }
 }

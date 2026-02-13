@@ -16,6 +16,7 @@ interface PropertyPanelProps {
   onSendToBack?: () => void;
   isMobile?: boolean;
   onClose?: () => void;
+  onDelete?: () => void;
 
   // Shape-specific handlers
   onFillEnabledChange?: (enabled: boolean) => void;
@@ -33,7 +34,7 @@ interface PropertyPanelProps {
 }
 
 
-export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, onSizeChange, onWeightChange, onLetterSpacingChange, onLineHeightChange, onOpacityChange, onBringToFront, onSendToBack, isMobile = false, onClose, onFillEnabledChange, onStrokeChange, onStrokeWidthChange, onStrokeEnabledChange, onShadowEnabledChange, onShadowColorChange, onShadowBlurChange, onShadowOffsetXChange, onShadowOffsetYChange, onShadowOpacityChange }: PropertyPanelProps) => {
+export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, onSizeChange, onWeightChange, onLetterSpacingChange, onLineHeightChange, onOpacityChange, onBringToFront, onSendToBack, isMobile = false, onClose, onDelete, onFillEnabledChange, onStrokeChange, onStrokeWidthChange, onStrokeEnabledChange, onShadowEnabledChange, onShadowColorChange, onShadowBlurChange, onShadowOffsetXChange, onShadowOffsetYChange, onShadowOpacityChange }: PropertyPanelProps) => {
   const { t } = useTranslation('editor');
   const getWeightLabel = (weight: number): string => {
     if (weight <= 100) return t('properties.fontWeights.thin');
@@ -70,10 +71,12 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
   const isShapeElement = selectedElement.type === 'shape';
   const shapeElement = isShapeElement ? (selectedElement as ShapeElement) : null;
 
+  const spacing = isMobile ? { section: 'mb-2', inner: 'mb-1', padding: 'p-2' } : { section: 'mb-4', inner: 'mb-3', padding: 'p-3' };
+
   const panelContent = (
     <>
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-base font-semibold text-gray-100">{t('properties.title')}</h2>
+      <div className={`flex items-center justify-between ${isMobile ? 'mb-1' : 'mb-3'}`}>
+        <h2 className={`${isMobile ? 'text-sm' : 'text-base'} font-semibold text-gray-100`}>{t('properties.title')}</h2>
         {isMobile && onClose && (
           <button onClick={onClose} className="p-1 hover:bg-[#333333] rounded">
             <span className="material-symbols-outlined text-gray-400 text-xl">close</span>
@@ -82,21 +85,32 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
       </div>
 
       {/* Object type indicator */}
-      <div className="mb-4 p-2 bg-[#2b2b2b] rounded-lg">
-        <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-indigo-600 text-[18px]">
-            {selectedElement.type === 'text' ? 'text_fields' : selectedElement.type === 'image' ? 'image' : 'category'}
-          </span>
-          <span className="text-xs font-medium text-gray-300">
-            {selectedElement.type === 'text' ? t('object.text') : selectedElement.type === 'image' ? t('object.image') : t('object.shapes')}
-          </span>
+      <div className={`${spacing.section} p-2 bg-[#2b2b2b] rounded-lg`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-indigo-600 text-[18px]">
+              {selectedElement.type === 'text' ? 'text_fields' : selectedElement.type === 'image' ? 'image' : 'category'}
+            </span>
+            <span className="text-xs font-medium text-gray-300">
+              {selectedElement.type === 'text' ? t('object.text') : selectedElement.type === 'image' ? t('object.image') : t('object.shapes')}
+            </span>
+          </div>
+          {isMobile && onDelete && (
+            <button
+              onClick={onDelete}
+              className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-red-400 hover:text-white bg-red-500/15 hover:bg-red-600 rounded transition-colors"
+            >
+              <span className="material-symbols-outlined text-[14px]">delete</span>
+              {t('properties.delete')}
+            </button>
+          )}
         </div>
       </div>
 
       {/* Font selector - only for text */}
       {isTextElement && textElement && onFontChange && (
-        <div className="mb-3">
-          <label className="block text-xs font-medium text-gray-300 mb-2">
+        <div className={spacing.section}>
+          <label className={`block text-xs font-medium text-gray-300 ${spacing.inner}`}>
             {t('properties.font')}
           </label>
           <FontSelector
@@ -108,8 +122,8 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
 
       {/* Font size slider - only for text */}
       {isTextElement && textElement && onSizeChange && (
-        <div className="mb-3">
-          <label className="block text-xs font-medium text-gray-300 mb-2">
+        <div className={spacing.section}>
+          <label className={`block text-xs font-medium text-gray-300 ${spacing.inner}`}>
             {t('properties.textSize')}
           </label>
           <div className="flex items-center gap-2">
@@ -122,8 +136,8 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
               onChange={(e) => onSizeChange(Number(e.target.value))}
               className="flex-1 h-1.5 bg-[#444444] rounded-lg appearance-none cursor-pointer accent-indigo-500"
             />
-            <span className="text-xs font-medium text-gray-300 w-14 text-right">
-              {textElement.fontSize}px
+            <span className="text-xs font-medium text-gray-300 w-14 text-right truncate shrink-0">
+              {Math.round(textElement.fontSize)}px
             </span>
           </div>
         </div>
@@ -131,8 +145,8 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
 
       {/* Font weight slider - only for text */}
       {isTextElement && textElement && onWeightChange && (
-        <div className="mb-3">
-          <label className="block text-xs font-medium text-gray-300 mb-2">
+        <div className={spacing.section}>
+          <label className={`block text-xs font-medium text-gray-300 ${spacing.inner}`}>
             {t('properties.fontWeight')}
           </label>
           <div className="flex items-center gap-2">
@@ -154,8 +168,8 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
 
       {/* Letter spacing slider - only for text */}
       {isTextElement && textElement && onLetterSpacingChange && (
-        <div className="mb-3">
-          <label className="block text-xs font-medium text-gray-300 mb-2">
+        <div className={spacing.section}>
+          <label className={`block text-xs font-medium text-gray-300 ${spacing.inner}`}>
             {t('properties.letterSpacing')}
           </label>
           <div className="flex items-center gap-2">
@@ -177,8 +191,8 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
 
       {/* Line height slider - only for text */}
       {isTextElement && textElement && onLineHeightChange && (
-        <div className="mb-3">
-          <label className="block text-xs font-medium text-gray-300 mb-2">
+        <div className={spacing.section}>
+          <label className={`block text-xs font-medium text-gray-300 ${spacing.inner}`}>
             {t('properties.lineHeight')}
           </label>
           <div className="flex items-center gap-2">
@@ -200,8 +214,8 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
 
       {/* Shape-specific: Fill controls */}
       {isShapeElement && shapeElement && (
-        <div className="mb-4 p-3 bg-[#2b2b2b] rounded-lg">
-          <div className="flex items-center justify-between mb-3">
+        <div className={`${spacing.section} ${spacing.padding} bg-[#2b2b2b] rounded-lg`}>
+          <div className={`flex items-center justify-between ${spacing.inner}`}>
             <label className="text-xs font-semibold text-gray-300">{t('properties.fill')}</label>
             {onFillEnabledChange && (
               <label className="relative inline-flex items-center cursor-pointer">
@@ -227,8 +241,8 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
 
       {/* Shape-specific: Stroke controls */}
       {isShapeElement && shapeElement && (
-        <div className="mb-4 p-3 bg-[#2b2b2b] rounded-lg">
-          <div className="flex items-center justify-between mb-3">
+        <div className={`${spacing.section} ${spacing.padding} bg-[#2b2b2b] rounded-lg`}>
+          <div className={`flex items-center justify-between ${spacing.inner}`}>
             <label className="text-xs font-semibold text-gray-300">{t('properties.stroke')}</label>
             {onStrokeEnabledChange && (
               <label className="relative inline-flex items-center cursor-pointer">
@@ -277,8 +291,8 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
       {isTextElement && textElement && (
         <>
           {/* Fill controls */}
-          <div className="mb-4 p-3 bg-[#2b2b2b] rounded-lg">
-            <div className="flex items-center justify-between mb-3">
+          <div className={`${spacing.section} ${spacing.padding} bg-[#2b2b2b] rounded-lg`}>
+            <div className={`flex items-center justify-between ${spacing.inner}`}>
               <label className="text-xs font-semibold text-gray-300">{t('properties.fill')}</label>
               {onFillEnabledChange && (
                 <label className="relative inline-flex items-center cursor-pointer">
@@ -302,8 +316,8 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
           </div>
 
           {/* Stroke controls */}
-          <div className="mb-4 p-3 bg-[#2b2b2b] rounded-lg">
-            <div className="flex items-center justify-between mb-3">
+          <div className={`${spacing.section} ${spacing.padding} bg-[#2b2b2b] rounded-lg`}>
+            <div className={`flex items-center justify-between ${spacing.inner}`}>
               <label className="text-xs font-semibold text-gray-300">{t('properties.stroke')}</label>
               {onStrokeEnabledChange && (
                 <label className="relative inline-flex items-center cursor-pointer">
@@ -350,8 +364,8 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
       )}
 
       {/* Shadow controls - all element types */}
-      <div className="mb-4 p-3 bg-[#2b2b2b] rounded-lg">
-        <div className="flex items-center justify-between mb-3">
+      <div className={`${spacing.section} ${spacing.padding} bg-[#2b2b2b] rounded-lg`}>
+        <div className={`flex items-center justify-between ${spacing.inner}`}>
           <label className="text-xs font-semibold text-gray-300">{t('properties.shadow')}</label>
           {onShadowEnabledChange && (
             <label className="relative inline-flex items-center cursor-pointer">
@@ -456,7 +470,7 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
 
       {/* Opacity slider */}
       {onOpacityChange && (
-        <div className="mb-4">
+        <div className={spacing.section}>
           <label className="block text-xs font-medium text-gray-300 mb-2">
             {t('properties.opacity')}
           </label>
@@ -506,18 +520,12 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
 
   if (isMobile) {
     return (
-      <div className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-[#2b2b2b] rounded-t-2xl shadow-2xl z-50 max-h-[40vh] overflow-y-auto">
+      <div className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a]/80 backdrop-blur-sm border-t border-[#2b2b2b] rounded-t-2xl shadow-2xl z-50 max-h-[20vh] overflow-y-auto overflow-x-hidden">
         {/* Drag handle indicator */}
-        <div className="flex justify-center pt-2 pb-1">
+        <div className="flex justify-center pt-1.5 pb-0.5">
           <div className="w-10 h-1 bg-gray-600 rounded-full" />
         </div>
-        {/* Close button */}
-        <div className="flex justify-end px-4">
-          <button onClick={onClose} className="p-1 hover:bg-[#333333] rounded">
-            <span className="material-symbols-outlined text-gray-400 text-xl">close</span>
-          </button>
-        </div>
-        <div className="px-5 pb-5">
+        <div className="px-4 pb-3">
           {panelContent}
         </div>
       </div>

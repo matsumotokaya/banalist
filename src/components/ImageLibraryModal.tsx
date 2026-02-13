@@ -16,6 +16,8 @@ type TabType = 'default' | 'user';
 type DefaultImageWithUrl = DefaultImage & { displayUrl?: string };
 type UserImageWithUrl = UserImage & { displayUrl?: string };
 
+type ImageWithUrl = DefaultImageWithUrl | UserImageWithUrl;
+
 export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab = 'default' }: ImageLibraryModalProps) => {
   const { t } = useTranslation(['modal', 'message']);
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
@@ -260,6 +262,56 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab =
     onClose();
   };
 
+  // Handle image deletion
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const handleDeleteImage = async (e: React.MouseEvent, image: ImageWithUrl) => {
+    e.stopPropagation();
+
+    const confirmMessage = t('modal:imageLibrary.deleteConfirm', { name: image.name });
+    if (!window.confirm(confirmMessage)) return;
+
+    setDeleting(image.id);
+
+    try {
+      const bucket = activeTab === 'default' ? 'default-images' : 'user-images';
+      const table = activeTab === 'default' ? 'default_images' : 'user_images';
+
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from(bucket)
+        .remove([image.storage_path]);
+
+      if (storageError) {
+        console.error('Storage delete error:', storageError);
+      }
+
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from(table)
+        .delete()
+        .eq('id', image.id);
+
+      if (dbError) throw dbError;
+
+      // Remove from URL cache
+      const cacheKey = `${bucket}:${image.storage_path}`;
+      urlCacheRef.current.delete(cacheKey);
+
+      // Refresh list
+      if (activeTab === 'default') {
+        await fetchDefaultImages();
+      } else {
+        await fetchUserImages();
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert(t('modal:imageLibrary.deleteFailed'));
+    } finally {
+      setDeleting(null);
+    }
+  };
+
   if (!isOpen) return null;
 
   const images = activeTab === 'default' ? defaultImages : userImages;
@@ -348,27 +400,48 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab =
             </div>
           ) : (
             <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
-              {(images as (DefaultImageWithUrl | UserImageWithUrl)[]).map((image) => (
-                <button
-                  key={image.id}
-                  onClick={() => handleSelect(image as DefaultImageWithUrl & UserImageWithUrl)}
-                  className="group relative aspect-square rounded-md overflow-hidden border border-[#333] hover:border-indigo-500 transition-all bg-[#222]"
-                >
-                  <img
-                    src={getCachedDisplayUrl(image.storage_path, bucketName)}
-                    alt={image.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
-                    <span className="material-symbols-outlined text-white opacity-0 group-hover:opacity-100 text-3xl drop-shadow-lg">
-                      add_circle
-                    </span>
-                  </div>
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent text-white text-[10px] px-2 py-1.5 truncate">
-                    {image.name}
-                  </div>
-                </button>
-              ))}
+              {(images as ImageWithUrl[]).map((image) => {
+                const canDelete = activeTab === 'user' || isAdmin;
+                const isDeleting = deleting === image.id;
+
+                return (
+                  <button
+                    key={image.id}
+                    onClick={() => handleSelect(image as DefaultImageWithUrl & UserImageWithUrl)}
+                    className="group relative aspect-square rounded-md overflow-hidden border border-[#333] hover:border-indigo-500 transition-all bg-[#222]"
+                    disabled={isDeleting}
+                  >
+                    <img
+                      src={getCachedDisplayUrl(image.storage_path, bucketName)}
+                      alt={image.name}
+                      className={`w-full h-full object-cover ${isDeleting ? 'opacity-30' : ''}`}
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
+                      {isDeleting ? (
+                        <div className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#555] border-t-white"></div>
+                      ) : (
+                        <span className="material-symbols-outlined text-white opacity-0 group-hover:opacity-100 text-3xl drop-shadow-lg">
+                          add_circle
+                        </span>
+                      )}
+                    </div>
+                    {canDelete && !isDeleting && (
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => handleDeleteImage(e, image)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleDeleteImage(e as unknown as React.MouseEvent, image); }}
+                        className="absolute top-1 right-1 p-0.5 bg-black/60 hover:bg-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-all z-10"
+                      >
+                        <span className="material-symbols-outlined text-white text-[16px]">close</span>
+                      </div>
+                    )}
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent text-white text-[10px] px-2 py-1.5 truncate">
+                      {image.name}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>

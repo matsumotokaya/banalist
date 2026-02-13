@@ -119,7 +119,7 @@ export const MobileToolbar = ({
 
       {/* Drawer */}
       {activeDrawer && (
-        <div className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-[#2b2b2b] rounded-t-2xl shadow-2xl z-50 max-h-[50vh] overflow-y-auto">
+        <div className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a]/80 backdrop-blur-sm border-t border-[#2b2b2b] rounded-t-2xl shadow-2xl z-50 max-h-[50vh] overflow-y-auto">
           <div className="p-5">
             {/* Tool Drawer */}
             {activeDrawer === 'tool' && (
