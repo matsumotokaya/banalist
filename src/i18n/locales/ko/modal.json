@@ -54,8 +54,8 @@
   "imageLibrary": {
     "title": "이미지 라이브러리",
     "tabs": {
-      "default": "기본",
-      "myLibrary": "내 라이브러리"
+      "default": "라이브러리",
+      "myLibrary": "업로드"
     },
     "upload": "이미지 업로드",
     "uploading": "업로드 중...",

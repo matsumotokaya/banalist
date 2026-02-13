@@ -19,6 +19,7 @@ import { useZoomControl } from '../hooks/useZoomControl';
 import { useElementOperations } from '../hooks/useElementOperations';
 import { useAuth } from '../contexts/AuthContext';
 import { isDataUrlImage, uploadDataUrlToBucket, uploadFileToBucket } from '../utils/storage';
+import { supabase } from '../utils/supabase';
 import { templateStorage } from '../utils/templateStorage';
 import { useEntranceAnimation } from '../hooks/useEntranceAnimation';
 import { LoadingOverlay } from '../components/canvas/LoadingOverlay';
@@ -845,6 +846,19 @@ export const BannerEditor = () => {
       try {
         const fileBase = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}`;
         finalSrc = await uploadDataUrlToBucket(src, 'user-images', fileBase);
+
+        // Register metadata to user_images table so it appears in Uploads tab
+        const storagePath = finalSrc.split('/user-images/')[1];
+        if (storagePath) {
+          await supabase.from('user_images').insert({
+            user_id: user.id,
+            name: `image-${Date.now()}`,
+            storage_path: storagePath,
+            width,
+            height,
+            file_size: 0,
+          });
+        }
       } catch (error) {
         console.error('Image upload failed:', error);
         alert(t('message:error.imageUploadFailed'));
@@ -887,6 +901,19 @@ export const BannerEditor = () => {
     try {
       const fileBase = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}`;
       publicUrl = await uploadFileToBucket(file, 'user-images', fileBase);
+
+      // Register metadata to user_images table so it appears in Uploads tab
+      const storagePath = publicUrl.split('/user-images/')[1];
+      if (storagePath) {
+        await supabase.from('user_images').insert({
+          user_id: user.id,
+          name: file.name,
+          storage_path: storagePath,
+          width,
+          height,
+          file_size: file.size,
+        });
+      }
     } catch (error) {
       console.error('Image upload failed:', error);
       alert(t('message:error.imageUploadFailed'));

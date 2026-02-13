@@ -54,8 +54,8 @@
   "imageLibrary": {
     "title": "画像ライブラリ",
     "tabs": {
-      "default": "デフォルト",
-      "myLibrary": "マイライブラリ"
+      "default": "ライブラリ",
+      "myLibrary": "アップロード"
     },
     "upload": "画像をアップロード",
     "uploading": "アップロード中...",

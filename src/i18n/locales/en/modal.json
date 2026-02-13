@@ -54,8 +54,8 @@
   "imageLibrary": {
     "title": "Image Library",
     "tabs": {
-      "default": "Default",
-      "myLibrary": "My Library"
+      "default": "Library",
+      "myLibrary": "Uploads"
     },
     "upload": "Upload Image",
     "uploading": "Uploading...",

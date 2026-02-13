@@ -54,8 +54,8 @@
   "imageLibrary": {
     "title": "图片库",
     "tabs": {
-      "default": "默认",
-      "myLibrary": "我的图库"
+      "default": "素材库",
+      "myLibrary": "上传"
     },
     "upload": "上传图片",
     "uploading": "上传中...",

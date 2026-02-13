@@ -54,8 +54,8 @@
   "imageLibrary": {
     "title": "圖片庫",
     "tabs": {
-      "default": "預設",
-      "myLibrary": "我的圖庫"
+      "default": "素材庫",
+      "myLibrary": "上傳"
     },
     "upload": "上傳圖片",
     "uploading": "上傳中...",
