@@ -45,6 +45,11 @@ serve(async (req) => {
       metadata: {
         user_id: userId,
       },
+      subscription_data: {
+        metadata: {
+          user_id: userId,
+        },
+      },
     })
 
     return new Response(

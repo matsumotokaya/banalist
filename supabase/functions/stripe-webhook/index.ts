@@ -28,6 +28,31 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Helper: resolve user_id from subscription metadata or stripe_customer_id
+    const resolveUserId = async (subscription: Stripe.Subscription): Promise<string | null> => {
+      // Try metadata first
+      if (subscription.metadata?.user_id) {
+        return subscription.metadata.user_id
+      }
+
+      // Fallback: look up by stripe_customer_id
+      const customerId = subscription.customer as string
+      if (customerId) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('stripe_customer_id', customerId)
+          .single()
+
+        if (data?.id) {
+          console.log(`Resolved user ${data.id} via stripe_customer_id ${customerId}`)
+          return data.id
+        }
+      }
+
+      return null
+    }
+
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
@@ -64,10 +89,10 @@ serve(async (req) => {
 
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription
-        const userId = subscription.metadata?.user_id
+        const userId = await resolveUserId(subscription)
 
         if (!userId) {
-          console.error('No user_id found in subscription metadata')
+          console.error('No user_id found in subscription metadata or by customer_id')
           break
         }
 
@@ -103,10 +128,10 @@ serve(async (req) => {
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription
-        const userId = subscription.metadata?.user_id
+        const userId = await resolveUserId(subscription)
 
         if (!userId) {
-          console.error('No user_id found in subscription metadata')
+          console.error('No user_id found in subscription metadata or by customer_id')
           break
         }
 
