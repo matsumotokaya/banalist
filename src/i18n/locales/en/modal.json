@@ -45,6 +45,12 @@
     "cancel": "Cancel",
     "comingSoon": "Upgrade feature coming soon"
   },
+  "desktopRecommended": {
+    "title": "Desktop Recommended",
+    "description": "This tool is optimized for editing on larger screens like laptops. Some features may be limited on mobile.",
+    "dontShowAgain": "Don't show again",
+    "gotIt": "Got it"
+  },
   "imageLibrary": {
     "title": "Image Library",
     "tabs": {

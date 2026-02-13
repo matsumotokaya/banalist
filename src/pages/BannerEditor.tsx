@@ -9,6 +9,7 @@ import { BottomBar } from '../components/BottomBar';
 import { MobileToolbar } from '../components/MobileToolbar';
 import { Canvas, type CanvasRef } from '../components/Canvas';
 import { UpgradeModal } from '../components/UpgradeModal';
+import { DesktopRecommendedModal } from '../components/DesktopRecommendedModal';
 import { SaveAsTemplateModal } from '../components/SaveAsTemplateModal';
 import { useBanner, useBatchSaveBanner, useUpdateBanner, useUpdateBannerName } from '../hooks/useBanners';
 import type { Banner, Template, CanvasElement, TextElement, ShapeElement, ImageElement } from '../types/template';
@@ -29,6 +30,8 @@ export const BannerEditor = () => {
   const { profile, user } = useAuth();
   const { t } = useTranslation(['common', 'message']);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showDesktopModal, setShowDesktopModal] = useState(false);
+  const [isCanvasEditing, setIsCanvasEditing] = useState(false);
   const [showSaveAsTemplateModal, setShowSaveAsTemplateModal] = useState(false);
   const isGuest = !id;
   const guestStorageKey = 'banalist_guest_banner';
@@ -99,6 +102,15 @@ export const BannerEditor = () => {
     }
   }, [animationPhase]);
 
+  // Show desktop recommended modal on mobile
+  useEffect(() => {
+    const isMobile = window.innerWidth < 768;
+    const dismissed = localStorage.getItem('imagine_desktop_modal_dismissed');
+    if (isMobile && !dismissed) {
+      setShowDesktopModal(true);
+    }
+  }, []);
+
   // Custom hooks
   const { resetHistory, saveToHistory, undo, redo } = useHistory();
   const getInitialZoom = () => {
@@ -140,6 +152,45 @@ export const BannerEditor = () => {
   const handlePanMouseUp = useCallback(() => {
     setIsPanning(false);
   }, []);
+
+  // Touch pan initiated from Canvas background (for mobile)
+  const handleCanvasPanTouchStart = useCallback((clientX: number, clientY: number) => {
+    setIsPanning(true);
+    panStartRef.current = { x: clientX, y: clientY, panX: panOffset.x, panY: panOffset.y };
+    wasPanningRef.current = false;
+  }, [panOffset]);
+
+  // Window-level touch listeners for ongoing pan
+  useEffect(() => {
+    if (!isPanning) return;
+
+    const handleTouchMove = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      if (!touch) return;
+      const dx = touch.clientX - panStartRef.current.x;
+      const dy = touch.clientY - panStartRef.current.y;
+      setPanOffset({
+        x: panStartRef.current.panX + dx,
+        y: panStartRef.current.panY + dy,
+      });
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+        wasPanningRef.current = true;
+      }
+    };
+
+    const handleTouchEnd = () => {
+      setIsPanning(false);
+    };
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isPanning, setPanOffset]);
+
   const elementOps = useElementOperations({
     setElements,
     saveToHistory,
@@ -1252,6 +1303,8 @@ export const BannerEditor = () => {
                 entranceAnimationPhase={animationPhase}
                 textPlacementMode={textPlacementMode}
                 onPlaceText={handleCanvasPlaceText}
+                onEditingChange={setIsCanvasEditing}
+                onBackgroundTouchStart={handleCanvasPanTouchStart}
               />
             {(animationPhase === 'loading' || animationPhase === 'animating') && (
               <LoadingOverlay
@@ -1329,6 +1382,8 @@ export const BannerEditor = () => {
                 entranceAnimationPhase={animationPhase}
                 textPlacementMode={textPlacementMode}
                 onPlaceText={handleCanvasPlaceText}
+                onEditingChange={setIsCanvasEditing}
+                onBackgroundTouchStart={handleCanvasPanTouchStart}
               />
             {(animationPhase === 'loading' || animationPhase === 'animating') && (
               <LoadingOverlay
@@ -1358,31 +1413,33 @@ export const BannerEditor = () => {
           textPlacementMode={textPlacementMode}
         />
 
-        {/* Mobile PropertyPanel - Modal */}
-        <PropertyPanel
-          selectedElement={selectedElementIds.length === 1 ? elements.find((el) => el.id === selectedElementIds[0]) || null : null}
-          onColorChange={handlePropertyColorChange}
-          onFontChange={handleFontChange}
-          onSizeChange={handleSizeChange}
-          onWeightChange={handleWeightChange}
-          onLetterSpacingChange={handleLetterSpacingChange}
-          onLineHeightChange={handleLineHeightChange}
-          onOpacityChange={handleOpacityChange}
-          onBringToFront={handleBringToFront}
-          onSendToBack={handleSendToBack}
-          onFillEnabledChange={handleFillEnabledChange}
-          onStrokeChange={handleStrokeChange}
-          onStrokeWidthChange={handleStrokeWidthChange}
-          onStrokeEnabledChange={handleStrokeEnabledChange}
-          onShadowEnabledChange={handleShadowEnabledChange}
-          onShadowColorChange={handleShadowColorChange}
-          onShadowBlurChange={handleShadowBlurChange}
-          onShadowOffsetXChange={handleShadowOffsetXChange}
-          onShadowOffsetYChange={handleShadowOffsetYChange}
-          onShadowOpacityChange={handleShadowOpacityChange}
-          isMobile={true}
-          onClose={() => handleSelectElement([])}
-        />
+        {/* Mobile PropertyPanel - Hidden during inline text editing */}
+        {!isCanvasEditing && (
+          <PropertyPanel
+            selectedElement={selectedElementIds.length === 1 ? elements.find((el) => el.id === selectedElementIds[0]) || null : null}
+            onColorChange={handlePropertyColorChange}
+            onFontChange={handleFontChange}
+            onSizeChange={handleSizeChange}
+            onWeightChange={handleWeightChange}
+            onLetterSpacingChange={handleLetterSpacingChange}
+            onLineHeightChange={handleLineHeightChange}
+            onOpacityChange={handleOpacityChange}
+            onBringToFront={handleBringToFront}
+            onSendToBack={handleSendToBack}
+            onFillEnabledChange={handleFillEnabledChange}
+            onStrokeChange={handleStrokeChange}
+            onStrokeWidthChange={handleStrokeWidthChange}
+            onStrokeEnabledChange={handleStrokeEnabledChange}
+            onShadowEnabledChange={handleShadowEnabledChange}
+            onShadowColorChange={handleShadowColorChange}
+            onShadowBlurChange={handleShadowBlurChange}
+            onShadowOffsetXChange={handleShadowOffsetXChange}
+            onShadowOffsetYChange={handleShadowOffsetYChange}
+            onShadowOpacityChange={handleShadowOpacityChange}
+            isMobile={true}
+            onClose={() => handleSelectElement([])}
+          />
+        )}
       </div>
 
       <BottomBar
@@ -1402,6 +1459,12 @@ export const BannerEditor = () => {
           setShowUpgradeModal(false);
           navigate('/mydesign');
         }}
+      />
+
+      {/* Desktop Recommended Modal (mobile only) */}
+      <DesktopRecommendedModal
+        isOpen={showDesktopModal}
+        onClose={() => setShowDesktopModal(false)}
       />
 
       <SaveAsTemplateModal

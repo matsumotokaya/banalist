@@ -506,8 +506,18 @@ export const PropertyPanel = ({ selectedElement, onColorChange, onFontChange, on
 
   if (isMobile) {
     return (
-      <div className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-[#2b2b2b] rounded-t-2xl shadow-2xl z-50 max-h-[75vh] overflow-y-auto">
-        <div className="p-5">
+      <div className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-[#2b2b2b] rounded-t-2xl shadow-2xl z-50 max-h-[40vh] overflow-y-auto">
+        {/* Drag handle indicator */}
+        <div className="flex justify-center pt-2 pb-1">
+          <div className="w-10 h-1 bg-gray-600 rounded-full" />
+        </div>
+        {/* Close button */}
+        <div className="flex justify-end px-4">
+          <button onClick={onClose} className="p-1 hover:bg-[#333333] rounded">
+            <span className="material-symbols-outlined text-gray-400 text-xl">close</span>
+          </button>
+        </div>
+        <div className="px-5 pb-5">
           {panelContent}
         </div>
       </div>

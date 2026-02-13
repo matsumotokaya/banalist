@@ -8,21 +8,7 @@ import { UpgradeModal } from './UpgradeModal';
 import { ColorSelector } from './ColorSelector';
 import { useAuth } from '../contexts/AuthContext';
 import type { CanvasElement } from '../types/template';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
+import { arrayMove } from '@dnd-kit/sortable';
 
 interface MobileToolbarProps {
   canvasColor: string;
@@ -71,25 +57,16 @@ export const MobileToolbar = ({
     }
   };
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  const handleMoveLayer = (elementId: string, direction: 'up' | 'down') => {
+    const reversedElements = [...elements].reverse();
+    const index = reversedElements.findIndex((el) => el.id === elementId);
+    if (index < 0) return;
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= reversedElements.length) return;
 
-    if (over && active.id !== over.id) {
-      const reversedElements = [...elements].reverse();
-      const oldIndex = reversedElements.findIndex((el) => el.id === active.id);
-      const newIndex = reversedElements.findIndex((el) => el.id === over.id);
-
-      const reordered = arrayMove(reversedElements, oldIndex, newIndex);
-      const finalOrder = reordered.reverse();
-      onReorderElements?.(finalOrder);
-    }
+    const reordered = arrayMove(reversedElements, index, targetIndex);
+    onReorderElements?.(reordered.reverse());
   };
 
   const getLayerName = (element: CanvasElement): string => {
@@ -141,7 +118,7 @@ export const MobileToolbar = ({
 
       {/* Drawer */}
       {activeDrawer && (
-        <div className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-[#2b2b2b] rounded-t-2xl shadow-2xl z-50 max-h-[60vh] overflow-y-auto">
+        <div className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-[#2b2b2b] rounded-t-2xl shadow-2xl z-50 max-h-[50vh] overflow-y-auto">
           <div className="p-5">
             {/* Tool Drawer */}
             {activeDrawer === 'tool' && (
@@ -196,57 +173,78 @@ export const MobileToolbar = ({
                     <p className="text-xs text-gray-400 mt-2">{t('layer.empty')}</p>
                   </div>
                 ) : (
-                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                    <SortableContext items={[...elements].reverse().map(el => el.id)} strategy={verticalListSortingStrategy}>
-                      <div className="space-y-2">
-                        {[...elements].reverse().map((element) => {
-                          const isSelected = selectedElementIds.includes(element.id);
-                          return (
-                            <div
-                              key={element.id}
-                              onClick={() => onSelectElement?.([element.id])}
-                              className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                                isSelected
-                                  ? 'bg-indigo-900/30 border-indigo-600'
-                                  : 'bg-[#2b2b2b] border-[#444444] hover:border-[#555555]'
-                              }`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <span className="material-symbols-outlined text-gray-400 text-[20px]">
-                                  {element.type === 'text' ? 'text_fields' : element.type === 'image' ? 'image' : 'category'}
+                  <div className="space-y-2">
+                    {[...elements].reverse().map((element, index, arr) => {
+                      const isSelected = selectedElementIds.includes(element.id);
+                      return (
+                        <div
+                          key={element.id}
+                          onClick={() => {
+                            onSelectElement?.([element.id]);
+                            setActiveDrawer(null);
+                          }}
+                          className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                            isSelected
+                              ? 'bg-indigo-900/30 border-indigo-600'
+                              : 'bg-[#2b2b2b] border-[#444444] hover:border-[#555555]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-gray-400 text-[20px]">
+                              {element.type === 'text' ? 'text_fields' : element.type === 'image' ? 'image' : 'category'}
+                            </span>
+                            <span className="flex-1 text-sm text-gray-300 truncate">{getLayerName(element)}</span>
+                            <div className="flex items-center gap-0.5">
+                              {/* Move up (higher in layer order) */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMoveLayer(element.id, 'up');
+                                }}
+                                disabled={index === 0}
+                                className="p-1 hover:bg-[#444444] rounded disabled:opacity-30"
+                              >
+                                <span className="material-symbols-outlined text-[16px] text-gray-400">arrow_upward</span>
+                              </button>
+                              {/* Move down (lower in layer order) */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMoveLayer(element.id, 'down');
+                                }}
+                                disabled={index === arr.length - 1}
+                                className="p-1 hover:bg-[#444444] rounded disabled:opacity-30"
+                              >
+                                <span className="material-symbols-outlined text-[16px] text-gray-400">arrow_downward</span>
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onToggleVisibility?.(element.id);
+                                }}
+                                className="p-1 hover:bg-[#444444] rounded"
+                              >
+                                <span className="material-symbols-outlined text-[16px] text-gray-400">
+                                  {element.visible ? 'visibility' : 'visibility_off'}
                                 </span>
-                                <span className="flex-1 text-sm text-gray-300 truncate">{getLayerName(element)}</span>
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onToggleVisibility?.(element.id);
-                                    }}
-                                    className="p-1 hover:bg-[#444444] rounded"
-                                  >
-                                    <span className="material-symbols-outlined text-[16px] text-gray-400">
-                                      {element.visible ? 'visibility' : 'visibility_off'}
-                                    </span>
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onToggleLock?.(element.id);
-                                    }}
-                                    className="p-1 hover:bg-[#444444] rounded"
-                                  >
-                                    <span className="material-symbols-outlined text-[16px] text-gray-400">
-                                      {element.locked ? 'lock' : 'lock_open'}
-                                    </span>
-                                  </button>
-                                </div>
-                              </div>
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onToggleLock?.(element.id);
+                                }}
+                                className="p-1 hover:bg-[#444444] rounded"
+                              >
+                                <span className="material-symbols-outlined text-[16px] text-gray-400">
+                                  {element.locked ? 'lock' : 'lock_open'}
+                                </span>
+                              </button>
                             </div>
-                          );
-                        })}
-                      </div>
-                    </SortableContext>
-                  </DndContext>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
             )}

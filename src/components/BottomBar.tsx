@@ -22,9 +22,9 @@ export const BottomBar = ({
   return (
     <div className="h-14 md:h-16 bg-[#1a1a1a] border-t border-[#2b2b2b] overflow-x-auto overflow-y-hidden">
       <div className="flex items-center justify-between px-3 md:px-6 h-full min-w-max">
-        {/* Zoom controls - Desktop only (mobile uses pinch zoom) */}
-        <div className="hidden md:flex items-center gap-3 md:gap-4">
-          <div className="flex items-center gap-2 md:gap-3">
+        {/* Zoom controls */}
+        <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-1.5 md:gap-3">
             <button
               onClick={() => onZoomChange(Math.max(25, zoom - 10))}
               className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center hover:bg-[#333333] rounded transition-colors flex-shrink-0"
@@ -34,13 +34,14 @@ export const BottomBar = ({
               </svg>
             </button>
 
+            {/* Range slider - desktop only */}
             <input
               type="range"
               min="25"
               max="200"
               value={zoom}
               onChange={(e) => onZoomChange(Number(e.target.value))}
-              className="w-24 md:w-32 h-1 bg-[#444444] rounded-lg appearance-none cursor-pointer accent-indigo-500"
+              className="hidden md:block w-24 md:w-32 h-1 bg-[#444444] rounded-lg appearance-none cursor-pointer accent-indigo-500"
             />
 
             <button

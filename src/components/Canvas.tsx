@@ -23,6 +23,8 @@ interface CanvasProps {
   entranceAnimationPhase?: 'idle' | 'loading' | 'animating' | 'complete';
   textPlacementMode?: boolean;
   onPlaceText?: (x: number, y: number) => string;
+  onEditingChange?: (isEditing: boolean) => void;
+  onBackgroundTouchStart?: (clientX: number, clientY: number) => void;
 }
 
 export interface CanvasRef {
@@ -43,7 +45,7 @@ const TEXT_PLACEMENT_CURSOR = (() => {
 })();
 
 export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
-  { template, elements, scale = 0.5, canvasColor, fileName = 'artwork-01.png', onTextChange, selectedElementIds = [], onSelectElement, onElementUpdate, onElementsUpdate, onImageDrop, onImageLoad, entranceAnimationPhase, textPlacementMode, onPlaceText },
+  { template, elements, scale = 0.5, canvasColor, fileName = 'artwork-01.png', onTextChange, selectedElementIds = [], onSelectElement, onElementUpdate, onElementsUpdate, onImageDrop, onImageLoad, entranceAnimationPhase, textPlacementMode, onPlaceText, onEditingChange, onBackgroundTouchStart },
   ref
 ) {
   const { t } = useTranslation('editor');
@@ -558,6 +560,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
     if (!stageRef.current || !onTextChange) return;
 
     setIsEditing(true);
+    onEditingChange?.(true);
     const stage = stageRef.current;
     const container = stage.container();
 
@@ -623,6 +626,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
       textarea.parentNode?.removeChild(textarea);
       textNode.show();
       setIsEditing(false);
+      onEditingChange?.(false);
     };
 
     const handleSubmit = () => {
@@ -874,6 +878,19 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
 
             selectionStartRef.current = null;
             setSelectionRect(null);
+          }}
+          onTouchStart={(e) => {
+            // Enable pan from Stage background on touch devices
+            const target = e.target;
+            const isBackground = target === e.target.getStage() ||
+              (target.getClassName() === 'Rect' && target.attrs.fill === canvasColor);
+
+            if (isBackground && !textPlacementMode && !isEditing && onBackgroundTouchStart) {
+              const touch = e.evt.touches?.[0];
+              if (touch) {
+                onBackgroundTouchStart(touch.clientX, touch.clientY);
+              }
+            }
           }}
         >
           <Layer>
