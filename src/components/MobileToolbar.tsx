@@ -42,7 +42,7 @@ export const MobileToolbar = ({
   onToggleVisibility,
 }: MobileToolbarProps) => {
   const { t } = useTranslation('editor');
-  const { profile } = useAuth();
+  const { profile, loading } = useAuth();
   const [activeDrawer, setActiveDrawer] = useState<DrawerType>(null);
   const [showImageLibrary, setShowImageLibrary] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -50,6 +50,7 @@ export const MobileToolbar = ({
   const isPremium = profile?.subscriptionTier === 'premium';
 
   const handleImageLibraryClick = () => {
+    if (loading) return;
     if (!isPremium) {
       setShowUpgradeModal(true);
     } else {

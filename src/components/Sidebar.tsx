@@ -207,7 +207,7 @@ export const Sidebar = ({
   textPlacementMode = false,
 }: SidebarProps) => {
   const { t } = useTranslation('editor');
-  const { profile } = useAuth();
+  const { profile, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('tool');
   const [showImageLibrary, setShowImageLibrary] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -215,6 +215,7 @@ export const Sidebar = ({
   const isPremium = profile?.subscriptionTier === 'premium';
 
   const handleImageLibraryClick = () => {
+    if (loading) return;
     if (!isPremium) {
       setShowUpgradeModal(true);
     } else {
