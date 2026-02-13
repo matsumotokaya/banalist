@@ -32,5 +32,7 @@
   "noTemplatesForSize": "此尺寸尚無範本",
   "noDesignsForSize": "此尺寸尚無設計",
   "createDesignFromTemplate": "請從範本建立新設計",
-  "templateLoadFailed": "範本載入失敗"
+  "templateLoadFailed": "範本載入失敗",
+  "like": "喜歡",
+  "unlike": "取消喜歡"
 }

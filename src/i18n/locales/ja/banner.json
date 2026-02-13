@@ -32,5 +32,7 @@
   "noTemplatesForSize": "このサイズのテンプレートはありません",
   "noDesignsForSize": "このサイズのデザインはありません",
   "createDesignFromTemplate": "テンプレートから新しいデザインを作成してください",
-  "templateLoadFailed": "テンプレートの読み込みに失敗しました"
+  "templateLoadFailed": "テンプレートの読み込みに失敗しました",
+  "like": "いいね",
+  "unlike": "いいね解除"
 }

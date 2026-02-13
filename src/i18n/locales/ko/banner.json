@@ -32,5 +32,7 @@
   "noTemplatesForSize": "이 크기의 템플릿이 없습니다",
   "noDesignsForSize": "이 크기의 디자인이 없습니다",
   "createDesignFromTemplate": "템플릿에서 새 디자인을 만들어 주세요",
-  "templateLoadFailed": "템플릿 로드에 실패했습니다"
+  "templateLoadFailed": "템플릿 로드에 실패했습니다",
+  "like": "좋아요",
+  "unlike": "좋아요 취소"
 }

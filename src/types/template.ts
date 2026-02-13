@@ -18,6 +18,8 @@ export interface TemplateRecord {
   displayOrder?: number;
   width?: number;
   height?: number;
+  likeCount?: number;
+  openCount?: number;
 }
 
 export interface BaseElement {

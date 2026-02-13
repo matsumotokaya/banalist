@@ -32,5 +32,7 @@
   "noTemplatesForSize": "No templates for this size",
   "noDesignsForSize": "No designs for this size",
   "createDesignFromTemplate": "Create a new design from a template",
-  "templateLoadFailed": "Failed to load template"
+  "templateLoadFailed": "Failed to load template",
+  "like": "Like",
+  "unlike": "Unlike"
 }

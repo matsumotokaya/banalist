@@ -7,6 +7,7 @@ import { UpgradeModal } from '../components/UpgradeModal';
 import { EditTemplateModal } from '../components/EditTemplateModal';
 import { Footer } from '../components/Footer';
 import { SortableGrid } from '../components/SortableGrid';
+import { LikeButton } from '../components/LikeButton';
 import { useTemplates, templateKeys } from '../hooks/useTemplates';
 import { DEFAULT_TEMPLATES } from '../templates/defaultTemplates';
 import type { Template, TemplateRecord } from '../types/template';
@@ -96,6 +97,9 @@ export const TemplatesBySize = () => {
         return;
       }
     }
+
+    // Fire-and-forget: increment open count
+    templateStorage.incrementOpenCount(template.id);
 
     const editorTemplate = buildEditorTemplate(resolvedTemplate);
     const templateElements = JSON.parse(JSON.stringify(resolvedTemplate.elements || []));
@@ -204,6 +208,9 @@ export const TemplatesBySize = () => {
               </span>
             </div>
           </div>
+          <div className="absolute top-2 right-2 z-10">
+            <LikeButton templateId={template.id} likeCount={template.likeCount ?? 0} />
+          </div>
           {isGuest && template.id !== guestTemplateId && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="bg-black/60 text-white h-16 w-16 rounded-full shadow-lg flex items-center justify-center">
@@ -252,7 +259,15 @@ export const TemplatesBySize = () => {
           </div>
 
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-3 pt-8">
-            <h3 className="font-medium text-white text-sm truncate">{template.name}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-medium text-white text-sm truncate">{template.name}</h3>
+              {(template.openCount ?? 0) > 0 && (
+                <span className="text-[11px] text-white/50 whitespace-nowrap flex items-center gap-0.5">
+                  <span className="material-symbols-outlined text-[13px]">person</span>
+                  {template.openCount}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>

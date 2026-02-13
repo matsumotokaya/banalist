@@ -11,6 +11,8 @@ interface DbTemplate {
   display_order?: number | null;
   width?: number | null;
   height?: number | null;
+  like_count?: number | null;
+  open_count?: number | null;
 }
 
 const dbToTemplate = (db: DbTemplate): TemplateRecord => ({
@@ -23,13 +25,15 @@ const dbToTemplate = (db: DbTemplate): TemplateRecord => ({
   displayOrder: db.display_order ?? undefined,
   width: db.width ?? undefined,
   height: db.height ?? undefined,
+  likeCount: db.like_count ?? 0,
+  openCount: db.open_count ?? 0,
 });
 
 export const templateStorage = {
   async getPublicTemplates(): Promise<TemplateRecord[]> {
     const { data, error } = await supabase
       .from('templates')
-      .select('id, name, canvas_color, thumbnail_url, plan_type, display_order, width, height, updated_at')
+      .select('id, name, canvas_color, thumbnail_url, plan_type, display_order, width, height, updated_at, like_count, open_count')
       .order('display_order', { ascending: true, nullsFirst: false })
       .order('updated_at', { ascending: false });
 
@@ -123,6 +127,12 @@ export const templateStorage = {
       console.error('Error deleting template:', error);
       throw error;
     }
+  },
+
+  async incrementOpenCount(templateId: string): Promise<void> {
+    await supabase.rpc('increment_template_open_count', {
+      template_id: templateId,
+    });
   },
 
   async updateDisplayOrders(
