@@ -257,7 +257,7 @@ export const MobileToolbar = ({
         isOpen={showImageLibrary}
         onClose={() => setShowImageLibrary(false)}
         onSelectImage={onAddImage}
-        initialTab="default"
+        initialTab="user"
       />
       <UpgradeModal
         isOpen={showUpgradeModal}

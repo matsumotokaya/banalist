@@ -54,7 +54,7 @@
   "imageLibrary": {
     "title": "图片库",
     "tabs": {
-      "default": "素材库",
+      "default": "高级素材库",
       "myLibrary": "上传"
     },
     "upload": "上传图片",
@@ -68,6 +68,7 @@
     "uploadPartialFail": "{{success}} 张成功，{{fail}} 张失败",
     "uploadFailed": "上传失败",
     "deleteConfirm": "确定删除「{{name}}」吗？",
-    "deleteFailed": "图片删除失败"
+    "deleteFailed": "图片删除失败",
+    "adminDbNotice": "图片的添加和删除请直接在数据库（Supabase Dashboard）中管理。可通过此处显示的图片名称识别记录。"
   }
 }

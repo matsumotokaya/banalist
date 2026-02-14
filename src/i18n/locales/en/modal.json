@@ -54,7 +54,7 @@
   "imageLibrary": {
     "title": "Image Library",
     "tabs": {
-      "default": "Library",
+      "default": "Premium Library",
       "myLibrary": "Uploads"
     },
     "upload": "Upload Image",
@@ -68,6 +68,7 @@
     "uploadPartialFail": "{{success}} succeeded, {{fail}} failed",
     "uploadFailed": "Upload failed",
     "deleteConfirm": "Delete \"{{name}}\"?",
-    "deleteFailed": "Failed to delete image"
+    "deleteFailed": "Failed to delete image",
+    "adminDbNotice": "To add or delete images, please manage directly from the database (Supabase Dashboard). Use the image name shown here to identify records."
   }
 }

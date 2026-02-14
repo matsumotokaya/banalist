@@ -54,7 +54,7 @@
   "imageLibrary": {
     "title": "圖片庫",
     "tabs": {
-      "default": "素材庫",
+      "default": "進階素材庫",
       "myLibrary": "上傳"
     },
     "upload": "上傳圖片",
@@ -68,6 +68,7 @@
     "uploadPartialFail": "{{success}} 張成功，{{fail}} 張失敗",
     "uploadFailed": "上傳失敗",
     "deleteConfirm": "確定刪除「{{name}}」嗎？",
-    "deleteFailed": "圖片刪除失敗"
+    "deleteFailed": "圖片刪除失敗",
+    "adminDbNotice": "圖片的新增和刪除請直接在資料庫（Supabase Dashboard）中管理。可透過此處顯示的圖片名稱識別記錄。"
   }
 }
