@@ -16,6 +16,7 @@ import { SecurityPolicy } from './pages/legal/SecurityPolicy';
 import { AboutUs } from './pages/AboutUs';
 import { Contact } from './pages/Contact';
 import { MyPage } from './pages/MyPage';
+import { AdminDashboard } from './pages/AdminDashboard';
 import { AuthProvider } from './contexts/AuthContext';
 import { CookieConsent } from './components/CookieConsent';
 import { ScrollToTop } from './components/ScrollToTop';
@@ -45,6 +46,7 @@ function App() {
             <Route path="/legal/security" element={<SecurityPolicy />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/mypage" element={<MyPage />} />
+            <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
           <CookieConsent />
         </BrowserRouter>

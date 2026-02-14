@@ -5,6 +5,9 @@ interface ImageUploaderProps {
   onAddImage: (src: string, width: number, height: number) => void;
 }
 
+const MAX_FILE_SIZE_MB = 10;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
 export const ImageUploader = ({ onAddImage }: ImageUploaderProps) => {
   const { t } = useTranslation('editor');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -15,6 +18,10 @@ export const ImageUploader = ({ onAddImage }: ImageUploaderProps) => {
 
     Array.from(files).forEach((file) => {
       if (!file.type.startsWith('image/')) return;
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        alert(`File "${file.name}" exceeds ${MAX_FILE_SIZE_MB}MB limit.`);
+        return;
+      }
 
       const reader = new FileReader();
       reader.onload = () => {
@@ -45,7 +52,7 @@ export const ImageUploader = ({ onAddImage }: ImageUploaderProps) => {
       <button
         onClick={() => fileInputRef.current?.click()}
         className="w-full px-3 py-2 text-xs font-medium text-gray-300 bg-[#333333] hover:bg-[#444444] rounded transition-colors flex items-center justify-center gap-1"
-        title={t('imageUploader.uploadImage')}
+        title={`${t('imageUploader.uploadImage')} (Max ${MAX_FILE_SIZE_MB}MB)`}
       >
         <span className="material-symbols-outlined text-[16px]">upload</span>
         <span>{t('imageUploader.uploadImage')}</span>

@@ -50,10 +50,16 @@ npm run build
 - **Fit Button**: Reset view to center
 
 ### User Management
-- **Authentication**: Google OAuth via Supabase
+- **Authentication**: Google / Apple / Email via Supabase
 - **Roles**: `admin` | `user`
 - **Subscription**: `free` | `premium` ($8/month via Stripe)
-- **Permissions**: Admin can upload default images, manage templates
+
+### Admin Features
+- **Admin Dashboard** (`/admin`): Storage usage monitoring, user/content stats, Supabase Free plan limits
+- **Template Management**: Add, edit, delete, and reorder templates in the gallery
+- **Default Image Library**: Upload and manage public image assets available to all users
+- **Save As Template**: Convert any banner into a public template from the editor header
+- Admin role is set via `profiles.role = 'admin'` in the database
 
 ### Data Persistence
 - **Auto-save**: 3-second debounce with real-time status indicator

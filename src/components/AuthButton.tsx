@@ -112,6 +112,17 @@ export const AuthButton = () => {
               <span>{t('auth:mypage.title')}</span>
             </Link>
 
+            {profile?.role === 'admin' && (
+              <Link
+                to="/admin"
+                onClick={() => setIsMenuOpen(false)}
+                className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-3"
+              >
+                <span className="material-symbols-outlined text-[20px]">monitoring</span>
+                <span>Admin Dashboard</span>
+              </Link>
+            )}
+
             <button
               onClick={async () => {
                 setIsMenuOpen(false);

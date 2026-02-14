@@ -115,6 +115,9 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab =
     }
   }, [isOpen, activeTab]);
 
+  const MAX_FILE_SIZE_MB = 10;
+  const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
   // Handle file upload (works for both default and user images)
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -125,6 +128,12 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab =
     const invalidFiles = fileArray.filter(file => !file.type.startsWith('image/'));
     if (invalidFiles.length > 0) {
       alert(t('message:error.onlyImageFiles'));
+      return;
+    }
+
+    const oversizedFiles = fileArray.filter(file => file.size > MAX_FILE_SIZE_BYTES);
+    if (oversizedFiles.length > 0) {
+      alert(`Max file size: ${MAX_FILE_SIZE_MB}MB. Too large: ${oversizedFiles.map(f => f.name).join(', ')}`);
       return;
     }
 
@@ -319,7 +328,10 @@ export const ImageLibraryModal = ({ isOpen, onClose, onSelectImage, initialTab =
                   {t('modal:imageLibrary.adminAccess')}
                 </span>
               )}
-              <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2a2a2a] text-gray-300 rounded hover:bg-[#3a3a3a] cursor-pointer transition-colors text-xs font-medium">
+              <label
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2a2a2a] text-gray-300 rounded hover:bg-[#3a3a3a] cursor-pointer transition-colors text-xs font-medium"
+                title={`Max ${MAX_FILE_SIZE_MB}MB per file`}
+              >
                 <span className="material-symbols-outlined text-[16px]">upload</span>
                 <span>{uploading ? t('modal:imageLibrary.uploading') : t('modal:imageLibrary.upload')}</span>
                 <input
