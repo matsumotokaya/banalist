@@ -25,6 +25,18 @@ Illustratorのような高度な視覚効果を実現する
 
 ---
 
+## サムネイル白化問題（要調査・再発時に対応）
+
+**現象:** エディタでバナーを開き、何も編集せずログアウト → 再ログイン後サムネイルが一時的に真っ白。次回バナーから戻るボタンで離脱時に正しいサムネイルに自動復旧。
+
+**推定原因:** `exportThumbnail()`が画像ロード完了前に呼ばれ、白いcanvasがエクスポートされた
+
+**再発時の確認事項:**
+- [ ] `exportThumbnail()`呼び出し時に全画像がロード済みか検証するガードを追加
+- [ ] エディタを開くだけで発生する不要なauto-save（`elements: [] → DB値`の変化検知）を抑制
+
+---
+
 ## Lasso Selection (In Progress)
 
 - Selection rectangle visual appears correctly

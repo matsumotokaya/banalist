@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../utils/supabase';
 import { useProfile } from '../hooks/useProfile';
+import { queryClient } from '../lib/queryClient';
 
 interface UserProfile {
   id: string;
@@ -116,10 +117,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut({ scope: 'local' });
     if (error) {
       console.error('Error signing out:', error.message);
     }
+    queryClient.clear();
   };
 
   // Provide optimistic default profile while loading

@@ -36,7 +36,7 @@ export interface CanvasRef {
 
 // Bleed area around artboard (canvas units) so elements/transformers
 // that extend beyond the artboard boundary remain visible.
-const BLEED = 400;
+export const BLEED = 400;
 
 // Custom "T" cursor SVG for text placement mode
 const TEXT_PLACEMENT_CURSOR = (() => {

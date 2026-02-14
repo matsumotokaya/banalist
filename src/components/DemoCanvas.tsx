@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Canvas } from './Canvas';
+import { Canvas, BLEED } from './Canvas';
 import type { CanvasRef } from './Canvas';
 import type { Template, CanvasElement } from '../types/template';
 
@@ -267,8 +267,6 @@ export const DemoCanvas = ({ scale = 0.45 }: DemoCanvasProps) => {
     document.body.removeChild(link);
   };
 
-  // BLEED must match the value in Canvas.tsx (200 canvas units)
-  const BLEED = 200;
   const bleedPx = BLEED * scale;
   const artboardWidth = DEMO_TEMPLATE.width * scale;
   const artboardHeight = DEMO_TEMPLATE.height * scale;

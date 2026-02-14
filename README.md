@@ -1,6 +1,6 @@
 # IMAGINE
 
-Browser-based banner design tool with template and rule-based image generation.
+Browser-based design tool with template and rule-based image generation.
 
 ---
 
@@ -116,7 +116,7 @@ See [docs/DATABASE.md](docs/DATABASE.md) for full schema details.
 
 ## i18n (Internationalization)
 
-Supported languages: English (🇬🇧) / Japanese (🇯🇵)
+Supported languages: English / Japanese / SC / TC / 韓国語
 
 ```typescript
 import { useTranslation } from 'react-i18next';

@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 
 export const AuthButton = () => {
   const { t } = useTranslation(['auth', 'common']);
   const { user, profile, loading, signOut } = useAuth();
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -112,9 +113,10 @@ export const AuthButton = () => {
             </Link>
 
             <button
-              onClick={() => {
-                signOut();
+              onClick={async () => {
                 setIsMenuOpen(false);
+                await signOut();
+                navigate('/');
               }}
               className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-3"
             >
