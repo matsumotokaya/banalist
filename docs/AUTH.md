@@ -1,6 +1,6 @@
 # Authentication Specification
 
-Last updated: 2026-02-11
+Last updated: 2026-02-15
 
 ## Overview
 
@@ -123,6 +123,26 @@ Apple OAuth secret keys expire every 6 months. Current key expires around **Augu
 - **Password reset**: sends reset link via email
 - **Setup**: Supabase Dashboard > Authentication > Providers > Email (enabled)
 - **Email templates**: customizable in Supabase Dashboard > Authentication > Email Templates
+
+#### Custom SMTP (Resend)
+
+Transactional emails (verification, password reset) are sent via Resend custom SMTP.
+
+| Item | Value |
+|---|---|
+| **Provider** | Resend |
+| **Sender email** | `noreply@whatif-ep.xyz` |
+| **Sender name** | `IMAGINE` |
+| **SMTP host** | `smtp.resend.com` |
+| **SMTP port** | `465` |
+| **Domain** | `whatif-ep.xyz` (verified via Cloudflare DNS) |
+| **Region** | `ap-northeast-1` (Tokyo) |
+
+**Configuration location**: Supabase Dashboard > Project Settings > Authentication > SMTP Settings
+
+**DNS records** (Cloudflare): DKIM (`resend._domainkey`), SPF + MX (`send` subdomain)
+
+**Resend Dashboard**: API keys, delivery logs, domain management
 
 ## Supabase Configuration
 

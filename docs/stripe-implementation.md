@@ -106,6 +106,29 @@ const STRIPE_PRICE_ID = import.meta.env.VITE_STRIPE_PRICE_ID;
 
 ---
 
+## Price ID 一覧
+
+| 環境 | Price ID |
+|------|----------|
+| Test (Sandbox) | `price_1SgTcWLhSi3I8k5ljpx47yjl` |
+| Live (Production) | `price_1T0kiNQ2eK2Q8eWb4OQhcvJo` |
+
+## Webhook エンドポイント（Live）
+
+| 項目 | 値 |
+|------|-----|
+| 支払先 ID | `we_1T0kvDQ2eK2Q8eWbwh7tdrli` |
+| 名前 | `engaging-victory` |
+| URL | `https://rgqduwojvylkulhyodqg.supabase.co/functions/v1/stripe-webhook` |
+| API バージョン | `2025-12-15.clover` |
+
+**リッスン対象イベント（3件）:**
+- `checkout.session.completed`
+- `customer.subscription.deleted`
+- `customer.subscription.updated`
+
+---
+
 ## テスト/本番切り替えチェックリスト
 
 ### テスト → 本番

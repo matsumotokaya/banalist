@@ -23,6 +23,7 @@ npm run build
 - **Canvas**: Konva.js (react-konva)
 - **Styling**: TailwindCSS
 - **Backend**: Supabase (Auth, Database, Storage)
+- **Email**: Resend (SMTP via `noreply@whatif-ep.xyz`)
 - **Data Fetching**: React Query (@tanstack/react-query)
 - **i18n**: react-i18next (English/Japanese)
 
