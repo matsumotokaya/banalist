@@ -149,8 +149,7 @@ export function ChineseTraditionalContent() {
           有關本條款的問題,請聯絡:
         </p>
         <p className="mt-2 text-gray-700">
-          電子郵件: contact@whatif-ep.xyz<br />
-          運營者: 松本夏彌
+          電子郵件: contact@whatif-ep.xyz
         </p>
       </Section>
     </>

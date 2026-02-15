@@ -21,14 +21,15 @@ export function KoreanContent() {
       </Section>
 
       <Section title="소재지">
-        <p>〒221-0003</p>
-        <p>일본 가나가와현 요코하마시 가나가와구 오구치나카초 203-40</p>
+        <p>요청 시 지체 없이 공개합니다.</p>
       </Section>
 
       <Section title="연락처">
         <p>이메일: contact@whatif-ep.xyz</p>
-        <p>전화번호: 090-4238-3149</p>
         <p className="text-sm text-gray-600 mt-2">
+          전화번호는 요청 시 지체 없이 공개합니다.
+        </p>
+        <p className="text-sm text-gray-600 mt-1">
           ※문의는 원칙적으로 이메일로 받고 있습니다.
         </p>
       </Section>

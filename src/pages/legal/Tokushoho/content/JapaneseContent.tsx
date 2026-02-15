@@ -21,14 +21,15 @@ export function JapaneseContent() {
       </Section>
 
       <Section title="所在地">
-        <p>〒221-0003</p>
-        <p>神奈川県横浜市神奈川区大口仲町203-40</p>
+        <p>請求があった場合、遅滞なく開示いたします。</p>
       </Section>
 
       <Section title="連絡先">
         <p>メールアドレス: contact@whatif-ep.xyz</p>
-        <p>電話番号: 090-4238-3149</p>
         <p className="text-sm text-gray-600 mt-2">
+          電話番号は請求があった場合、遅滞なく開示いたします。
+        </p>
+        <p className="text-sm text-gray-600 mt-1">
           ※お問い合わせは、原則としてメールにて受け付けております。
         </p>
       </Section>

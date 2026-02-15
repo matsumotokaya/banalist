@@ -21,14 +21,15 @@ export function EnglishContent() {
       </Section>
 
       <Section title="Address">
-        <p>〒221-0003</p>
-        <p>203-40 Oguchinakacho, Kanagawa-ku, Yokohama, Kanagawa, Japan</p>
+        <p>Disclosed upon request without delay.</p>
       </Section>
 
       <Section title="Contact">
         <p>Email: contact@whatif-ep.xyz</p>
-        <p>Phone: 090-4238-3149</p>
         <p className="text-sm text-gray-600 mt-2">
+          Phone number will be disclosed upon request without delay.
+        </p>
+        <p className="text-sm text-gray-600 mt-1">
           ※Inquiries are primarily handled via email.
         </p>
       </Section>

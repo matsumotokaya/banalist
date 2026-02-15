@@ -149,8 +149,7 @@ export function KoreanContent() {
           본 약관에 관한 질문은 다음으로 문의해 주세요:
         </p>
         <p className="mt-2 text-gray-700">
-          이메일: contact@whatif-ep.xyz<br />
-          운영자: 마츠모토 카야
+          이메일: contact@whatif-ep.xyz
         </p>
       </Section>
     </>

@@ -21,14 +21,15 @@ export function ChineseTraditionalContent() {
       </Section>
 
       <Section title="地址">
-        <p>〒221-0003</p>
-        <p>日本神奈川縣橫濱市神奈川區大口仲町203-40</p>
+        <p>如有請求，將立即公開。</p>
       </Section>
 
       <Section title="聯絡方式">
         <p>電子郵件: contact@whatif-ep.xyz</p>
-        <p>電話: 090-4238-3149</p>
         <p className="text-sm text-gray-600 mt-2">
+          電話號碼如有請求，將立即公開。
+        </p>
+        <p className="text-sm text-gray-600 mt-1">
           ※原則上透過電子郵件接受諮詢。
         </p>
       </Section>

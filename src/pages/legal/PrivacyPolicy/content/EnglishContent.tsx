@@ -116,8 +116,7 @@ export function EnglishContent() {
           For questions about this Privacy Policy, please contact:
         </p>
         <p className="mt-2 text-gray-700">
-          Email: contact@whatif-ep.xyz<br />
-          Operator: Kaya Matsumoto
+          Email: contact@whatif-ep.xyz
         </p>
       </Section>
     </>

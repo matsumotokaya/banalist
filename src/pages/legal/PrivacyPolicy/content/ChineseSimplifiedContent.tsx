@@ -115,8 +115,7 @@ export function ChineseSimplifiedContent() {
           关于本隐私政策的问题，请联系：
         </p>
         <p className="mt-2 text-gray-700">
-          电子邮箱: contact@whatif-ep.xyz<br />
-          运营方: Kaya Matsumoto
+          电子邮箱: contact@whatif-ep.xyz
         </p>
       </Section>
     </>

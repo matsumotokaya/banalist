@@ -47,11 +47,11 @@ export function Tokushoho() {
 
   const getLastUpdated = () => {
     switch (lang) {
-      case 'ja': return '最終更新日: 2026年2月8日';
-      case 'ko': return '최종 업데이트: 2026년 2월 8일';
-      case 'zh-CN': return '最后更新: 2026年2月8日';
-      case 'zh-TW': return '最後更新: 2026年2月8日';
-      default: return 'Last Updated: February 8, 2026';
+      case 'ja': return '最終更新日: 2026年2月15日';
+      case 'ko': return '최종 업데이트: 2026년 2월 15일';
+      case 'zh-CN': return '最后更新: 2026年2月15日';
+      case 'zh-TW': return '最後更新: 2026年2月15日';
+      default: return 'Last Updated: February 15, 2026';
     }
   };
 

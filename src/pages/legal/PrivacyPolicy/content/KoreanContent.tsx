@@ -115,8 +115,7 @@ export function KoreanContent() {
           본 개인정보처리방침에 대한 질문은 다음으로 문의해 주세요:
         </p>
         <p className="mt-2 text-gray-700">
-          이메일 주소: contact@whatif-ep.xyz<br />
-          운영자: Kaya Matsumoto
+          이메일 주소: contact@whatif-ep.xyz
         </p>
       </Section>
     </>

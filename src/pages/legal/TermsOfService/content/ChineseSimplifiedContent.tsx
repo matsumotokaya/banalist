@@ -149,8 +149,7 @@ export function ChineseSimplifiedContent() {
           有关本条款的问题,请联系:
         </p>
         <p className="mt-2 text-gray-700">
-          电子邮件: contact@whatif-ep.xyz<br />
-          运营者: 松本夏弥
+          电子邮件: contact@whatif-ep.xyz
         </p>
       </Section>
     </>

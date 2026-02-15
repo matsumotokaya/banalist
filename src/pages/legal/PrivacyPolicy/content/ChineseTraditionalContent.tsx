@@ -115,8 +115,7 @@ export function ChineseTraditionalContent() {
           關於本隱私權政策的問題，請聯絡：
         </p>
         <p className="mt-2 text-gray-700">
-          電子信箱: contact@whatif-ep.xyz<br />
-          營運方: Kaya Matsumoto
+          電子信箱: contact@whatif-ep.xyz
         </p>
       </Section>
     </>

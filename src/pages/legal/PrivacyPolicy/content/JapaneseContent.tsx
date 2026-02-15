@@ -115,8 +115,7 @@ export function JapaneseContent() {
           本プライバシーポリシーに関するご質問は、以下までお問い合わせください：
         </p>
         <p className="mt-2 text-gray-700">
-          メールアドレス: contact@whatif-ep.xyz<br />
-          運営者: 松本夏弥
+          メールアドレス: contact@whatif-ep.xyz
         </p>
       </Section>
     </>
