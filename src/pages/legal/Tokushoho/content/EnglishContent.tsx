@@ -12,30 +12,19 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export function EnglishContent() {
   return (
     <>
-      <Section title="Business Operator">
-        <p>Kaya Matsumoto</p>
-      </Section>
-
-      <Section title="Representative">
-        <p>Kaya Matsumoto</p>
-      </Section>
-
-      <Section title="Address">
-        <p>Disclosed upon request without delay.</p>
+      <Section title="Service Name">
+        <p>IMAGINE - Design Creation Assistant Tool</p>
       </Section>
 
       <Section title="Contact">
         <p>Email: contact@whatif-ep.xyz</p>
-        <p className="text-sm text-gray-600 mt-2">
-          Phone number will be disclosed upon request without delay.
-        </p>
         <p className="text-sm text-gray-600 mt-1">
           ※Inquiries are primarily handled via email.
         </p>
       </Section>
 
-      <Section title="Service Name">
-        <p>IMAGINE - Design Creation Assistant Tool</p>
+      <Section title="Business Operator / Representative / Address / Phone Number">
+        <p>Disclosed upon request without delay.</p>
       </Section>
 
       <Section title="Price">

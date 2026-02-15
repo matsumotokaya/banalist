@@ -12,30 +12,19 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export function KoreanContent() {
   return (
     <>
-      <Section title="사업자명">
-        <p>마츠모토 카야 (Kaya Matsumoto)</p>
-      </Section>
-
-      <Section title="운영 총괄 책임자">
-        <p>마츠모토 카야</p>
-      </Section>
-
-      <Section title="소재지">
-        <p>요청 시 지체 없이 공개합니다.</p>
+      <Section title="서비스명">
+        <p>IMAGINE(이매진) - 디자인 제작 어시스턴트 도구</p>
       </Section>
 
       <Section title="연락처">
         <p>이메일: contact@whatif-ep.xyz</p>
-        <p className="text-sm text-gray-600 mt-2">
-          전화번호는 요청 시 지체 없이 공개합니다.
-        </p>
         <p className="text-sm text-gray-600 mt-1">
           ※문의는 원칙적으로 이메일로 받고 있습니다.
         </p>
       </Section>
 
-      <Section title="서비스명">
-        <p>IMAGINE(이매진) - 디자인 제작 어시스턴트 도구</p>
+      <Section title="사업자명 / 운영 총괄 책임자 / 소재지 / 전화번호">
+        <p>요청 시 지체 없이 공개합니다.</p>
       </Section>
 
       <Section title="판매 가격">

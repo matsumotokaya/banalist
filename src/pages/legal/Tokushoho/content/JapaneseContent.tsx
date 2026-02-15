@@ -12,30 +12,19 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export function JapaneseContent() {
   return (
     <>
-      <Section title="事業者名">
-        <p>松本 夏弥（Kaya Matsumoto）</p>
-      </Section>
-
-      <Section title="運営統括責任者">
-        <p>松本 夏弥</p>
-      </Section>
-
-      <Section title="所在地">
-        <p>請求があった場合、遅滞なく開示いたします。</p>
+      <Section title="サービス名">
+        <p>IMAGINE(イマジン) - デザイン制作アシスタントツール</p>
       </Section>
 
       <Section title="連絡先">
         <p>メールアドレス: contact@whatif-ep.xyz</p>
-        <p className="text-sm text-gray-600 mt-2">
-          電話番号は請求があった場合、遅滞なく開示いたします。
-        </p>
         <p className="text-sm text-gray-600 mt-1">
           ※お問い合わせは、原則としてメールにて受け付けております。
         </p>
       </Section>
 
-      <Section title="サービス名">
-        <p>IMAGINE(イマジン) - デザイン制作アシスタントツール</p>
+      <Section title="事業者名 / 運営統括責任者 / 所在地 / 電話番号">
+        <p>請求があった場合、遅滞なく開示いたします。</p>
       </Section>
 
       <Section title="販売価格">

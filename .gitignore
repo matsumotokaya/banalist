@@ -35,3 +35,7 @@ dist-ssr
 
 # Screenshots
 screenshot/
+
+# Large assets
+reguler-asset/
+video/

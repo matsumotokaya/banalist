@@ -29,16 +29,6 @@ export function AboutUs() {
     }
   };
 
-  const getSubtitle = () => {
-    switch (i18n.language) {
-      case 'ja': return 'サービスについて';
-      case 'ko': return '우리의 서비스에 대하여';
-      case 'zh-CN': return '关于我们的服务';
-      case 'zh-TW': return '關於我們的服務';
-      default: return 'About Our Service';
-    }
-  };
-
   const getBackText = () => {
     switch (i18n.language) {
       case 'ja': return 'ホームに戻る';
@@ -51,22 +41,19 @@ export function AboutUs() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-12">
+      <div className="max-w-5xl mx-auto px-4 py-12">
         {/* Header */}
         <div className="mb-8">
           <Link to="/" className="text-blue-600 hover:text-blue-700 mb-4 inline-block">
             ← {getBackText()}
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-sm font-medium text-gray-400 tracking-widest uppercase">
             {getTitle()}
           </h1>
-          <p className="text-gray-600 mt-2">
-            {getSubtitle()}
-          </p>
         </div>
 
         {/* Content */}
-        <div className="bg-white rounded-lg shadow-sm p-8 space-y-8">
+        <div className="bg-white rounded-2xl shadow-sm px-6 py-10 md:px-10 space-y-12">
           <ContentComponent
             selectedImage={selectedImage}
             setSelectedImage={setSelectedImage}

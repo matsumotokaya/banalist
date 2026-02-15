@@ -12,30 +12,19 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export function ChineseTraditionalContent() {
   return (
     <>
-      <Section title="經營者">
-        <p>松本 夏彌 (Kaya Matsumoto)</p>
-      </Section>
-
-      <Section title="運營總負責人">
-        <p>松本 夏彌</p>
-      </Section>
-
-      <Section title="地址">
-        <p>如有請求，將立即公開。</p>
+      <Section title="服務名稱">
+        <p>IMAGINE(伊馬真) - 設計製作輔助工具</p>
       </Section>
 
       <Section title="聯絡方式">
         <p>電子郵件: contact@whatif-ep.xyz</p>
-        <p className="text-sm text-gray-600 mt-2">
-          電話號碼如有請求，將立即公開。
-        </p>
         <p className="text-sm text-gray-600 mt-1">
           ※原則上透過電子郵件接受諮詢。
         </p>
       </Section>
 
-      <Section title="服務名稱">
-        <p>IMAGINE(伊馬真) - 設計製作輔助工具</p>
+      <Section title="經營者 / 運營總負責人 / 地址 / 電話號碼">
+        <p>如有請求，將立即公開。</p>
       </Section>
 
       <Section title="銷售價格">
