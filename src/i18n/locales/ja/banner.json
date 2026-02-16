@@ -18,6 +18,8 @@
   "confirmDelete": "このバナーを削除してもよろしいですか？",
   "editName": "名前を編集",
   "backToManager": "管理画面に戻る",
+  "saveAndBack": "保存して一覧に戻る",
+  "saveFailedConfirm": "保存に失敗しました。保存されていない変更がありますが、一覧に戻りますか？",
   "sampleTemplate": "サンプルテンプレート",
   "createFromScratch": "白紙から作成",
   "emptyStateMessage": "無料テンプレートからデザインを作りましょう",

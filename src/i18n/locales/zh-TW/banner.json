@@ -18,6 +18,8 @@
   "confirmDelete": "確定要刪除此橫幅嗎？",
   "editName": "編輯名稱",
   "backToManager": "返回管理頁面",
+  "saveAndBack": "儲存並返回列表",
+  "saveFailedConfirm": "儲存失敗。您有未儲存的變更，是否仍然返回列表？",
   "sampleTemplate": "範例範本",
   "createFromScratch": "從空白畫布開始",
   "emptyStateMessage": "從免費範本開始建立設計",

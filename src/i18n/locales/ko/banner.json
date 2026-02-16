@@ -18,6 +18,8 @@
   "confirmDelete": "이 배너를 삭제하시겠습니까?",
   "editName": "이름 편집",
   "backToManager": "관리 화면으로 돌아가기",
+  "saveAndBack": "저장하고 목록으로 돌아가기",
+  "saveFailedConfirm": "저장에 실패했습니다. 저장되지 않은 변경사항이 있습니다. 그래도 목록으로 돌아가시겠습니까?",
   "sampleTemplate": "샘플 템플릿",
   "createFromScratch": "빈 캔버스에서 시작",
   "emptyStateMessage": "무료 템플릿으로 디자인을 만들어 보세요",

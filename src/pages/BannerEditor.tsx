@@ -29,7 +29,7 @@ export const BannerEditor = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, user } = useAuth();
-  const { t } = useTranslation(['common', 'message']);
+  const { t } = useTranslation(['common', 'message', 'banner']);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showDesktopModal, setShowDesktopModal] = useState(false);
   const [isCanvasEditing, setIsCanvasEditing] = useState(false);
@@ -1213,8 +1213,10 @@ export const BannerEditor = () => {
       navigate('/mydesign');
     } catch (error) {
       console.error('[BannerEditor] Failed to save before navigating:', error);
-      // Navigate anyway to avoid being stuck
-      navigate('/mydesign');
+      const confirmLeave = window.confirm(t('banner:saveFailedConfirm'));
+      if (confirmLeave) {
+        navigate('/mydesign');
+      }
     } finally {
       setIsNavigating(false);
     }

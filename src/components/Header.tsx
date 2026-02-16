@@ -39,18 +39,19 @@ export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChan
   return (
     <header className="h-14 md:h-16 bg-[#231b2f] border-b border-[#2b2b2b] flex items-center justify-between px-3 md:px-6">
       <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
-        {onBackToManager && (
+        {onBackToManager ? (
           <button
             onClick={onBackToManager}
-            className="w-8 h-8 md:w-9 md:h-9 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition-colors flex-shrink-0"
-            title={t('banner:backToManager')}
+            className="h-8 md:h-9 px-3 md:px-4 bg-white/20 hover:bg-white/30 rounded-lg flex items-center gap-1.5 md:gap-2 transition-colors flex-shrink-0"
           >
             <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
+            <span className="text-white text-xs md:text-sm font-medium whitespace-nowrap">{t('banner:saveAndBack')}</span>
           </button>
+        ) : (
+          <img src="/logo_imagine_white.svg" alt="imagine" className="h-6 md:h-7 flex-shrink-0" />
         )}
-        <img src="/logo_imagine_white.svg" alt="imagine" className="h-6 md:h-7 flex-shrink-0" />
         {bannerName && (
           <>
             <span className="hidden sm:inline text-white/50">|</span>
