@@ -49,26 +49,6 @@ const dbToBannerListItem = (db: DbBannerListItem): BannerListItem => ({
 });
 
 export const bannerStorage = {
-  async getByTemplateId(templateId: string): Promise<Banner | null> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-
-    const { data, error } = await supabase
-      .from('banners')
-      .select('*')
-      .eq('template_id', templateId)
-      .eq('user_id', user.id)
-      .limit(1);
-
-    if (error) {
-      console.error('Error fetching banner by template:', error);
-      return null;
-    }
-
-    const banner = data && data.length > 0 ? data[0] : null;
-    return banner ? dbToBanner(banner) : null;
-  },
-
   async createFromTemplate(template: TemplateRecord, editorTemplate: Template): Promise<Banner | null> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {

@@ -119,12 +119,6 @@ export const TemplatesBySize = () => {
 
     setTemplateActionId(template.id);
     try {
-      const existing = await bannerStorage.getByTemplateId(resolvedTemplate.id);
-      if (existing) {
-        navigate(`/banner/${existing.id}`);
-        return;
-      }
-
       const created = await bannerStorage.createFromTemplate(resolvedTemplate, editorTemplate);
       if (created) {
         navigate(`/banner/${created.id}`);
