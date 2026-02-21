@@ -26,6 +26,7 @@ interface AuthContextType {
   signInWithEmail: (email: string, password: string) => Promise<{ error: string | null }>;
   signUpWithEmail: (email: string, password: string) => Promise<{ error: string | null; needsConfirmation: boolean }>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
+  updatePassword: (password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -116,6 +117,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return { error: error?.message || null };
   };
 
+  const updatePassword = async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    return { error: error?.message || null };
+  };
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut({ scope: 'local' });
     if (error) {
@@ -146,6 +152,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signInWithEmail,
     signUpWithEmail,
     resetPassword,
+    updatePassword,
     signOut,
   };
 

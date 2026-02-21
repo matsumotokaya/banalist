@@ -8,13 +8,34 @@ export const AuthCallback = () => {
   const redirect = searchParams.get('redirect') || '/';
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        navigate('/auth?view=update-password', { replace: true });
+        return;
+      }
+
       if (session) {
         navigate(redirect, { replace: true });
       } else {
         navigate('/auth?error=callback_failed', { replace: true });
       }
     });
+
+    // Fallback: if no event fires within 3s, check session directly
+    const timeout = setTimeout(() => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          navigate(redirect, { replace: true });
+        } else {
+          navigate('/auth?error=callback_failed', { replace: true });
+        }
+      });
+    }, 3000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
   }, [navigate, redirect]);
 
   return (

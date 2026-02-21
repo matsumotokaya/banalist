@@ -23,7 +23,10 @@ npm run build
 - **Canvas**: Konva.js (react-konva)
 - **Styling**: TailwindCSS
 - **Backend**: Supabase (Auth, Database, Storage)
-- **Email**: Resend (SMTP via `noreply@whatif-ep.xyz`)
+- **Email**:
+  - `noreply@whatif-ep.xyz` - Outbound only (Resend SMTP). Password reset, contact form notifications
+  - `contact@whatif-ep.xyz` - Inbound. Legal pages contact address. Cloudflare Email Routing → Gmail
+  - `imagine@whatif-ep.xyz` - Inbound. Discord account, general use. Cloudflare Email Routing → Gmail. Previously used for STORES contact via LOLIPOP webmail (past emails are no longer accessible)
 - **Data Fetching**: React Query (@tanstack/react-query)
 - **i18n**: react-i18next (English/Japanese)
 
