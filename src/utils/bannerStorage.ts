@@ -234,13 +234,16 @@ export const bannerStorage = {
     }
   },
 
-  // Duplicate banner
+  // Duplicate banner (insert at top of list)
   async duplicate(id: string): Promise<Banner | null> {
     const original = await this.getById(id);
     if (!original) return null;
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
+
+    // Shift all existing banners' display_order by +1 to make room at position 1
+    await supabase.rpc('increment_display_orders', { p_user_id: user.id });
 
     const { data, error } = await supabase
       .from('banners')
@@ -251,6 +254,7 @@ export const bannerStorage = {
         elements: JSON.parse(JSON.stringify(original.elements)),
         canvas_color: original.canvasColor,
         thumbnail_url: original.thumbnailUrl || null,
+        display_order: 1,
       })
       .select()
       .single();
