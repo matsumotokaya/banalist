@@ -165,6 +165,8 @@ export const BannerEditor = () => {
   // Touch pan from main element (for panMode on mobile - canvas has pointerEvents: none)
   const handleMainTouchStart = useCallback((e: React.TouchEvent) => {
     if (!panMode) return;
+    // Skip if pinch gesture (2+ fingers) - let zoom handler take over
+    if (e.touches.length >= 2) return;
     const touch = e.touches[0];
     if (!touch) return;
     setIsPanning(true);
@@ -177,6 +179,8 @@ export const BannerEditor = () => {
     if (!isPanning) return;
 
     const handleTouchMove = (e: TouchEvent) => {
+      // Skip pan during pinch gesture (2+ fingers) - let zoom handler take over
+      if (e.touches.length >= 2) return;
       const touch = e.touches[0];
       if (!touch) return;
       const dx = touch.clientX - panStartRef.current.x;
