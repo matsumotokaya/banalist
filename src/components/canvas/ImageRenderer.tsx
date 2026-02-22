@@ -133,7 +133,7 @@ const ImageRendererComponent = ({
       onMouseDown={(e) => onSelect(imageElement.id, e)}
       onTap={(e) => onSelect(imageElement.id, e)}
       onDragStart={(e) => {
-        dragStartPosRef.current = { x: e.target.x(), y: e.target.y() };
+        dragStartPosRef.current = e.target.getAbsolutePosition();
         lockAxisRef.current = null;
         onDragStart?.(imageElement.id, e);
       }}
@@ -147,25 +147,19 @@ const ImageRendererComponent = ({
           return pos;
         }
 
-        const node = localNodeRef.current;
-        const stage = node?.getStage();
-        const scaleX = stage?.scaleX() ?? 1;
-        const scaleY = stage?.scaleY() ?? 1;
-        const unscaledPos = { x: pos.x / scaleX, y: pos.y / scaleY };
         const startPos = dragStartPosRef.current;
 
         if (!lockAxisRef.current) {
-          lockAxisRef.current = resolveLockAxis(unscaledPos, startPos);
+          lockAxisRef.current = resolveLockAxis(pos, startPos);
         }
 
         if (!lockAxisRef.current) {
           return pos;
         }
 
-        const lockedPos = lockAxisRef.current === 'x'
-          ? { x: startPos.x, y: unscaledPos.y }
-          : { x: unscaledPos.x, y: startPos.y };
-        return { x: lockedPos.x * scaleX, y: lockedPos.y * scaleY };
+        return lockAxisRef.current === 'x'
+          ? { x: startPos.x, y: pos.y }
+          : { x: pos.x, y: startPos.y };
       }}
       onDragMove={(e) => {
         onDragMove?.(imageElement.id, e);

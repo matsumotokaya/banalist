@@ -76,7 +76,7 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, isMultiDragging, isMult
     onMouseDown: (e: Konva.KonvaEventObject<MouseEvent>) => onSelect(shape.id, e),
     onTap: (e: Konva.KonvaEventObject<MouseEvent>) => onSelect(shape.id, e),
     onDragStart: (e: Konva.KonvaEventObject<DragEvent>) => {
-      dragStartPosRef.current = toLogicalPos({ x: e.target.x(), y: e.target.y() });
+      dragStartPosRef.current = e.target.getAbsolutePosition();
       lockAxisRef.current = null;
       onDragStart?.(shape.id, e);
     },
@@ -90,33 +90,19 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, isMultiDragging, isMult
         return pos;
       }
 
-      const node = localNodeRef.current;
-      const stage = node?.getStage();
-      const scaleX = stage?.scaleX() ?? 1;
-      const scaleY = stage?.scaleY() ?? 1;
-
-      const unscaledPos = {
-        x: pos.x / scaleX,
-        y: pos.y / scaleY,
-      };
-
       const startPos = dragStartPosRef.current;
-      const logicalPos = toLogicalPos(unscaledPos);
 
       if (!lockAxisRef.current) {
-        lockAxisRef.current = resolveLockAxis(logicalPos, startPos);
+        lockAxisRef.current = resolveLockAxis(pos, startPos);
       }
 
       if (!lockAxisRef.current) {
         return pos;
       }
 
-      const lockedPos = lockAxisRef.current === 'x'
-        ? { x: startPos.x, y: logicalPos.y }
-        : { x: logicalPos.x, y: startPos.y };
-
-      const nodePos = toNodePos(lockedPos);
-      return { x: nodePos.x * scaleX, y: nodePos.y * scaleY };
+      return lockAxisRef.current === 'x'
+        ? { x: startPos.x, y: pos.y }
+        : { x: pos.x, y: startPos.y };
     },
     onDragMove: (e: Konva.KonvaEventObject<DragEvent>) => {
       onDragMove?.(shape.id, e);
