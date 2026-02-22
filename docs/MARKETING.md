@@ -244,3 +244,165 @@
 - まずはフォロワー減少を止めることが最優先
 - STORESの壁紙・Tシャツ商品との連携も今後検討
 - 投稿のキャプション・BGM選定は地味に手間がかかる → 定型化で効率化する
+
+---
+
+## 実際のアクションプラン
+
+### Wave 1: 2026年2月22日（日）— キックオフ
+
+#### フィード投稿（Episode 428）
+
+6枚構成のカルーセル投稿:
+
+| スライド | 内容 |
+|---------|------|
+| 1枚目 | 新規エピソード画像（Episode 428） |
+| 2〜4枚目 | 過去に反応が良かった画像 3枚 |
+| 5枚目 | IMAGINE告知バナー①（コンセプト紹介：99%完成済みのデザインテンプレートが使えるデザインサイトを始めました） |
+| 6枚目 | IMAGINE告知バナー②（テンプレート一覧：タイル状にテンプレートが並んだ見本） |
+
+- **BGM**: 未定（トレンドBGMから選定）
+- **キャプション**: 事前に作成（IMAGINE紹介 + Discord案内 + プロフィールリンク誘導）
+
+#### 同時アクション
+
+- [ ] **ノート**: 「久々に投稿しました」
+- [ ] **ストーリーズ**: 何週間ぶりの投稿についてのストーリー 1本
+- [ ] **Threads**: フィードとほぼ同じ内容を投稿
+
+### Wave 2: 2月23日（月）— デモ動画
+
+- [ ] **ストーリーズ**: IMAGINEの操作デモ早送り動画
+- [ ] **ノート**: アップデート（IMAGINEに関する一言）
+- [ ] **Threads**: IMAGINEについての投稿
+
+### Wave 3: 2月25〜26日頃 — 2回目のフィード投稿
+
+Wave 1と同じ構成で繰り返し:
+
+- [ ] **フィード投稿**（Episode 429）: 新規エピソード + 過去画像 + IMAGINE告知バナー
+- [ ] **ノート**: 更新
+- [ ] **ストーリーズ**: 投稿告知 or デモ動画
+- [ ] **Threads**: フィードと同内容
+
+翌日:
+- [ ] **ストーリーズ**: IMAGINEデモ動画 or 新テンプレート紹介
+- [ ] **ノート**: アップデート
+- [ ] **Threads**: IMAGINEについての投稿
+
+### Wave 4: 2月28日〜3月1日頃 — 3回目のフィード投稿
+
+Wave 1と同じ構成で繰り返し:
+
+- [ ] **フィード投稿**（Episode 430）: 新規エピソード + 過去画像 + IMAGINE告知バナー
+- [ ] **ノート**: 更新
+- [ ] **ストーリーズ**: 投稿告知 or デモ動画
+- [ ] **Threads**: フィードと同内容
+
+翌日:
+- [ ] **ストーリーズ**: IMAGINEデモ動画 or 新テンプレート紹介
+- [ ] **ノート**: アップデート
+- [ ] **Threads**: IMAGINEについての投稿
+
+---
+
+### 事前準備チェックリスト
+
+| 準備物 | 状態 | 備考 |
+|-------|------|------|
+| Episode 428〜430 画像 | [ ] | 新規3枚 |
+| 過去の反応良画像ピックアップ | [ ] | 各回3枚 × 3回分 |
+| IMAGINE告知バナー①（コンセプト） | [ ] | 1080×1080 or 1080×1350 |
+| IMAGINE告知バナー②（テンプレ一覧） | [ ] | 1080×1080 or 1080×1350 |
+| IMAGINEデモ早送り動画 | [ ] | ストーリーズ・リール兼用 |
+| キャプションテンプレート | [ ] | 事前作成 |
+| ノート用テキスト | [ ] | Wave毎に用意 |
+| Threads投稿テキスト | [ ] | Wave毎に用意 |
+| BGM選定 | [ ] | トレンドから選ぶ |
+
+---
+
+### 既存サブスクユーザー移行キャンペーン
+
+#### 概要
+
+Instagramサブスクリプション会員向けの移行特典。サブスクを放置していたお詫びも兼ねて、IMAGINEのプレミアムプランを6ヶ月間無料で提供する。対象者は少数のため宣伝効果も期待。
+
+#### 特典内容
+
+- IMAGINEのPremiumプラン（通常 $8/月）を **6ヶ月間無料**
+- 6ヶ月経過後は自動的にFreeプランに移行（課金なし、安心）
+- 対象: 過去にInstagramサブスクリプションに登録していた方
+
+#### システム対応
+
+手動対応（対象者が少数のため）:
+
+```sql
+-- 対象ユーザーのプレミアム化
+UPDATE public.profiles
+SET
+  subscription_tier = 'premium',
+  subscription_expires_at = '2026-08-22T00:00:00Z'
+WHERE email = '対象ユーザーのメール';
+```
+
+- 6ヶ月後（2026年8月頃）に手動で `subscription_tier = 'free'` に戻す
+- カレンダーにリマインダーを設定しておく
+
+#### 告知文言（例）
+
+**フィード / ストーリーズ用:**
+
+> 以前Instagramのサブスクリプションに登録してくださっていた方へ
+>
+> 長い間更新が止まってしまい、本当にすみませんでした。
+> お詫びとして、新しくスタートしたデザインツール「IMAGINE」のPremiumプラン（通常$8/月）を6ヶ月間無料でお使いいただけます。
+> 6ヶ月後は自動的に無料プランに切り替わるので、課金の心配はありません。
+>
+> 対象の方はDMまたはDiscordでご連絡ください 🙏
+> → プロフィールのリンクからIMAGINEをチェック
+
+**Threads用（短縮版）:**
+
+> Instagramのサブスクに入ってくれていた方へ — 更新が止まっていてすみませんでした。
+> 新しく始めたデザインツール「IMAGINE」のPremiumを6ヶ月無料で使えるようにします。
+> 6ヶ月後は自動で無料プランに移行するので安心です。
+> 対象の方はDM or Discordまで連絡ください。
+
+**ノート用（短文）:**
+
+> サブスク会員の方 → IMAGINEのPremium 6ヶ月無料でお渡しします。DMください
+
+#### アナウンスのタイミング
+
+- Wave 1のストーリーズ or Wave 2のストーリーズで告知
+- フィードのキャプション内にも一文添える
+
+---
+
+### フィード投稿キャプション（テンプレート）
+
+```
+EPISODE 428
+😇 or 😈
+
+By the way — it's been a while. How's everyone doing?
+I was working on a new project and somehow 4 months flew by.
+
+I built a free design tool — like Canva — where anyone can easily use WHATIF images.
+Give it a try if you're curious.
+
+To my subscribers — downloading wallpapers is much easier on IMAGINE.
+If you'd like to make the switch, I'd love to invite you as a Premium member for 6 months free as a thank you.
+Just send me a DM 🙏
+
+99% ready-made design kits: IMAGINE
+https://imagine.whatif-ep.xyz
+(Link in bio)
+
+#midjourney #nijijourney
+#aiart #aianime #anime #design
+#whatif #imagine
+```
