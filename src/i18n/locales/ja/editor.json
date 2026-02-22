@@ -1,7 +1,9 @@
 {
   "tabs": {
     "tool": "ツール",
-    "layer": "レイヤー"
+    "layer": "レイヤー",
+    "selectTool": "選択",
+    "handTool": "ハンド"
   },
   "page": {
     "canvasSettings": "キャンバス設定",

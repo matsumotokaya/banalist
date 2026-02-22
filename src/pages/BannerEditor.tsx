@@ -59,6 +59,7 @@ export const BannerEditor = () => {
   const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]);
   const [copiedElements, setCopiedElements] = useState<CanvasElement[]>([]);
   const [textPlacementMode, setTextPlacementMode] = useState(false);
+  const [panMode, setPanMode] = useState(false);
   const canvasRef = useRef<CanvasRef>(null);
   const mainRef = useRef<HTMLDivElement>(null);
   const guestCreatedAtRef = useRef<string>(new Date().toISOString());
@@ -130,12 +131,12 @@ export const BannerEditor = () => {
 
   const handlePanMouseDown = useCallback((e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    if (target.tagName !== 'CANVAS') {
+    if (panMode || target.tagName !== 'CANVAS') {
       setIsPanning(true);
       panStartRef.current = { x: e.clientX, y: e.clientY, panX: panOffset.x, panY: panOffset.y };
       wasPanningRef.current = false;
     }
-  }, [panOffset]);
+  }, [panOffset, panMode]);
 
   const handlePanMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isPanning) return;
@@ -1292,12 +1293,14 @@ export const BannerEditor = () => {
           onToggleLock={handleToggleLock}
           onToggleVisibility={handleToggleVisibility}
           textPlacementMode={textPlacementMode}
+          panMode={panMode}
+          onPanModeChange={setPanMode}
         />
 
         <main
           ref={mainRef}
           className="flex-1 overflow-hidden bg-[#151515] flex items-center justify-center"
-          style={{ touchAction: 'none', cursor: textPlacementMode ? 'text' : isPanning ? 'grabbing' : 'grab' }}
+          style={{ touchAction: 'none', cursor: textPlacementMode ? 'text' : (panMode || isPanning) ? (isPanning ? 'grabbing' : 'grab') : 'default' }}
           onMouseDown={handlePanMouseDown}
           onMouseMove={handlePanMouseMove}
           onMouseUp={handlePanMouseUp}
@@ -1314,7 +1317,7 @@ export const BannerEditor = () => {
             }
           }}
         >
-          <div style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px)`, cursor: isPanning ? 'grabbing' : 'default' }} className="relative">
+          <div style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px)`, cursor: isPanning ? 'grabbing' : 'default', pointerEvents: panMode ? 'none' : 'auto' }} className="relative">
             <Canvas
                 ref={canvasRef}
                 template={banner.template}
@@ -1376,7 +1379,7 @@ export const BannerEditor = () => {
         <main
           ref={mainRef}
           className="flex-1 overflow-hidden bg-[#151515] flex items-center justify-center"
-          style={{ touchAction: 'none', cursor: textPlacementMode ? 'text' : isPanning ? 'grabbing' : 'grab' }}
+          style={{ touchAction: 'none', cursor: textPlacementMode ? 'text' : (panMode || isPanning) ? (isPanning ? 'grabbing' : 'grab') : 'default' }}
           onMouseDown={handlePanMouseDown}
           onMouseMove={handlePanMouseMove}
           onMouseUp={handlePanMouseUp}
@@ -1393,7 +1396,7 @@ export const BannerEditor = () => {
             }
           }}
         >
-          <div style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px)`, cursor: isPanning ? 'grabbing' : 'default' }} className="relative">
+          <div style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px)`, cursor: isPanning ? 'grabbing' : 'default', pointerEvents: panMode ? 'none' : 'auto' }} className="relative">
             <Canvas
                 ref={canvasRef}
                 template={banner.template}
@@ -1440,6 +1443,8 @@ export const BannerEditor = () => {
           onToggleLock={handleToggleLock}
           onToggleVisibility={handleToggleVisibility}
           textPlacementMode={textPlacementMode}
+          panMode={panMode}
+          onPanModeChange={setPanMode}
         />
 
         {/* Mobile PropertyPanel - Hidden during inline text editing */}

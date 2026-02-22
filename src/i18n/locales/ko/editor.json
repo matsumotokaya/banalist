@@ -1,7 +1,9 @@
 {
   "tabs": {
     "tool": "도구",
-    "layer": "레이어"
+    "layer": "레이어",
+    "selectTool": "선택",
+    "handTool": "핸드"
   },
   "page": {
     "canvasSettings": "캔버스 설정",

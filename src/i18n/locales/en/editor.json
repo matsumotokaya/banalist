@@ -1,7 +1,9 @@
 {
   "tabs": {
     "tool": "Tool",
-    "layer": "Layer"
+    "layer": "Layer",
+    "selectTool": "Select",
+    "handTool": "Hand"
   },
   "page": {
     "canvasSettings": "Canvas Settings",

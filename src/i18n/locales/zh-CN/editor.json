@@ -1,7 +1,9 @@
 {
   "tabs": {
     "tool": "工具",
-    "layer": "图层"
+    "layer": "图层",
+    "selectTool": "选择",
+    "handTool": "抓手"
   },
   "page": {
     "canvasSettings": "画布设置",

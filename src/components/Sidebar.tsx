@@ -44,6 +44,8 @@ interface SidebarProps {
   onToggleLock?: (id: string) => void;
   onToggleVisibility?: (id: string) => void;
   isMobile?: boolean;
+  panMode?: boolean;
+  onPanModeChange?: (mode: boolean) => void;
 }
 
 type TabType = 'tool' | 'layer';
@@ -205,6 +207,8 @@ export const Sidebar = ({
   onToggleVisibility,
   isMobile = false,
   textPlacementMode = false,
+  panMode = false,
+  onPanModeChange,
 }: SidebarProps) => {
   const { t } = useTranslation('editor');
   const { profile, loading } = useAuth();
@@ -248,6 +252,27 @@ export const Sidebar = ({
     return (
       <aside className="bg-[#1a1a1a] border-t border-[#2b2b2b] overflow-x-auto overflow-y-hidden">
         <div className="flex gap-6 p-4 min-w-max">
+          {/* Tool mode toggle */}
+          <div className="flex flex-col items-center gap-2 min-w-[80px]">
+            <h3 className="text-[10px] font-semibold text-gray-400 uppercase">{t('tabs.tool')}</h3>
+            <div className="flex bg-[#222222] rounded p-0.5">
+              <button
+                onClick={() => onPanModeChange?.(false)}
+                className={`p-1.5 rounded transition-colors ${!panMode ? 'bg-[#444444] text-white' : 'text-gray-500'}`}
+                title={t('tabs.selectTool')}
+              >
+                <span className="material-symbols-outlined text-[20px]">arrow_selector_tool</span>
+              </button>
+              <button
+                onClick={() => onPanModeChange?.(true)}
+                className={`p-1.5 rounded transition-colors ${panMode ? 'bg-[#444444] text-white' : 'text-gray-500'}`}
+                title={t('tabs.handTool')}
+              >
+                <span className="material-symbols-outlined text-[20px]">pan_tool</span>
+              </button>
+            </div>
+          </div>
+
           {/* Text section */}
           <div className="flex flex-col items-center gap-2 min-w-[80px]">
             <h3 className="text-[10px] font-semibold text-gray-400 uppercase">{t('object.text')}</h3>
@@ -338,6 +363,26 @@ export const Sidebar = ({
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
                 {t('tabs.tool')}
               </h2>
+              <div className="flex bg-[#222222] rounded p-0.5 mb-4">
+                <button
+                  onClick={() => onPanModeChange?.(false)}
+                  className={`flex-1 py-1.5 text-xs rounded flex items-center justify-center gap-1 transition-colors ${
+                    !panMode ? 'bg-[#444444] text-white' : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[14px]">arrow_selector_tool</span>
+                  {t('tabs.selectTool')}
+                </button>
+                <button
+                  onClick={() => onPanModeChange?.(true)}
+                  className={`flex-1 py-1.5 text-xs rounded flex items-center justify-center gap-1 transition-colors ${
+                    panMode ? 'bg-[#444444] text-white' : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[14px]">pan_tool</span>
+                  {t('tabs.handTool')}
+                </button>
+              </div>
               <div className="space-y-4">
                 <TextEditor onAddText={onAddText} isActive={textPlacementMode} />
                 <ShapeSelector onAddShape={onAddShape} />

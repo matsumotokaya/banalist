@@ -23,6 +23,8 @@ interface MobileToolbarProps {
   onReorderElements?: (newOrder: CanvasElement[]) => void;
   onToggleLock?: (id: string) => void;
   onToggleVisibility?: (id: string) => void;
+  panMode?: boolean;
+  onPanModeChange?: (mode: boolean) => void;
 }
 
 type DrawerType = 'tool' | 'layer' | null;
@@ -40,6 +42,8 @@ export const MobileToolbar = ({
   onReorderElements,
   onToggleLock,
   onToggleVisibility,
+  panMode = false,
+  onPanModeChange,
 }: MobileToolbarProps) => {
   const { t } = useTranslation('editor');
   const { profile, loading } = useAuth();
@@ -132,6 +136,26 @@ export const MobileToolbar = ({
                 </div>
 
                 <div className="space-y-3">
+                  <div className="flex bg-[#222222] rounded p-0.5">
+                    <button
+                      onClick={() => onPanModeChange?.(false)}
+                      className={`flex-1 py-2 text-xs rounded flex items-center justify-center gap-1 transition-colors ${
+                        !panMode ? 'bg-[#444444] text-white' : 'text-gray-500 hover:text-gray-300'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[16px]">arrow_selector_tool</span>
+                      {t('tabs.selectTool')}
+                    </button>
+                    <button
+                      onClick={() => onPanModeChange?.(true)}
+                      className={`flex-1 py-2 text-xs rounded flex items-center justify-center gap-1 transition-colors ${
+                        panMode ? 'bg-[#444444] text-white' : 'text-gray-500 hover:text-gray-300'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[16px]">pan_tool</span>
+                      {t('tabs.handTool')}
+                    </button>
+                  </div>
                   <TextEditor onAddText={onAddText} isActive={textPlacementMode} />
                   <ShapeSelector onAddShape={onAddShape} />
                   <ImageUploader onAddImage={onAddImage} />
