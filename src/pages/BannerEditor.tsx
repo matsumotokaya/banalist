@@ -162,6 +162,16 @@ export const BannerEditor = () => {
     wasPanningRef.current = false;
   }, [panOffset]);
 
+  // Touch pan from main element (for panMode on mobile - canvas has pointerEvents: none)
+  const handleMainTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!panMode) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+    setIsPanning(true);
+    panStartRef.current = { x: touch.clientX, y: touch.clientY, panX: panOffset.x, panY: panOffset.y };
+    wasPanningRef.current = false;
+  }, [panMode, panOffset]);
+
   // Window-level touch listeners for ongoing pan
   useEffect(() => {
     if (!isPanning) return;
@@ -1305,6 +1315,7 @@ export const BannerEditor = () => {
           onMouseMove={handlePanMouseMove}
           onMouseUp={handlePanMouseUp}
           onMouseLeave={handlePanMouseUp}
+          onTouchStart={handleMainTouchStart}
           onClick={(e) => {
             if (wasPanningRef.current) {
               wasPanningRef.current = false;
@@ -1384,6 +1395,7 @@ export const BannerEditor = () => {
           onMouseMove={handlePanMouseMove}
           onMouseUp={handlePanMouseUp}
           onMouseLeave={handlePanMouseUp}
+          onTouchStart={handleMainTouchStart}
           onClick={(e) => {
             if (wasPanningRef.current) {
               wasPanningRef.current = false;
