@@ -122,6 +122,7 @@ export const BannerEditor = () => {
   const { zoom, setZoom, panOffset, setPanOffset, resetView } = useZoomControl({
     initialZoom: getInitialZoom(),
     containerRef: mainRef,
+    panMode,
   });
 
   // Pan (grab & drag) state
@@ -194,8 +195,12 @@ export const BannerEditor = () => {
       }
     };
 
-    const handleTouchEnd = () => {
-      setIsPanning(false);
+    const handleTouchEnd = (e: TouchEvent) => {
+      // Only stop panning when all fingers are lifted
+      // Prevents state thrashing during pinch (2 fingers -> 1 finger transition)
+      if (e.touches.length === 0) {
+        setIsPanning(false);
+      }
     };
 
     window.addEventListener('touchmove', handleTouchMove, { passive: true });
