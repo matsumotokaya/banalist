@@ -29,8 +29,6 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, isMultiDragging, isMult
   const safeRotation = Number.isFinite(shape.rotation) ? shape.rotation : 0;
   const safeOpacity = Number.isFinite(shape.opacity) ? shape.opacity : 1;
 
-  const isCenterBasedShape = shape.shapeType === 'star' || shape.shapeType === 'circle';
-
   const resolveLockAxis = (currentPos: { x: number; y: number }, startPos: { x: number; y: number }) => {
     const dx = Math.abs(currentPos.x - startPos.x);
     const dy = Math.abs(currentPos.y - startPos.y);
