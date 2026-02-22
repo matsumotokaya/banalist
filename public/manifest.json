@@ -1,0 +1,15 @@
+{
+  "name": "IMAGINE - The 99% Ready Design Kit",
+  "short_name": "IMAGINE",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#231b2f",
+  "theme_color": "#231b2f",
+  "icons": [
+    {
+      "src": "/service-icon_001.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

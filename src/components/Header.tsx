@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AuthButton } from './AuthButton';
 import { LanguageSwitcher } from './LanguageSwitcher';
@@ -50,7 +51,7 @@ export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChan
             <span className="text-white text-xs md:text-sm font-medium whitespace-nowrap">{t('banner:saveAndBack')}</span>
           </button>
         ) : (
-          <img src="/logo_imagine_white.svg" alt="imagine" className="h-6 md:h-7 flex-shrink-0" />
+          <Link to="/"><img src="/logo_imagine_white.svg" alt="imagine" className="h-6 md:h-7 flex-shrink-0" /></Link>
         )}
         {bannerName && (
           <>
