@@ -31,20 +31,6 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, isMultiDragging, isMult
 
   const isCenterBasedShape = shape.shapeType === 'star' || shape.shapeType === 'circle';
 
-  const toLogicalPos = (nodePos: { x: number; y: number }) => {
-    if (isCenterBasedShape) {
-      return { x: nodePos.x - safeWidth / 2, y: nodePos.y - safeHeight / 2 };
-    }
-    return nodePos;
-  };
-
-  const toNodePos = (logicalPos: { x: number; y: number }) => {
-    if (isCenterBasedShape) {
-      return { x: logicalPos.x + safeWidth / 2, y: logicalPos.y + safeHeight / 2 };
-    }
-    return logicalPos;
-  };
-
   const resolveLockAxis = (currentPos: { x: number; y: number }, startPos: { x: number; y: number }) => {
     const dx = Math.abs(currentPos.x - startPos.x);
     const dy = Math.abs(currentPos.y - startPos.y);
