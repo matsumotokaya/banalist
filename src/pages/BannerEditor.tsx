@@ -60,6 +60,14 @@ export const BannerEditor = () => {
   const [copiedElements, setCopiedElements] = useState<CanvasElement[]>([]);
   const [textPlacementMode, setTextPlacementMode] = useState(false);
   const [panMode, setPanMode] = useState(false);
+  const [isTransforming, setIsTransforming] = useState(false);
+  const isTransformingRef = useRef(false);
+  const handleTransformingChange = useCallback((transforming: boolean) => {
+    setIsTransforming(transforming);
+    isTransformingRef.current = transforming;
+    // Stop any ongoing pan when transform starts
+    if (transforming) setIsPanning(false);
+  }, []);
   const canvasRef = useRef<CanvasRef>(null);
   const mainRef = useRef<HTMLDivElement>(null);
   const guestCreatedAtRef = useRef<string>(new Date().toISOString());
@@ -131,13 +139,14 @@ export const BannerEditor = () => {
   const wasPanningRef = useRef(false);
 
   const handlePanMouseDown = useCallback((e: React.MouseEvent) => {
+    if (isTransforming) return;
     const target = e.target as HTMLElement;
     if (panMode || target.tagName !== 'CANVAS') {
       setIsPanning(true);
       panStartRef.current = { x: e.clientX, y: e.clientY, panX: panOffset.x, panY: panOffset.y };
       wasPanningRef.current = false;
     }
-  }, [panOffset, panMode]);
+  }, [panOffset, panMode, isTransforming]);
 
   const handlePanMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isPanning) return;
@@ -158,14 +167,15 @@ export const BannerEditor = () => {
 
   // Touch pan initiated from Canvas background (for mobile)
   const handleCanvasPanTouchStart = useCallback((clientX: number, clientY: number) => {
+    if (isTransforming) return;
     setIsPanning(true);
     panStartRef.current = { x: clientX, y: clientY, panX: panOffset.x, panY: panOffset.y };
     wasPanningRef.current = false;
-  }, [panOffset]);
+  }, [panOffset, isTransforming]);
 
   // Touch pan from main element (for panMode on mobile - canvas has pointerEvents: none)
   const handleMainTouchStart = useCallback((e: React.TouchEvent) => {
-    if (!panMode) return;
+    if (!panMode || isTransforming) return;
     // Skip if pinch gesture (2+ fingers) - let zoom handler take over
     if (e.touches.length >= 2) return;
     const touch = e.touches[0];
@@ -173,7 +183,7 @@ export const BannerEditor = () => {
     setIsPanning(true);
     panStartRef.current = { x: touch.clientX, y: touch.clientY, panX: panOffset.x, panY: panOffset.y };
     wasPanningRef.current = false;
-  }, [panMode, panOffset]);
+  }, [panMode, panOffset, isTransforming]);
 
   // Window-level touch listeners for ongoing pan
   useEffect(() => {
@@ -182,6 +192,8 @@ export const BannerEditor = () => {
     const handleTouchMove = (e: TouchEvent) => {
       // Skip pan during pinch gesture (2+ fingers) - let zoom handler take over
       if (e.touches.length >= 2) return;
+      // Skip pan while transformer is active (resizing/rotating)
+      if (isTransformingRef.current) return;
       const touch = e.touches[0];
       if (!touch) return;
       const dx = touch.clientX - panStartRef.current.x;
@@ -1357,6 +1369,7 @@ export const BannerEditor = () => {
                 onPlaceText={handleCanvasPlaceText}
                 onEditingChange={setIsCanvasEditing}
                 onBackgroundTouchStart={handleCanvasPanTouchStart}
+                onTransformingChange={handleTransformingChange}
               />
             {(animationPhase === 'loading' || animationPhase === 'animating') && (
               <LoadingOverlay
@@ -1395,7 +1408,35 @@ export const BannerEditor = () => {
       </div>
 
       {/* Mobile Layout */}
-      <div className="flex md:hidden flex-1 flex-col overflow-hidden">
+      <div className="flex md:hidden flex-1 flex-col overflow-hidden relative">
+        {/* Mobile floating toolbar: Select / Pan / Undo */}
+        <div className="absolute top-3 right-3 z-50 flex gap-2">
+          <button
+            onClick={() => { setPanMode(false); setTextPlacementMode(false); }}
+            className={`w-10 h-10 rounded-full backdrop-blur-sm flex items-center justify-center shadow-lg active:scale-95 transition-all ${!panMode && !textPlacementMode ? 'bg-white/90 text-gray-900' : 'bg-black/50 text-white'}`}
+            aria-label="Select"
+          >
+            <span className="material-symbols-outlined text-[20px]">arrow_selector_tool</span>
+          </button>
+          <button
+            onClick={() => setPanMode(!panMode)}
+            className={`w-10 h-10 rounded-full backdrop-blur-sm flex items-center justify-center shadow-lg active:scale-95 transition-all ${panMode ? 'bg-white/90 text-gray-900' : 'bg-black/50 text-white'}`}
+            aria-label="Pan"
+          >
+            <span className="material-symbols-outlined text-[20px]">pan_tool</span>
+          </button>
+          <button
+            onClick={handleUndo}
+            className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center shadow-lg active:scale-95 transition-transform text-white"
+            aria-label="Undo"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a5 5 0 015 5v0a5 5 0 01-5 5H7" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 6L3 10l4 4" />
+            </svg>
+          </button>
+        </div>
+
         <main
           ref={mainRef}
           className="flex-1 overflow-hidden bg-[#151515] flex items-center justify-center"
@@ -1437,6 +1478,7 @@ export const BannerEditor = () => {
                 onPlaceText={handleCanvasPlaceText}
                 onEditingChange={setIsCanvasEditing}
                 onBackgroundTouchStart={handleCanvasPanTouchStart}
+                onTransformingChange={handleTransformingChange}
               />
             {(animationPhase === 'loading' || animationPhase === 'animating') && (
               <LoadingOverlay

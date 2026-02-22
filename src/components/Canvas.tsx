@@ -25,6 +25,7 @@ interface CanvasProps {
   onPlaceText?: (x: number, y: number) => string;
   onEditingChange?: (isEditing: boolean) => void;
   onBackgroundTouchStart?: (clientX: number, clientY: number) => void;
+  onTransformingChange?: (isTransforming: boolean) => void;
 }
 
 export interface CanvasRef {
@@ -45,7 +46,7 @@ const TEXT_PLACEMENT_CURSOR = (() => {
 })();
 
 export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
-  { template, elements, scale = 0.5, canvasColor, fileName = 'artwork-01.png', onTextChange, selectedElementIds = [], onSelectElement, onElementUpdate, onElementsUpdate, onImageDrop, onImageLoad, entranceAnimationPhase, textPlacementMode, onPlaceText, onEditingChange, onBackgroundTouchStart },
+  { template, elements, scale = 0.5, canvasColor, fileName = 'artwork-01.png', onTextChange, selectedElementIds = [], onSelectElement, onElementUpdate, onElementsUpdate, onImageDrop, onImageLoad, entranceAnimationPhase, textPlacementMode, onPlaceText, onEditingChange, onBackgroundTouchStart, onTransformingChange },
   ref
 ) {
   const { t } = useTranslation('editor');
@@ -1015,6 +1016,8 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                     rotationSnaps={isShiftPressed ? [0, 45, 90, 135, 180, 225, 270, 315] : []}
                     rotationSnapTolerance={5}
                     keepRatio={isText}
+                    onTransformStart={() => onTransformingChange?.(true)}
+                    onTransformEnd={() => onTransformingChange?.(false)}
                   />
                 );
               })}
@@ -1033,7 +1036,8 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                   rotationSnaps={isShiftPressed ? [0, 45, 90, 135, 180, 225, 270, 315] : []}
                   rotationSnapTolerance={5}
                   keepRatio={true}
-                  onTransformEnd={handleMultiTransformEnd}
+                  onTransformStart={() => onTransformingChange?.(true)}
+                  onTransformEnd={(e) => { onTransformingChange?.(false); handleMultiTransformEnd(e); }}
                 />
               )}
               {selectionRect && (
