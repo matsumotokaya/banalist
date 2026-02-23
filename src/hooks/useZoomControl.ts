@@ -17,63 +17,35 @@ export const useZoomControl = ({
   const [zoom, setZoom] = useState<number>(initialZoom);
   const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const lastTouchDistance = useRef<number | null>(null);
-  const lastGestureScale = useRef<number>(1);
-  // Flag to prevent double zoom processing on iOS Safari
-  // (gesture events + touch events fire simultaneously for pinch)
-  const isGesturingRef = useRef(false);
 
   const resetView = useCallback(() => {
     setPanOffset({ x: 0, y: 0 });
     setZoom(initialZoom);
   }, [initialZoom]);
 
-  // Document-level: block browser zoom AND handle pinch-to-zoom
+  // Document-level: block browser zoom from trackpad pinch
   // Runs immediately on mount (no containerRef dependency) so it works
   // even during loading state before the canvas element is rendered.
   useEffect(() => {
-    const clampZoom = (value: number) => Math.round(Math.max(minZoom, Math.min(maxZoom, value)));
+    const clampZoom = (value: number, fallback: number) => {
+      if (!Number.isFinite(value)) return fallback;
+      return Math.round(Math.max(minZoom, Math.min(maxZoom, value)));
+    };
 
     // Trackpad pinch on Chrome/Firefox fires as ctrlKey + wheel
     const handleDocumentWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
         const delta = -e.deltaY * 0.5;
-        setZoom(prev => clampZoom(prev + delta));
+        if (!Number.isFinite(delta)) return;
+        setZoom(prev => clampZoom(prev + delta, prev));
       }
     };
 
-    // Safari gesture events (preferred on iOS - more reliable than touch-based pinch)
-    const handleGestureStart = (e: any) => {
-      e.preventDefault();
-      isGesturingRef.current = true;
-      lastGestureScale.current = 1;
-    };
-
-    const handleGestureChange = (e: any) => {
-      e.preventDefault();
-      const scale = e.scale;
-      const delta = (scale - lastGestureScale.current) * 100;
-      setZoom(prev => clampZoom(prev + delta));
-      lastGestureScale.current = scale;
-    };
-
-    const handleGestureEnd = (e: any) => {
-      e.preventDefault();
-      lastGestureScale.current = 1;
-      // Delay clearing the flag to ensure any pending touch events are skipped
-      setTimeout(() => { isGesturingRef.current = false; }, 100);
-    };
-
     document.addEventListener('wheel', handleDocumentWheel, { passive: false });
-    document.addEventListener('gesturestart', handleGestureStart, { passive: false } as any);
-    document.addEventListener('gesturechange', handleGestureChange, { passive: false } as any);
-    document.addEventListener('gestureend', handleGestureEnd, { passive: false } as any);
 
     return () => {
       document.removeEventListener('wheel', handleDocumentWheel);
-      document.removeEventListener('gesturestart', handleGestureStart as any);
-      document.removeEventListener('gesturechange', handleGestureChange as any);
-      document.removeEventListener('gestureend', handleGestureEnd as any);
     };
   }, [minZoom, maxZoom]);
 
@@ -82,7 +54,10 @@ export const useZoomControl = ({
     const mainElement = containerRef.current;
     if (!mainElement) return;
 
-    const clampZoom = (value: number) => Math.round(Math.max(minZoom, Math.min(maxZoom, value)));
+    const clampZoom = (value: number, fallback: number) => {
+      if (!Number.isFinite(value)) return fallback;
+      return Math.round(Math.max(minZoom, Math.min(maxZoom, value)));
+    };
     let rafId: number | null = null;
     let pendingZoomDelta = 0;
 
@@ -91,14 +66,15 @@ export const useZoomControl = ({
       if (pendingZoomDelta !== 0) {
         const delta = pendingZoomDelta;
         pendingZoomDelta = 0;
-        setZoom(prev => clampZoom(prev + delta));
+        if (Number.isFinite(delta)) {
+          setZoom(prev => clampZoom(prev + delta, prev));
+        }
       }
       rafId = null;
     };
 
     // Mobile two-finger pinch (skipped when Safari gesture events are active)
     const handleTouchStart = (e: TouchEvent) => {
-      if (isGesturingRef.current) return;
       if (e.touches.length === 2) {
         const touch1 = e.touches[0];
         const touch2 = e.touches[1];
@@ -106,16 +82,15 @@ export const useZoomControl = ({
           touch2.clientX - touch1.clientX,
           touch2.clientY - touch1.clientY
         );
+        if (!Number.isFinite(distance) || distance <= 0) {
+          lastTouchDistance.current = null;
+          return;
+        }
         lastTouchDistance.current = distance;
       }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (isGesturingRef.current) {
-        // Still prevent default to block browser zoom even when gesture handles zoom
-        if (e.touches.length === 2) e.preventDefault();
-        return;
-      }
       if (e.touches.length === 2 && lastTouchDistance.current !== null) {
         e.preventDefault();
         const touch1 = e.touches[0];
@@ -124,8 +99,10 @@ export const useZoomControl = ({
           touch2.clientX - touch1.clientX,
           touch2.clientY - touch1.clientY
         );
+        if (!Number.isFinite(distance) || distance <= 0) return;
 
         const delta = distance - lastTouchDistance.current;
+        if (!Number.isFinite(delta)) return;
         pendingZoomDelta += delta * 0.1;
         lastTouchDistance.current = distance;
 
@@ -136,7 +113,8 @@ export const useZoomControl = ({
       }
     };
 
-    const handleTouchEnd = () => {
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length >= 2) return;
       lastTouchDistance.current = null;
       // Flush any remaining zoom delta
       if (rafId !== null) {
@@ -146,7 +124,9 @@ export const useZoomControl = ({
       if (pendingZoomDelta !== 0) {
         const delta = pendingZoomDelta;
         pendingZoomDelta = 0;
-        setZoom(prev => clampZoom(prev + delta));
+        if (Number.isFinite(delta)) {
+          setZoom(prev => clampZoom(prev + delta, prev));
+        }
       }
     };
 
@@ -164,12 +144,14 @@ export const useZoomControl = ({
     mainElement.addEventListener('touchstart', handleTouchStart);
     mainElement.addEventListener('touchmove', handleTouchMove, { passive: false });
     mainElement.addEventListener('touchend', handleTouchEnd);
+    mainElement.addEventListener('touchcancel', handleTouchEnd);
     mainElement.addEventListener('wheel', handleWheel, { passive: false });
 
     return () => {
       mainElement.removeEventListener('touchstart', handleTouchStart);
       mainElement.removeEventListener('touchmove', handleTouchMove);
       mainElement.removeEventListener('touchend', handleTouchEnd);
+      mainElement.removeEventListener('touchcancel', handleTouchEnd);
       mainElement.removeEventListener('wheel', handleWheel);
       if (rafId !== null) cancelAnimationFrame(rafId);
     };

@@ -62,6 +62,8 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [isMultiDragging, setIsMultiDragging] = useState(false);
   const pendingEditIdRef = useRef<string | null>(null);
+  const isPinchingRef = useRef(false);
+  const pinchBlockUntilRef = useRef(0);
   const multiDragRef = useRef<{
     active: boolean;
     draggedId: string | null;
@@ -75,6 +77,23 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   // fire before React has re-rendered with the latest props.
   const selectedIdsRef = useRef(selectedElementIds);
   selectedIdsRef.current = selectedElementIds;
+
+  const isElementInteractionBlocked = () => {
+    return isPinchingRef.current || Date.now() < pinchBlockUntilRef.current;
+  };
+
+  const stopActiveDrags = () => {
+    nodesRef.current.forEach((node) => {
+      const draggableNode = node as Konva.Node & { isDragging?: () => boolean; stopDrag?: () => void };
+      if (typeof draggableNode.isDragging === 'function' && draggableNode.isDragging()) {
+        draggableNode.stopDrag?.();
+      }
+    });
+
+    multiDragRef.current = { active: false, draggedId: null, startPositions: new Map(), elementMap: new Map() };
+    setIsMultiDragging(false);
+    multiDragLockAxisRef.current = null;
+  };
 
   // Track Shift key state
   useEffect(() => {
@@ -264,6 +283,10 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   // avoiding stale-closure bugs when clicks happen in rapid succession.
   const handleElementClick = (id: string, event: Konva.KonvaEventObject<MouseEvent | Event>) => {
     if (!onSelectElement) return;
+    if (isElementInteractionBlocked()) {
+      event.cancelBubble = true;
+      return;
+    }
 
     const current = selectedIdsRef.current;
     const isShiftPressed = 'shiftKey' in event.evt ? event.evt.shiftKey : false;
@@ -286,6 +309,11 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   };
 
   const handleElementDragStart = (id: string, _event: Konva.KonvaEventObject<DragEvent>) => {
+    if (isElementInteractionBlocked()) {
+      stopActiveDrags();
+      return;
+    }
+
     const current = selectedIdsRef.current;
 
     if (current.length <= 1 || !current.includes(id)) {
@@ -884,6 +912,9 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
             // Enable pan from Stage background on touch devices
             // Cancel Konva event processing during pinch to prevent element selection
             if (e.evt.touches && e.evt.touches.length >= 2) {
+              isPinchingRef.current = true;
+              pinchBlockUntilRef.current = Date.now() + 180;
+              stopActiveDrags();
               e.cancelBubble = true;
               return;
             }
@@ -901,8 +932,21 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
           onTouchMove={(e) => {
             // Cancel Konva element drag during pinch gesture
             if (e.evt.touches && e.evt.touches.length >= 2) {
+              isPinchingRef.current = true;
+              pinchBlockUntilRef.current = Date.now() + 180;
+              stopActiveDrags();
               e.cancelBubble = true;
             }
+          }}
+          onTouchEnd={(e) => {
+            if (!e.evt.touches || e.evt.touches.length < 2) {
+              isPinchingRef.current = false;
+              pinchBlockUntilRef.current = Date.now() + 180;
+            }
+          }}
+          onTouchCancel={() => {
+            isPinchingRef.current = false;
+            pinchBlockUntilRef.current = Date.now() + 180;
           }}
         >
           <Layer>

@@ -131,6 +131,11 @@ export const BannerEditor = () => {
     initialZoom: getInitialZoom(),
     containerRef: mainRef,
   });
+  const safeZoom = Number.isFinite(zoom) ? zoom : getInitialZoom();
+  const handleZoomChange = useCallback((nextZoom: number) => {
+    if (!Number.isFinite(nextZoom)) return;
+    setZoom(Math.max(25, Math.min(200, Math.round(nextZoom))));
+  }, [setZoom]);
 
   // Pan (grab & drag) state
   const [isPanning, setIsPanning] = useState(false);
@@ -1362,7 +1367,7 @@ export const BannerEditor = () => {
                 ref={canvasRef}
                 template={banner.template}
                 elements={elements}
-                scale={zoom / 100}
+                scale={safeZoom / 100}
                 canvasColor={canvasColor}
                 fileName={`${banner.name}.png`}
                 onTextChange={handleTextChange}
@@ -1383,7 +1388,7 @@ export const BannerEditor = () => {
               <LoadingOverlay
                 elements={elements}
                 template={banner.template}
-                scale={zoom / 100}
+                scale={safeZoom / 100}
                 phase={animationPhase}
                 canvasColor={canvasColor}
               />
@@ -1471,7 +1476,7 @@ export const BannerEditor = () => {
                 ref={canvasRef}
                 template={banner.template}
                 elements={elements}
-                scale={zoom / 100}
+                scale={safeZoom / 100}
                 canvasColor={canvasColor}
                 fileName={`${banner.name}.png`}
                 onTextChange={handleTextChange}
@@ -1492,7 +1497,7 @@ export const BannerEditor = () => {
               <LoadingOverlay
                 elements={elements}
                 template={banner.template}
-                scale={zoom / 100}
+                scale={safeZoom / 100}
                 phase={animationPhase}
                 canvasColor={canvasColor}
               />
@@ -1549,8 +1554,8 @@ export const BannerEditor = () => {
       </div>
 
       <BottomBar
-        zoom={zoom}
-        onZoomChange={setZoom}
+        zoom={safeZoom}
+        onZoomChange={handleZoomChange}
         onResetView={resetView}
         onExport={handleExport}
         saveStatus={saveStatus}
