@@ -6,7 +6,6 @@ interface UseZoomControlProps {
   minZoom?: number;
   maxZoom?: number;
   containerRef: RefObject<HTMLDivElement | null>;
-  panMode?: boolean;
 }
 
 export const useZoomControl = ({
@@ -14,15 +13,11 @@ export const useZoomControl = ({
   minZoom = 25,
   maxZoom = 200,
   containerRef,
-  panMode = false,
 }: UseZoomControlProps) => {
   const [zoom, setZoom] = useState<number>(initialZoom);
   const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const lastTouchDistance = useRef<number | null>(null);
   const lastGestureScale = useRef<number>(1);
-  // Use ref for panMode to avoid re-attaching event listeners on every toggle
-  const panModeRef = useRef(panMode);
-  useEffect(() => { panModeRef.current = panMode; }, [panMode]);
 
   const resetView = useCallback(() => {
     setPanOffset({ x: 0, y: 0 });
@@ -95,9 +90,8 @@ export const useZoomControl = ({
       rafId = null;
     };
 
-    // Mobile two-finger pinch (only in panMode)
+    // Mobile two-finger pinch (works in all modes)
     const handleTouchStart = (e: TouchEvent) => {
-      if (!panModeRef.current) return;
       if (e.touches.length === 2) {
         const touch1 = e.touches[0];
         const touch2 = e.touches[1];
@@ -110,7 +104,6 @@ export const useZoomControl = ({
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!panModeRef.current) return;
       if (e.touches.length === 2 && lastTouchDistance.current !== null) {
         e.preventDefault();
         const touch1 = e.touches[0];

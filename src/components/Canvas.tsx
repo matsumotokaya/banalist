@@ -882,8 +882,11 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
           }}
           onTouchStart={(e) => {
             // Enable pan from Stage background on touch devices
-            // Skip if pinch gesture (2+ fingers) - let zoom handler take over
-            if (e.evt.touches && e.evt.touches.length >= 2) return;
+            // Cancel Konva event processing during pinch to prevent element selection
+            if (e.evt.touches && e.evt.touches.length >= 2) {
+              e.cancelBubble = true;
+              return;
+            }
             const target = e.target;
             const isBackground = target === e.target.getStage() ||
               (target.getClassName() === 'Rect' && target.attrs.fill === canvasColor);
@@ -893,6 +896,12 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
               if (touch) {
                 onBackgroundTouchStart(touch.clientX, touch.clientY);
               }
+            }
+          }}
+          onTouchMove={(e) => {
+            // Cancel Konva element drag during pinch gesture
+            if (e.evt.touches && e.evt.touches.length >= 2) {
+              e.cancelBubble = true;
             }
           }}
         >

@@ -130,7 +130,6 @@ export const BannerEditor = () => {
   const { zoom, setZoom, panOffset, setPanOffset, resetView } = useZoomControl({
     initialZoom: getInitialZoom(),
     containerRef: mainRef,
-    panMode,
   });
 
   // Pan (grab & drag) state
