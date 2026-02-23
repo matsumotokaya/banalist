@@ -1037,7 +1037,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
                   rotationSnapTolerance={5}
                   keepRatio={true}
                   onTransformStart={() => onTransformingChange?.(true)}
-                  onTransformEnd={(e) => { onTransformingChange?.(false); handleMultiTransformEnd(e); }}
+                  onTransformEnd={() => { onTransformingChange?.(false); handleMultiTransformEnd(); }}
                 />
               )}
               {selectionRect && (
