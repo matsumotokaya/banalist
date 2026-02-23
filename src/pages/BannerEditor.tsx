@@ -184,13 +184,23 @@ export const BannerEditor = () => {
     wasPanningRef.current = false;
   }, [panMode, panOffset, isTransforming]);
 
+  // Track whether a pinch occurred during this pan session
+  // to prevent the remaining finger from causing unwanted panning
+  const wasPinchingRef = useRef(false);
+
   // Window-level touch listeners for ongoing pan
   useEffect(() => {
     if (!isPanning) return;
+    wasPinchingRef.current = false;
 
     const handleTouchMove = (e: TouchEvent) => {
-      // Skip pan during pinch gesture (2+ fingers) - let zoom handler take over
-      if (e.touches.length >= 2) return;
+      // Mark that a pinch occurred so we stop panning after fingers separate
+      if (e.touches.length >= 2) {
+        wasPinchingRef.current = true;
+        return;
+      }
+      // After a pinch, don't resume panning with the remaining finger
+      if (wasPinchingRef.current) return;
       // Skip pan while transformer is active (resizing/rotating)
       if (isTransformingRef.current) return;
       const touch = e.touches[0];
@@ -207,8 +217,7 @@ export const BannerEditor = () => {
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
-      // Only stop panning when all fingers are lifted
-      // Prevents state thrashing during pinch (2 fingers -> 1 finger transition)
+      // Stop panning when all fingers are lifted
       if (e.touches.length === 0) {
         setIsPanning(false);
       }

@@ -18,6 +18,9 @@ export const useZoomControl = ({
   const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const lastTouchDistance = useRef<number | null>(null);
   const lastGestureScale = useRef<number>(1);
+  // Flag to prevent double zoom processing on iOS Safari
+  // (gesture events + touch events fire simultaneously for pinch)
+  const isGesturingRef = useRef(false);
 
   const resetView = useCallback(() => {
     setPanOffset({ x: 0, y: 0 });
@@ -39,9 +42,10 @@ export const useZoomControl = ({
       }
     };
 
-    // Safari gesture events
+    // Safari gesture events (preferred on iOS - more reliable than touch-based pinch)
     const handleGestureStart = (e: any) => {
       e.preventDefault();
+      isGesturingRef.current = true;
       lastGestureScale.current = 1;
     };
 
@@ -56,6 +60,8 @@ export const useZoomControl = ({
     const handleGestureEnd = (e: any) => {
       e.preventDefault();
       lastGestureScale.current = 1;
+      // Delay clearing the flag to ensure any pending touch events are skipped
+      setTimeout(() => { isGesturingRef.current = false; }, 100);
     };
 
     document.addEventListener('wheel', handleDocumentWheel, { passive: false });
@@ -90,8 +96,9 @@ export const useZoomControl = ({
       rafId = null;
     };
 
-    // Mobile two-finger pinch (works in all modes)
+    // Mobile two-finger pinch (skipped when Safari gesture events are active)
     const handleTouchStart = (e: TouchEvent) => {
+      if (isGesturingRef.current) return;
       if (e.touches.length === 2) {
         const touch1 = e.touches[0];
         const touch2 = e.touches[1];
@@ -104,6 +111,11 @@ export const useZoomControl = ({
     };
 
     const handleTouchMove = (e: TouchEvent) => {
+      if (isGesturingRef.current) {
+        // Still prevent default to block browser zoom even when gesture handles zoom
+        if (e.touches.length === 2) e.preventDefault();
+        return;
+      }
       if (e.touches.length === 2 && lastTouchDistance.current !== null) {
         e.preventDefault();
         const touch1 = e.touches[0];
