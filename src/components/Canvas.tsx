@@ -63,6 +63,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
   const [isMultiDragging, setIsMultiDragging] = useState(false);
   const pendingEditIdRef = useRef<string | null>(null);
   const isPinchingRef = useRef(false);
+  const hadPinchGestureRef = useRef(false);
   const pinchBlockUntilRef = useRef(0);
   const multiDragRef = useRef<{
     active: boolean;
@@ -913,6 +914,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
             // Cancel Konva event processing during pinch to prevent element selection
             if (e.evt.touches && e.evt.touches.length >= 2) {
               isPinchingRef.current = true;
+              hadPinchGestureRef.current = true;
               pinchBlockUntilRef.current = Date.now() + 180;
               stopActiveDrags();
               e.cancelBubble = true;
@@ -933,6 +935,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
             // Cancel Konva element drag during pinch gesture
             if (e.evt.touches && e.evt.touches.length >= 2) {
               isPinchingRef.current = true;
+              hadPinchGestureRef.current = true;
               pinchBlockUntilRef.current = Date.now() + 180;
               stopActiveDrags();
               e.cancelBubble = true;
@@ -941,12 +944,20 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
           onTouchEnd={(e) => {
             if (!e.evt.touches || e.evt.touches.length < 2) {
               isPinchingRef.current = false;
-              pinchBlockUntilRef.current = Date.now() + 180;
+              if (hadPinchGestureRef.current) {
+                pinchBlockUntilRef.current = Date.now() + 180;
+              }
+              if (!e.evt.touches || e.evt.touches.length === 0) {
+                hadPinchGestureRef.current = false;
+              }
             }
           }}
           onTouchCancel={() => {
             isPinchingRef.current = false;
-            pinchBlockUntilRef.current = Date.now() + 180;
+            if (hadPinchGestureRef.current) {
+              pinchBlockUntilRef.current = Date.now() + 180;
+            }
+            hadPinchGestureRef.current = false;
           }}
         >
           <Layer>
