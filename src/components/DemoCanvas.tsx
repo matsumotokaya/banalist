@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Canvas, BLEED } from './Canvas';
 import type { CanvasRef } from './Canvas';
 import type { Template, CanvasElement } from '../types/template';
+import { exportImageFromDataUrl } from '../utils/exportImage';
 
 // Easing: smooth acceleration and deceleration
 const easeInOutCubic = (t: number): number =>
@@ -150,7 +151,7 @@ interface DemoCanvasProps {
 }
 
 export const DemoCanvas = ({ scale = 0.45 }: DemoCanvasProps) => {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(['common', 'message']);
   const [elements, setElements] = useState<CanvasElement[]>(INITIAL_ELEMENTS);
   const [selectedIds, setSelectedIds] = useState<string[]>(['default-text']);
   const canvasRef = useRef<CanvasRef>(null);
@@ -256,15 +257,28 @@ export const DemoCanvas = ({ scale = 0.45 }: DemoCanvasProps) => {
     );
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!canvasRef.current) return;
     const dataURL = canvasRef.current.exportImage();
-    const link = document.createElement('a');
-    link.download = 'whatif-demo.png';
-    link.href = dataURL;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (!dataURL || dataURL.length < 100) {
+      alert(t('message:error.imageGenerationFailed'));
+      return;
+    }
+
+    try {
+      const exportResult = await exportImageFromDataUrl(dataURL, 'whatif-demo.png');
+      if (exportResult.isIOS) {
+        alert(t('message:info.saveImageGuide'));
+      }
+      if (exportResult.inAppBrowser) {
+        alert(t('message:info.inAppBrowserGuide'));
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
+      alert(t('message:error.exportFailed'));
+    }
   };
 
   const bleedPx = BLEED * scale;

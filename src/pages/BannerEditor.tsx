@@ -21,6 +21,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { isDataUrlImage, uploadDataUrlToBucket, uploadFileToBucket } from '../utils/storage';
 import { supabase } from '../utils/supabase';
 import { templateStorage } from '../utils/templateStorage';
+import { exportImageFromDataUrl } from '../utils/exportImage';
 import { useEntranceAnimation } from '../hooks/useEntranceAnimation';
 import { LoadingOverlay } from '../components/canvas/LoadingOverlay';
 
@@ -1203,8 +1204,6 @@ export const BannerEditor = () => {
     if (!canvasRef.current || !banner) return;
 
     try {
-      // Small delay to ensure canvas is fully rendered
-      await new Promise(resolve => setTimeout(resolve, 100));
       const dataURL = canvasRef.current.exportImage();
 
       if (!dataURL || dataURL.length < 100) {
@@ -1213,14 +1212,20 @@ export const BannerEditor = () => {
         return;
       }
 
-      const link = document.createElement('a');
-      link.download = `${banner.name}.png`;
-      link.href = dataURL;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      console.log('Export successful, size:', dataURL.length);
+      const exportResult = await exportImageFromDataUrl(dataURL, `${banner.name}.png`);
+      console.log('Export successful, size:', dataURL.length, 'method:', exportResult.method);
+
+      if (exportResult.isIOS) {
+        alert(t('message:info.saveImageGuide'));
+      }
+
+      if (exportResult.inAppBrowser) {
+        alert(t('message:info.inAppBrowserGuide'));
+      }
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
       console.error('Error exporting image:', error);
       alert(t('message:error.exportFailed'));
     }

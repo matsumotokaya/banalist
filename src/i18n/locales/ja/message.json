@@ -23,6 +23,10 @@
     "feature3": "優先サポート＆新機能への早期アクセス",
     "redirecting": "{{seconds}}秒後にホームへ移動します..."
   },
+  "info": {
+    "saveImageGuide": "iPhoneでは共有メニューから「画像を保存」を選ぶとカメラロールに保存できます。",
+    "inAppBrowserGuide": "アプリ内ブラウザで保存できない場合は、Safariで開いて再度お試しください。"
+  },
   "confirm": {
     "deleteBanner": "このバナーを削除してもよろしいですか？"
   },

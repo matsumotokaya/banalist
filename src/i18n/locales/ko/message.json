@@ -23,6 +23,10 @@
     "feature3": "우선 지원 및 새 기능 조기 이용",
     "redirecting": "{{seconds}}초 후 홈으로 이동합니다..."
   },
+  "info": {
+    "saveImageGuide": "iPhone에서는 공유 메뉴에서 '이미지 저장'을 선택하면 카메라 롤에 저장할 수 있습니다.",
+    "inAppBrowserGuide": "앱 내 브라우저에서 저장이 안 되면 Safari에서 열어 다시 시도해 주세요."
+  },
   "confirm": {
     "deleteBanner": "이 배너를 삭제하시겠습니까?"
   },

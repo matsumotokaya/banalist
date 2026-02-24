@@ -23,6 +23,10 @@
     "feature3": "優先支援及搶先體驗新功能",
     "redirecting": "{{seconds}} 秒後返回首頁..."
   },
+  "info": {
+    "saveImageGuide": "在 iPhone 上，請開啟分享選單並選擇「儲存影像」以保存到相簿。",
+    "inAppBrowserGuide": "若在 App 內瀏覽器無法儲存，請改用 Safari 開啟後再試一次。"
+  },
   "confirm": {
     "deleteBanner": "確定要刪除此橫幅嗎？"
   },

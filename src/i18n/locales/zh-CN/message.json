@@ -23,6 +23,10 @@
     "feature3": "优先支持及抢先体验新功能",
     "redirecting": "{{seconds}} 秒后返回首页..."
   },
+  "info": {
+    "saveImageGuide": "在 iPhone 上，请打开分享菜单并选择“存储图像”以保存到相册。",
+    "inAppBrowserGuide": "如果在应用内浏览器中无法保存，请改用 Safari 打开后重试。"
+  },
   "confirm": {
     "deleteBanner": "确定要删除此横幅吗？"
   },
