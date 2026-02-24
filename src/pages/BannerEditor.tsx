@@ -1428,7 +1428,7 @@ export const BannerEditor = () => {
       {/* Mobile Layout */}
       <div className="flex md:hidden flex-1 flex-col overflow-hidden relative">
         {/* Mobile floating toolbar: Select / Pan / Undo */}
-        <div className="absolute top-3 right-3 z-50 flex gap-2">
+        <div className="absolute top-3 right-3 z-40 flex gap-2">
           <button
             onClick={() => { setPanMode(false); setTextPlacementMode(false); }}
             className={`w-10 h-10 rounded-full backdrop-blur-sm flex items-center justify-center shadow-lg active:scale-95 transition-all ${!panMode && !textPlacementMode ? 'bg-white/90 text-gray-900' : 'bg-black/50 text-white'}`}

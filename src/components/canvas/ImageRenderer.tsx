@@ -131,6 +131,7 @@ const ImageRendererComponent = ({
       draggable={!imageElement.locked && (imageElement.visible ?? true)}
       listening={!imageElement.locked && (imageElement.visible ?? true)}
       onMouseDown={(e) => onSelect(imageElement.id, e)}
+      onTouchStart={(e) => onSelect(imageElement.id, e)}
       onTap={(e) => onSelect(imageElement.id, e)}
       onDragStart={(e) => {
         dragStartPosRef.current = e.target.getAbsolutePosition();

@@ -77,6 +77,7 @@ const TextRendererComponent = ({
       draggable={!textElement.locked && (textElement.visible ?? true)}
       listening={!textElement.locked && (textElement.visible ?? true)}
       onMouseDown={(e) => onSelect(textElement.id, e)}
+      onTouchStart={(e) => onSelect(textElement.id, e)}
       onTap={(e) => onSelect(textElement.id, e)}
       onDblClick={(e) => {
         const textNode = e.target as Konva.Text;

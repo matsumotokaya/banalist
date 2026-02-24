@@ -65,7 +65,7 @@ export const LanguageSwitcher = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50">
+        <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-[80]">
           {LANGUAGES.map((lang) => (
             <button
               key={lang.code}

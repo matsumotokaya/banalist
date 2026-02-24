@@ -38,7 +38,7 @@ export const Header = ({ onBackToManager, bannerName, bannerId, onBannerNameChan
   };
 
   return (
-    <header className="h-14 md:h-16 bg-[#231b2f] border-b border-[#2b2b2b] flex items-center justify-between px-3 md:px-6">
+    <header className="relative z-[70] h-14 md:h-16 bg-[#231b2f] border-b border-[#2b2b2b] flex items-center justify-between px-3 md:px-6">
       <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
         {onBackToManager ? (
           <button

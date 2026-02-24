@@ -58,6 +58,7 @@ const ShapeRendererComponent = ({ shape, isShiftPressed, isMultiDragging, isMult
     draggable: !shape.locked && (shape.visible ?? true),
     listening: !shape.locked && (shape.visible ?? true),
     onMouseDown: (e: Konva.KonvaEventObject<MouseEvent>) => onSelect(shape.id, e),
+    onTouchStart: (e: Konva.KonvaEventObject<TouchEvent>) => onSelect(shape.id, e),
     onTap: (e: Konva.KonvaEventObject<MouseEvent>) => onSelect(shape.id, e),
     onDragStart: (e: Konva.KonvaEventObject<DragEvent>) => {
       dragStartPosRef.current = e.target.getAbsolutePosition();

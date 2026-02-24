@@ -316,8 +316,13 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas(
     }
 
     const current = selectedIdsRef.current;
+    const isAlreadySelected = current.includes(id);
 
-    if (current.length <= 1 || !current.includes(id)) {
+    if (!isAlreadySelected && onSelectElement) {
+      onSelectElement([id]);
+    }
+
+    if (current.length <= 1 || !isAlreadySelected) {
       multiDragRef.current = { active: false, draggedId: null, startPositions: new Map(), elementMap: new Map() };
       setIsMultiDragging(false);
       multiDragLockAxisRef.current = null;
