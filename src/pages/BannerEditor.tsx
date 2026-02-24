@@ -1215,7 +1215,7 @@ export const BannerEditor = () => {
       const exportResult = await exportImageFromDataUrl(dataURL, `${banner.name}.png`);
       console.log('Export successful, size:', dataURL.length, 'method:', exportResult.method);
 
-      if (exportResult.isIOS) {
+      if (exportResult.isIOS && exportResult.method !== 'share-files') {
         alert(t('message:info.saveImageGuide'));
       }
 

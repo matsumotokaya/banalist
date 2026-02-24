@@ -267,7 +267,7 @@ export const DemoCanvas = ({ scale = 0.45 }: DemoCanvasProps) => {
 
     try {
       const exportResult = await exportImageFromDataUrl(dataURL, 'whatif-demo.png');
-      if (exportResult.isIOS) {
+      if (exportResult.isIOS && exportResult.method !== 'share-files') {
         alert(t('message:info.saveImageGuide'));
       }
       if (exportResult.inAppBrowser) {
