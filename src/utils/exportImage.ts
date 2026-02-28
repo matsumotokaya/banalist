@@ -14,6 +14,21 @@ const isIOSDevice = () => {
   return /iPad|iPhone|iPod/.test(ua) || (ua.includes('Macintosh') && 'ontouchend' in document);
 };
 
+const isAndroidDevice = () => {
+  if (typeof window === 'undefined') return false;
+  return /Android/i.test(window.navigator.userAgent);
+};
+
+const isDesktopLikeDevice = () => {
+  if (typeof window === 'undefined') return false;
+  const ua = window.navigator.userAgent;
+  const mobileUa = /Android|iPhone|iPad|iPod/i.test(ua);
+  const hasCoarsePointer = typeof window.matchMedia === 'function'
+    ? window.matchMedia('(pointer: coarse)').matches
+    : false;
+  return !mobileUa && !hasCoarsePointer;
+};
+
 const isInAppBrowser = () => {
   if (typeof window === 'undefined') return false;
   return IN_APP_BROWSER_PATTERN.test(window.navigator.userAgent);
@@ -47,6 +62,8 @@ const dataUrlToBlob = async (dataURL: string) => {
 export const exportImageFromDataUrl = async (dataURL: string, fileName: string): Promise<ExportImageResult> => {
   const inAppBrowser = isInAppBrowser();
   const isIOS = isIOSDevice();
+  const isAndroid = isAndroidDevice();
+  const isDesktopLike = isDesktopLikeDevice();
 
   const blob = await dataUrlToBlob(dataURL);
   const safeFileName = sanitizeFileName(fileName);
@@ -59,19 +76,41 @@ export const exportImageFromDataUrl = async (dataURL: string, fileName: string):
 
   const canShareFile =
     typeof shareNavigator.share === 'function' &&
-    typeof shareNavigator.canShare === 'function' &&
-    shareNavigator.canShare({ files: [file] });
+    (
+      typeof shareNavigator.canShare !== 'function' ||
+      shareNavigator.canShare({ files: [file] })
+    );
 
-  if (canShareFile) {
-    await shareNavigator.share({
-      files: [file],
-      title: safeFileName,
-    });
-    return {
-      method: 'share-files',
-      inAppBrowser,
-      isIOS,
-    };
+  const tryShareFile = async () => {
+    if (!canShareFile || typeof shareNavigator.share !== 'function') {
+      return false;
+    }
+
+    try {
+      await shareNavigator.share({
+        files: [file],
+        title: safeFileName,
+      });
+      return true;
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw error;
+      }
+      return false;
+    }
+  };
+
+  const preferShareFirst = isIOS || (inAppBrowser && !isDesktopLike);
+
+  if (preferShareFirst) {
+    const shared = await tryShareFile();
+    if (shared) {
+      return {
+        method: 'share-files',
+        inAppBrowser,
+        isIOS,
+      };
+    }
   }
 
   const blobUrl = URL.createObjectURL(blob);
@@ -84,6 +123,17 @@ export const exportImageFromDataUrl = async (dataURL: string, fileName: string):
       inAppBrowser,
       isIOS,
     };
+  }
+
+  if (!preferShareFirst && (isAndroid || inAppBrowser || !isDesktopLike)) {
+    const shared = await tryShareFile();
+    if (shared) {
+      return {
+        method: 'share-files',
+        inAppBrowser,
+        isIOS,
+      };
+    }
   }
 
   triggerDownload(dataURL, safeFileName);
