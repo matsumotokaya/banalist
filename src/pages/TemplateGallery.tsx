@@ -18,7 +18,7 @@ import { bannerStorage } from '../utils/bannerStorage';
 import { templateStorage } from '../utils/templateStorage';
 import { SIZE_CATEGORIES, filterBySize, getAspectClass, getGridCols } from '../utils/sizeCategories';
 
-const MAX_DISPLAY_COUNT = 10;
+const MAX_DISPLAY_COUNT = 30;
 
 export const TemplateGallery = () => {
   const { t } = useTranslation(['banner', 'common', 'message', 'auth', 'modal']);

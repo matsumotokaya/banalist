@@ -46,7 +46,7 @@ export const LanguageSwitcher = () => {
     || LANGUAGES[0];
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div className="relative flex items-center" ref={containerRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-1.5 px-2 md:px-2.5 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"

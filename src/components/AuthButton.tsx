@@ -45,7 +45,7 @@ export const AuthButton = () => {
 
   if (user) {
     return (
-      <div className="relative" ref={menuRef}>
+      <div className="relative flex items-center" ref={menuRef}>
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="w-9 h-9 rounded-full overflow-hidden hover:ring-2 hover:ring-white/50 transition-all"

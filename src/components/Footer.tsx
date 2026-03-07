@@ -13,7 +13,7 @@ export function Footer() {
                         <p className="text-gray-400 text-sm mb-4">
                             {t('footer.tagline')}
                         </p>
-                        <div className="flex gap-4 items-center">
+                        <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:flex sm:flex-wrap sm:gap-4 sm:items-center">
                             <a
                                 href="https://www.instagram.com/whatif.ep/"
                                 target="_blank"
