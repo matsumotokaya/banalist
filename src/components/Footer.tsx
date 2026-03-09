@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 export function Footer() {
     const { t } = useTranslation('common');
@@ -111,9 +112,12 @@ export function Footer() {
                     <p className="text-gray-500 text-xs">
                         {t('footer.copyright')}
                     </p>
-                    <Link to="/legal/specified-commercial-transactions-act" className="text-gray-500 hover:text-gray-300 text-xs transition-colors">
-                        {t('footer.legalInfo')}
-                    </Link>
+                    <div className="flex items-center gap-4">
+                        <LanguageSwitcher dropUp />
+                        <Link to="/legal/specified-commercial-transactions-act" className="text-gray-500 hover:text-gray-300 text-xs transition-colors">
+                            {t('footer.legalInfo')}
+                        </Link>
+                    </div>
                 </div>
             </div>
         </footer>

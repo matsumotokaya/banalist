@@ -9,7 +9,11 @@ const LANGUAGES = [
   { code: 'ko', label: '한국어' },
 ];
 
-export const LanguageSwitcher = () => {
+interface LanguageSwitcherProps {
+  dropUp?: boolean;
+}
+
+export const LanguageSwitcher = ({ dropUp = false }: LanguageSwitcherProps) => {
   const { i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -60,12 +64,14 @@ export const LanguageSwitcher = () => {
         </svg>
         <span className="text-white text-xs hidden md:inline">{currentLang.label}</span>
         <svg className="w-3 h-3 text-white/70 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={dropUp ? "M5 15l7-7 7 7" : "M19 9l-7 7-7-7"} />
         </svg>
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-[80]">
+        <div className={`absolute right-0 w-40 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-[80] ${
+          dropUp ? 'bottom-full mb-2' : 'top-full mt-2'
+        }`}>
           {LANGUAGES.map((lang) => (
             <button
               key={lang.code}
