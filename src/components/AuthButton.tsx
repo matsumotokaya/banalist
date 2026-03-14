@@ -64,7 +64,7 @@ export const AuthButton = () => {
         </button>
 
         {isMenuOpen && (
-          <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-[80]">
+          <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-[80]">
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center gap-3">
                 {profile?.avatarUrl ? (

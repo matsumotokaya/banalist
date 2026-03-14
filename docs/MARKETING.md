@@ -384,8 +384,27 @@ WHERE email = '対象ユーザーのメール';
 
 ### フィード投稿キャプション（テンプレート）
 
+
+EPISODE 458
+Looks moody...☔
+
+By the way, I recently announced that I created a tool that allows anyone to easily generate WHATIF designs. Have you had a chance to try it?
+
+If you encounter any issues or bugs, please let me know.
+
+You can access it through the link in my profile.
+
+99% ready-made design kits: IMAGINE
+https://app.whatif-ep.xyz
+(Link in bio)
+
+#midjourney #nijijourney
+#aiart #aianime #anime #design
+#whatif #imagine
 ```
-EPISODE 428
+
+```
+EPISODE 457
 😇 or 😈
 
 By the way — it's been a while. How's everyone doing?
